@@ -9,8 +9,11 @@ using System.Threading.Tasks;
 
 namespace MartyrGraveManagement_DAL.UnitOfWorks.Interfaces
 {
-    public class IUnitOfWork
+    public interface IUnitOfWork : IDisposable
     {
         public IGenericRepository<Account> AccountRepository { get; }
+        Task SaveAsync();
+        Task<IDbContextTransaction> BeginTransactionAsync();
+
     }
 }

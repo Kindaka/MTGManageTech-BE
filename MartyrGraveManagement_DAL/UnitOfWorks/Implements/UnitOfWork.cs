@@ -23,6 +23,8 @@ namespace MartyrGraveManagement_DAL.UnitOfWorks.Implements
 
         public IGenericRepository<Account> AccountRepository => _accountRepository ??= new GenericRepository<Account>(_context);
 
+
+
         public async Task<IDbContextTransaction> BeginTransactionAsync()
         {
             return await _context.Database.BeginTransactionAsync();

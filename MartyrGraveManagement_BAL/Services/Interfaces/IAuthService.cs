@@ -13,6 +13,9 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
 
         Task<string> GenerateAccessToken(UserAuthenticatingDtoResponse account);
 
-        Task<bool> CreateAccountCustomer(UserRegisterDtoRequest request);
+        Task<bool> CreateAccountCustomer(UserRegisterDtoRequest newAccount);
+
+        Task<bool> GetAccountByEmail(string email);
+
     }
 }
