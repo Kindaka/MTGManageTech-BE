@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\MartyrGraveManagement_DAL\MartyrGraveManagement_DAL.csproj" />
+  </ItemGroup>
+
 </Project>
