@@ -1,9 +1,12 @@
 ﻿using MartyrGraveManagement_BAL.ModelViews.AccountDTOs;
 using MartyrGraveManagement_BAL.Services.Interfaces;
+using MartyrGraveManagement_DAL.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Win32;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace MartyrGraveManagement.Controllers
 {
@@ -17,6 +20,14 @@ namespace MartyrGraveManagement.Controllers
         {
             _authService = authService;
         }
+
+        /// <summary>
+        /// Authenticate users and generate tokens..
+        /// </summary>
+        /// <param name="loginInfo">The user's login information (email and password).</param>
+        /// <returns>
+        /// Returns an access token if the user is successfully authenticated, otherwise returns an error message.
+        /// </returns>
         [AllowAnonymous]
         [HttpPost("auth")]
         public async Task<IActionResult> Login([FromBody] UserAuthenticatingDtoRequest loginInfo)
@@ -47,6 +58,14 @@ namespace MartyrGraveManagement.Controllers
             }
         }
 
+
+        /// <summary>
+        /// Register customer account(Role Customer is 4 and in the DB must INSERT data first).
+        /// </summary>
+        /// <param name="newAccount">The new account information including email, password, and confirmation password.</param>
+        /// <returns>
+        /// Returns a success message if the account is successfully created, otherwise returns an error message.
+        /// </returns>
         [AllowAnonymous]
         [HttpPost("register-customer")]
         public async Task<IActionResult> Register([FromBody] UserRegisterDtoRequest newAccount)

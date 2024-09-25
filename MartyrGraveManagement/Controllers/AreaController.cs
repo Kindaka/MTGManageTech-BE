@@ -16,6 +16,10 @@ namespace MartyrGraveManagement.Controllers
             _areaService = areaService;
         }
 
+
+        /// <summary>
+        /// Create Area for Staff (Manager Role).
+        /// </summary>
         [HttpPost("create-area")]
         public async Task<IActionResult> CreateNewArea(AreaDtoRequest areaRequest)
         {
@@ -48,6 +52,9 @@ namespace MartyrGraveManagement.Controllers
             }
         }
 
+        /// <summary>
+        /// Get Area list.
+        /// </summary>
         [HttpGet("areas")]
         public async Task<IActionResult> GetAllArea()
         {
