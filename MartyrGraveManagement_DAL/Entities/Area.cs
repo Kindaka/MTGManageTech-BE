@@ -18,6 +18,6 @@ namespace MartyrGraveManagement_DAL.Entities
         public bool Status { get; set; }
 
         public IEnumerable<MartyrGrave>? MartyrGraves { get; set; }
-        public IEnumerable<Account>? Accounts { get; set; }
+        //public IEnumerable<Account>? Accounts { get; set; }
     }
 }

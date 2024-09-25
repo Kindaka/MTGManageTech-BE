@@ -23,6 +23,7 @@ builder.Services.AddAutoMapper(typeof(MappingProfile));
 // ??ng ký các d?ch v? c?a b?n
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IAreaService, AreaService>();
 
 var app = builder.Build();
 

@@ -59,7 +59,7 @@ namespace MartyrGraveManagement.Controllers
                 }
                 if (!await _authService.GetAccountByEmail(newAccount.EmailAddress))
                 {
-                    bool checkRegister = await _authService.CreateAccountCustomer(newAccount);
+                    bool checkRegister = await _authService.CreateAccount(newAccount);
                     if (checkRegister)
                     {
                         return Ok("Create success");

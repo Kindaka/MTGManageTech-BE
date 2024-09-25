@@ -78,7 +78,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
         }
 
-        public async Task<bool> CreateAccountCustomer(UserRegisterDtoRequest newAccount)
+        public async Task<bool> CreateAccount(UserRegisterDtoRequest newAccount)
         {
             try
             {
@@ -93,17 +93,44 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 // Hash mật khẩu
                 newAccount.Password = await HashPassword(newAccount.Password);
 
-                // Tạo tài khoản mới và set role là Customer (RoleId = 4)
-                var account = _mapper.Map<Account>(newAccount);
-                account.Status = true;
-                account.RoleId = 4;  // Đảm bảo RoleId hợp lệ (4 cho khách hàng)
-                account.AreaId = 1;  // Đảm bảo AreaId không bị null (hoặc thiết lập giá trị hợp lệ)
+                var existingRole = await _unitOfWork.RoleRepository.GetByIDAsync(newAccount.RoleId);
+                var existingArea = await _unitOfWork.AreaRepository.GetByIDAsync(newAccount.AreaId);
+                if (existingRole == null && existingArea == null)
+                {
+                    return false;
+                }
 
-                // Lưu tài khoản vào cơ sở dữ liệu
-                await _unitOfWork.AccountRepository.AddAsync(account);
-                await _unitOfWork.SaveAsync();
+                if (existingRole.RoleId == 3)
+                {
+                    if (newAccount.AreaId == null)
+                    {
+                        return false;
+                    }
+                }
 
-                return true; // Lưu thành công
+                if (newAccount.RoleId == 3)
+                {
+                    var account = _mapper.Map<Account>(newAccount);
+                    account.Status = true;
+
+                    // Lưu tài khoản vào cơ sở dữ liệu
+                    await _unitOfWork.AccountRepository.AddAsync(account);
+                    await _unitOfWork.SaveAsync();
+
+                    return true; // Lưu thành công
+                }
+                else
+                {
+                    var account = _mapper.Map<Account>(newAccount);
+                    account.Status = true;
+                    account.AreaId = null;
+
+                    // Lưu tài khoản vào cơ sở dữ liệu
+                    await _unitOfWork.AccountRepository.AddAsync(account);
+                    await _unitOfWork.SaveAsync();
+
+                    return true; // Lưu thành công
+                }
             }
             catch (Exception ex)
             {

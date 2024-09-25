@@ -14,7 +14,7 @@ namespace MartyrGraveManagement_DAL.Entities
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int AccountId { get; set; }
         public int RoleId { get; set; }
-        public int AreaId { get; set; }
+        public int? AreaId { get; set; }
         public string EmailAddress { get; set; }
         public string HashedPassword { get; set; }
         public string? FullName { get; set; }
@@ -25,7 +25,7 @@ namespace MartyrGraveManagement_DAL.Entities
         public bool Status { get; set; }
 
         public Role? Role { get; set; }
-        public Area? Area { get; set; }
+        //public Area? Area { get; set; }
         public IEnumerable<Order>? Orders { get; set; }
         public IEnumerable<Feedback>? Feedbacks { get; set; }
         public IEnumerable<WorkPerformance>? WorkPerformances { get; set; }

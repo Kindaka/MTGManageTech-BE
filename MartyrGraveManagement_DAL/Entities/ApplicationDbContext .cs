@@ -55,11 +55,6 @@ namespace MartyrGraveManagement_DAL.Entities
                 .WithMany(r => r.Accounts)
                 .HasForeignKey(a => a.RoleId)
                 .OnDelete(DeleteBehavior.Restrict);
-            modelBuilder.Entity<Account>()
-                .HasOne(a => a.Area)
-                .WithMany(ar => ar.Accounts)
-                .HasForeignKey(a => a.AreaId)
-                .OnDelete(DeleteBehavior.Restrict);
 
             // Role Configuration
             modelBuilder.Entity<Role>()

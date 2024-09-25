@@ -15,6 +15,8 @@ namespace MartyrGraveManagement_DAL.UnitOfWorks.Implements
     {
         private ApplicationDbContext _context;
         private GenericRepository<Account> _accountRepository;
+        private GenericRepository<Role> _roleRepository;
+        private GenericRepository<Area> _areaRepository;
 
         public UnitOfWork(ApplicationDbContext context)
         {
@@ -22,6 +24,8 @@ namespace MartyrGraveManagement_DAL.UnitOfWorks.Implements
         }
 
         public IGenericRepository<Account> AccountRepository => _accountRepository ??= new GenericRepository<Account>(_context);
+        public IGenericRepository<Role> RoleRepository => _roleRepository ??= new GenericRepository<Role>(_context);
+        public IGenericRepository<Area> AreaRepository => _areaRepository ??= new GenericRepository<Area>(_context);
 
 
 
