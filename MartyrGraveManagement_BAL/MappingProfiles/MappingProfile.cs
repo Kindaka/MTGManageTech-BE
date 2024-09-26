@@ -3,6 +3,9 @@ using MartyrGraveManagement_BAL.ModelViews.AccountDTOs;
 using MartyrGraveManagement_BAL.ModelViews.AreaDTOs;
 using MartyrGraveManagement_BAL.ModelViews.MartyrGraveDTOs;
 using MartyrGraveManagement_BAL.ModelViews.MartyrGraveInformationDTOs;
+using MartyrGraveManagement_BAL.ModelViews.ServiceCategoryDTOs;
+using MartyrGraveManagement_BAL.ModelViews.ServiceDTOs;
+using MartyrGraveManagement_BAL.Services.Implements;
 using MartyrGraveManagement_DAL.Entities;
 using System;
 using System.Collections.Generic;
@@ -33,6 +36,13 @@ namespace MartyrGraveManagement_BAL.MappingProfiles
             // MartyrGraveInformation mappings
             CreateMap<MartyrGraveInformation, MartyrGraveInformationDtoRequest>().ReverseMap();
             CreateMap<MartyrGraveInformation, MartyrGraveInformationDtoResponse>().ReverseMap();
+
+            //ServiceCategory mappings
+            CreateMap<ServiceCategory, ServiceCategoryDto>().ReverseMap();
+            CreateMap<ServiceCategory, ServiceCategoryDtoResponse>().ReverseMap();
+
+            CreateMap<Service, ServiceDtoRequest>().ReverseMap();
+            CreateMap<Service, ServiceDtoResponse>().ReverseMap();
         }
     }
 }

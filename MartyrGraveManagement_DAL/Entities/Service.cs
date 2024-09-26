@@ -16,9 +16,6 @@ namespace MartyrGraveManagement_DAL.Entities
         public int CategoryId { get; set; }
         public string ServiceName { get; set; }
         public string? Description { get; set; }
-        public DateTime StartDate { get; set; }
-        public DateTime EndDate { get; set; }
-        public DateTime Duration { get; set; }
         public double Price { get; set; }
         public bool Status { get; set; }
 

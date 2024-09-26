@@ -19,6 +19,8 @@ namespace MartyrGraveManagement_DAL.UnitOfWorks.Implements
         private GenericRepository<Area> _areaRepository;
         private GenericRepository<MartyrGrave> _martyrGraveRepository;
         private GenericRepository<MartyrGraveInformation> _martyrGraveInformationRepository;
+        private GenericRepository<ServiceCategory> _serviceCategoryRepository;
+        private GenericRepository<Service> _serviceRepository;
 
         public UnitOfWork(ApplicationDbContext context)
         {
@@ -30,6 +32,8 @@ namespace MartyrGraveManagement_DAL.UnitOfWorks.Implements
         public IGenericRepository<Area> AreaRepository => _areaRepository ??= new GenericRepository<Area>(_context);
         public IGenericRepository<MartyrGrave> MartyrGraveRepository => _martyrGraveRepository ??= new GenericRepository<MartyrGrave>(_context);
         public IGenericRepository<MartyrGraveInformation> MartyrGraveInformationRepository => _martyrGraveInformationRepository ??= new GenericRepository<MartyrGraveInformation>(_context);
+        public IGenericRepository<ServiceCategory> ServiceCategoryRepository => _serviceCategoryRepository ??= new GenericRepository<ServiceCategory>(_context);
+        public IGenericRepository<Service> ServiceRepository => _serviceRepository ??= new GenericRepository<Service>(_context);
 
 
 

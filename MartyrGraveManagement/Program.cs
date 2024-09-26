@@ -32,6 +32,8 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IAreaService, AreaService>();
 builder.Services.AddScoped<IMartyrGraveService, MartyrGraveService>();
 builder.Services.AddScoped<IMartyrGraveInformationService, MartyrGraveInformationService>();
+builder.Services.AddScoped<IServiceCategory_Service, ServiceCategory_Service>();
+builder.Services.AddScoped<IGraveService_Service, GraveService_Service>();
 
 
 var app = builder.Build();
