@@ -6,6 +6,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MartyrGraveManagement_DAL.Entities;
+using MartyrGraveManagement_BAL.Services.Implements;
+using MartyrGraveManagement_BAL.Services.Interfaces;
+using MartyrGraveManagement_BAL.ModelViews.CartItemsDTOs;
 
 namespace MartyrGraveManagement.Controllers
 {
@@ -13,32 +16,33 @@ namespace MartyrGraveManagement.Controllers
     [ApiController]
     public class CartItemsController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
+        private readonly CartItemsService _cartItemsService;
 
-        public CartItemsController(ApplicationDbContext context)
+        public CartItemsController(CartItemsService cartItemsService)
         {
-            _context = context;
+            _cartItemsService = cartItemsService;
         }
 
         // GET: api/CartItems
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<CartItem>>> GetCartItems()
+        public async Task<ActionResult<IEnumerable<CartItemsDTOResponse>>> GetCartItems()
         {
-            return await _context.CartItems.ToListAsync();
+            var cartItems = await _cartItemsService.GetAllCartItems();
+            return Ok(cartItems);
         }
 
         // GET: api/CartItems/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<CartItem>> GetCartItem(int id)
+        public async Task<ActionResult<CartItemsDTOResponse>> GetCartItem(int id)
         {
-            var cartItem = await _context.CartItems.FindAsync(id);
+            var cartItem = await _cartItemsService.GetAllCartItemById(id);
 
             if (cartItem == null)
             {
                 return NotFound();
             }
 
-            return cartItem;
+            return Ok(cartItem);
         }
 
         // PUT: api/CartItems/5
@@ -75,12 +79,17 @@ namespace MartyrGraveManagement.Controllers
         // POST: api/CartItems
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<CartItem>> PostCartItem(CartItem cartItem)
+        public async Task<ActionResult<CartItemsDTOResponse>> CreateCartItems(CartItemsDTORequest cartItemDTO)
         {
-            _context.CartItems.Add(cartItem);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetCartItem", new { id = cartItem.CartId }, cartItem);
+            try
+            {
+                var createCartItem = await _cartItemsService.CreateCartItemsAsync(cartItemDTO);
+                return CreatedAtAction(nameof(GetCartItem), new { id = createCartItem.CartId }, createCartItem);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
         }
 
         // DELETE: api/CartItems/5
