@@ -48,32 +48,29 @@ namespace MartyrGraveManagement.Controllers
         // PUT: api/CartItems/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutCartItem(int id, CartItem cartItem)
+        public async Task<IActionResult> UpdateCartItem(int id, CartItemsDTORequest cartItemDTO)
         {
-            if (id != cartItem.CartId)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(cartItem).State = EntityState.Modified;
-
             try
             {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!CartItemExists(id))
+                var updateCartItem = await _cartItemsService.UpdateCartItemsAsync(id, cartItemDTO);
+
+          
+                if (updateCartItem == null)
                 {
                     return NotFound();
                 }
-                else
-                {
-                    throw;
-                }
-            }
 
-            return NoContent();
+                return Ok("Update Successfully");
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                
+                return StatusCode(500, new { message = "An unexpected error occurred.", details = ex.Message });
+            }
         }
 
         // POST: api/CartItems
@@ -96,21 +93,15 @@ namespace MartyrGraveManagement.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCartItem(int id)
         {
-            var cartItem = await _context.CartItems.FindAsync(id);
-            if (cartItem == null)
+            var deleted = await _cartItemsService.DeleteCartItemsAsync(id);
+            if (!deleted)
             {
                 return NotFound();
             }
 
-            _context.CartItems.Remove(cartItem);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            return Ok("Delete Successfully");
         }
 
-        private bool CartItemExists(int id)
-        {
-            return _context.CartItems.Any(e => e.CartId == id);
-        }
+      
     }
 }
