@@ -41,6 +41,16 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             {
                 throw new KeyNotFoundException("AccountID does not exist.");
             }
+            var service = await _unitOfWork.AreaRepository.GetByIDAsync(cartItemsDTO.ServiceId);
+            if (service == null)
+            {
+                throw new KeyNotFoundException("ServiceID does not exist.");
+            }
+            var martyr = await _unitOfWork.AreaRepository.GetByIDAsync(cartItemsDTO.MartyrId);
+            if (martyr == null)
+            {
+                throw new KeyNotFoundException("MartyrID does not exist.");
+            }
 
             // Tạo thực thể từ DTO
             var cart = _mapper.Map<CartItem>(cartItemsDTO);
@@ -61,6 +71,18 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             {
                 throw new KeyNotFoundException("AccountID does not exist.");
             }
+            var service = await _unitOfWork.AreaRepository.GetByIDAsync(cartItemsDTO.ServiceId);
+            if (service == null)
+            {
+                throw new KeyNotFoundException("ServiceID does not exist.");
+            }
+            var martyr = await _unitOfWork.AreaRepository.GetByIDAsync(cartItemsDTO.MartyrId);
+            if (martyr == null)
+            {
+                throw new KeyNotFoundException("MartyrID does not exist.");
+            }
+
+
 
             var cart = await _unitOfWork.MartyrGraveRepository.GetByIDAsync(id);
             if (cart == null)

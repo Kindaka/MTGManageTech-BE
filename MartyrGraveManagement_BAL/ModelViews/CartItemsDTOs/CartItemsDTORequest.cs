@@ -12,5 +12,11 @@ namespace MartyrGraveManagement_BAL.ModelViews.CartItemsDTOs
         [Required(ErrorMessage = "Account ID is required.")]
         public int AccountId { get; set; }
 
+        [Required(ErrorMessage = "Service ID is required.")]
+        public int ServiceId { get; set; }
+
+        [Required(ErrorMessage = "Martyr ID is required.")]
+        public int MartyrId { get; set; }
+
     }
 }
