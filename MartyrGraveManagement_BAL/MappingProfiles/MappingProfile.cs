@@ -2,10 +2,12 @@
 using MartyrGraveManagement_BAL.ModelViews.AccountDTOs;
 using MartyrGraveManagement_BAL.ModelViews.AreaDTOs;
 using MartyrGraveManagement_BAL.ModelViews.CartItemsDTOs;
+using MartyrGraveManagement_BAL.ModelViews.JobDTOs;
 using MartyrGraveManagement_BAL.ModelViews.MartyrGraveDTOs;
 using MartyrGraveManagement_BAL.ModelViews.MartyrGraveInformationDTOs;
 using MartyrGraveManagement_BAL.ModelViews.ServiceCategoryDTOs;
 using MartyrGraveManagement_BAL.ModelViews.ServiceDTOs;
+using MartyrGraveManagement_BAL.ModelViews.TaskDTOs;
 using MartyrGraveManagement_BAL.Services.Implements;
 using MartyrGraveManagement_DAL.Entities;
 using System;
@@ -48,6 +50,14 @@ namespace MartyrGraveManagement_BAL.MappingProfiles
             //Cart mappings
             CreateMap<CartItem, CartItemsDTORequest>().ReverseMap();
             CreateMap<CartItem, CartItemsDTOResponse>().ReverseMap();
+
+            // Task mapping
+            CreateMap<StaffTask, TaskDtoRequest>().ReverseMap();
+            CreateMap<StaffTask, TaskDtoResponse>().ReverseMap();
+
+            // Job Mapping
+            CreateMap<StaffJob, JobDtoRequest>().ReverseMap();
+            CreateMap<StaffJob, JobDtoResponse>().ReverseMap();
 
         }
     }

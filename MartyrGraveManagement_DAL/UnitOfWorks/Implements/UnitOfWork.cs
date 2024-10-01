@@ -22,6 +22,8 @@ namespace MartyrGraveManagement_DAL.UnitOfWorks.Implements
         private GenericRepository<ServiceCategory> _serviceCategoryRepository;
         private GenericRepository<Service> _serviceRepository;
         private GenericRepository<CartItem> _cartItemRepository;
+        private GenericRepository<StaffTask> _taskRepository;
+        private GenericRepository<StaffJob> _jobRepository;
 
         public UnitOfWork(ApplicationDbContext context)
         {
@@ -37,6 +39,8 @@ namespace MartyrGraveManagement_DAL.UnitOfWorks.Implements
         public IGenericRepository<Service> ServiceRepository => _serviceRepository ??= new GenericRepository<Service>(_context);
 
         public IGenericRepository<CartItem> CartItemRepository => _cartItemRepository ??= new GenericRepository<CartItem>(_context);
+        public IGenericRepository<StaffTask> TaskRepository => _taskRepository ??= new GenericRepository<StaffTask>(_context);
+        public IGenericRepository<StaffJob> JobRepository => _jobRepository ??= new GenericRepository<StaffJob>(_context);
 
         public async Task<IDbContextTransaction> BeginTransactionAsync()
         {
