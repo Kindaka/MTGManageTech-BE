@@ -16,9 +16,9 @@ namespace MartyrGraveManagement.Controllers
     [ApiController]
     public class CartItemsController : ControllerBase
     {
-        private readonly CartItemsService _cartItemsService;
+        private readonly ICartService _cartItemsService;
 
-        public CartItemsController(CartItemsService cartItemsService)
+        public CartItemsController(ICartService cartItemsService)
         {
             _cartItemsService = cartItemsService;
         }

@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using MartyrGraveManagement_BAL.ModelViews.CartItemsDTOs;
 using MartyrGraveManagement_BAL.ModelViews.MartyrGraveDTOs;
+using MartyrGraveManagement_BAL.Services.Interfaces;
 using MartyrGraveManagement_DAL.Entities;
 using MartyrGraveManagement_DAL.UnitOfWorks.Interfaces;
 using System;
@@ -11,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace MartyrGraveManagement_BAL.Services.Implements
 {
-    public class CartItemsService
+    public class CartItemsService : ICartService
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
