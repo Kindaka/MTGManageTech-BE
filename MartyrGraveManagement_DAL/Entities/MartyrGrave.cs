@@ -15,6 +15,7 @@ namespace MartyrGraveManagement_DAL.Entities
         public int MartyrId { get; set; }
         public int AreaId { get; set; }
         public string MartyrCode { get; set; }
+        public string? CustomerCode { get; set; }
         public int RowNumber { get; set; }
         public int MartyrNumber { get; set; }
         public int AreaNumber { get; set; }

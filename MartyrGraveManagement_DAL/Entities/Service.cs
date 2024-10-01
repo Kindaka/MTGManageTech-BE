@@ -16,6 +16,7 @@ namespace MartyrGraveManagement_DAL.Entities
         public int CategoryId { get; set; }
         public string ServiceName { get; set; }
         public string? Description { get; set; }
+        public string? ImagePath { get; set; }
         public double Price { get; set; }
         public bool Status { get; set; }
 
@@ -23,5 +24,4 @@ namespace MartyrGraveManagement_DAL.Entities
         public IEnumerable<OrderDetail>? OrderDetails { get; set; }
         public IEnumerable<CartItem>? CartItems { get; set; }
     }
-
 }
