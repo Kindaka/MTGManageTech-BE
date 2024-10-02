@@ -120,12 +120,22 @@ namespace MartyrGraveManagement_BAL.Services.Implements
         }
 
 
-        public async Task<List<MartyrGraveGetAllDtoResponse>> GetAllMartyrGravesForManagerAsync()
+        public async Task<(List<MartyrGraveGetAllDtoResponse> response, int totalPage)> GetAllMartyrGravesForManagerAsync(int page, int pageSize)
         {
             try
             {
-                // Lấy toàn bộ dữ liệu từ MartyrGrave bao gồm MartyrGraveInformations và Account
-                var martyrGraves = await _unitOfWork.MartyrGraveRepository.GetAllAsync(includeProperties: "MartyrGraveInformations");
+                // Tính tổng số mộ liệt sĩ
+                var totalMartyrGraves = await _unitOfWork.MartyrGraveRepository.CountAsync();
+
+                // Tính toán tổng số trang
+                var totalPage = (int)Math.Ceiling(totalMartyrGraves / (double)pageSize);
+
+                // Lấy dữ liệu mộ liệt sĩ với phân trang
+                var martyrGraves = await _unitOfWork.MartyrGraveRepository.GetAsync(
+                    includeProperties: "MartyrGraveInformations",
+                    pageIndex: page,
+                    pageSize: pageSize
+                );
 
                 // Khởi tạo danh sách kết quả
                 List<MartyrGraveGetAllDtoResponse> martyrGraveList = new List<MartyrGraveGetAllDtoResponse>();
@@ -152,7 +162,8 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     }
                 }
 
-                return martyrGraveList; // Trả về danh sách các MartyrGrave đã được định dạng
+                // Trả về danh sách và tổng số trang
+                return (martyrGraveList, totalPage);
             }
             catch (Exception ex)
             {
@@ -160,6 +171,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 throw new Exception($"Error in fetching martyr graves: {ex.Message}", ex);
             }
         }
+
 
         public async Task<(bool status, string result, string? accountName, string? password)> CreateMartyrGraveAsyncV2(MartyrGraveDtoRequest martyrGraveDto)
         {

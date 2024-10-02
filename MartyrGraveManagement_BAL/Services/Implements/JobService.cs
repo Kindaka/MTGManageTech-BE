@@ -25,14 +25,42 @@ namespace MartyrGraveManagement_BAL.Services.Implements
         public async Task<IEnumerable<JobDtoResponse>> GetAllJobsAsync()
         {
             var jobs = await _unitOfWork.JobRepository.GetAllAsync();
-            return _mapper.Map<IEnumerable<JobDtoResponse>>(jobs);
+
+            // Khởi tạo danh sách JobDtoResponse với FullName từ Account
+            var jobDtoResponses = new List<JobDtoResponse>();
+
+            foreach (var job in jobs)
+            {
+                // Lấy thông tin Account để lấy FullName
+                var account = await _unitOfWork.AccountRepository.GetByIDAsync(job.AccountId);
+
+                var jobResponse = _mapper.Map<JobDtoResponse>(job);
+                jobResponse.FullName = account?.FullName;  // Lấy tên người liên quan
+
+                jobDtoResponses.Add(jobResponse);
+            }
+
+            return jobDtoResponses;
         }
+
 
         public async Task<JobDtoResponse> GetJobByIdAsync(int jobId)
         {
             var job = await _unitOfWork.JobRepository.GetByIDAsync(jobId);
-            return job == null ? null : _mapper.Map<JobDtoResponse>(job);
+            if (job == null)
+            {
+                return null;
+            }
+
+            // Lấy thông tin Account để lấy FullName
+            var account = await _unitOfWork.AccountRepository.GetByIDAsync(job.AccountId);
+
+            var jobResponse = _mapper.Map<JobDtoResponse>(job);
+            jobResponse.FullName = account?.FullName;  // Lấy tên người liên quan
+
+            return jobResponse;
         }
+
 
         public async Task<JobDtoResponse> CreateJobAsync(JobDtoRequest newJob)
         {

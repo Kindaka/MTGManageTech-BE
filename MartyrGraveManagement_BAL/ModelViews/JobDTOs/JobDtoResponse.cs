@@ -10,6 +10,7 @@ namespace MartyrGraveManagement_BAL.ModelViews.JobDTOs
     {
         public int JobId { get; set; }
         public int AccountId { get; set; }
+        public string FullName { get; set; }
         public string NameOfWork { get; set; }
         public int TypeOfWork { get; set; }
         public DateTime StartDate { get; set; }

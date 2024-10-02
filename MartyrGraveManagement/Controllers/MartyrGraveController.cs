@@ -132,23 +132,38 @@ namespace MartyrGraveManagement.Controllers
 
 
         /// <summary>
-        /// Retrieves all martyr graves with associated information.
+        /// Retrieves all martyr graves with associated information for management with paging support.
         /// </summary>
+        /// <param name="page">The current page number (default is 1)</param>
+        /// <param name="pageSize">The number of items per page (default is 10)</param>
         /// <returns>A list of martyr graves with additional information like name, location, etc.</returns>
-        /// <response code="200">Returns a list of martyr graves</response>
+        /// <response code="200">Returns a list of martyr graves with total pages for paging</response>
         /// <response code="500">If there was an internal server error</response>
         [HttpGet("GetAllForManager")]
-        public async Task<ActionResult<IEnumerable<MartyrGraveGetAllDtoResponse>>> GetAllMartyrGraves()
+        public async Task<IActionResult> GetAllMartyrGraves([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             try
             {
-                var graves = await _martyrGraveService.GetAllMartyrGravesForManagerAsync();
-                return Ok(graves);
+                // Gọi phương thức từ service để lấy danh sách mộ liệt sĩ có phân trang
+                var graves = await _martyrGraveService.GetAllMartyrGravesForManagerAsync(page, pageSize);
+
+                // Kiểm tra nếu dữ liệu không rỗng và trả về kết quả
+                if (graves.response != null && graves.response.Any())
+                {
+                    return Ok(new { martyrGraveList = graves.response, totalPage = graves.totalPage });
+                }
+                else
+                {
+                    return NotFound("No martyr graves available");
+                }
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+
+
+
     }
 }
