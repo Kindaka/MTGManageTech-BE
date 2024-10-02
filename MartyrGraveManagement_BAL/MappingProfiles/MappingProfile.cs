@@ -24,7 +24,7 @@ namespace MartyrGraveManagement_BAL.MappingProfiles
         {
             // Account mappings
             CreateMap<UserRegisterDtoRequest, Account>()
-               .ForMember(dest => dest.EmailAddress, opt => opt.MapFrom(src => src.EmailAddress))
+               .ForMember(dest => dest.AccountName, opt => opt.MapFrom(src => src.AccountName))
                .ForMember(dest => dest.HashedPassword, opt => opt.MapFrom(src => src.Password));
 
             CreateMap<UserAuthenticatingDtoResponse, Account>();

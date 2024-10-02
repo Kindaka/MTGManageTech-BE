@@ -47,6 +47,38 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
         }
 
+        public async Task<(bool status, string result)> ChangeStatus(int serviceId)
+        {
+            try
+            {
+                var service = await _unitOfWork.ServiceRepository.GetByIDAsync(serviceId);
+                if (service != null)
+                {
+                    if (service.Status == true)
+                    {
+                        service.Status = false;
+                        await _unitOfWork.ServiceRepository.UpdateAsync(service);
+                        await _unitOfWork.SaveAsync();
+                        return (true, "Cập nhật thành công");
+                    }
+                    else
+                    {
+                        service.Status = true;
+                        await _unitOfWork.ServiceRepository.UpdateAsync(service);
+                        await _unitOfWork.SaveAsync();
+                        return (true, "Cập nhật thành công");
+                    }
+                }
+                else
+                {
+                    return (false, "Không tìm thấy dịch vụ");
+                }
+            }
+            catch (Exception ex) {
+                throw new Exception(ex.Message);
+            }
+        }
+
         public async Task<List<ServiceDtoResponse>> GetAllServices()
         {
             try

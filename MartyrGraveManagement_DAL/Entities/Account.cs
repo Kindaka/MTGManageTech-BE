@@ -18,7 +18,7 @@ namespace MartyrGraveManagement_DAL.Entities
         public int? AreaId { get; set; }
         public string AccountName { get; set; } // để login
         public string HashedPassword { get; set; }
-        public string EmailAddress { get; set; } // để gửi WeeklyReport qua mail không dùng đề login
+        public string? EmailAddress { get; set; } // để gửi WeeklyReport qua mail không dùng đề login
         public string? FullName { get; set; }
         public DateTime? DateOfBirth { get; set; }
         public string? PhoneNumber { get; set; }

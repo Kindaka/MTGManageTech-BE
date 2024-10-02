@@ -72,11 +72,15 @@ namespace MartyrGraveManagement.Controllers
         {
             try
             {
+                if(newAccount.RoleId == 4)
+                {
+                    return BadRequest("Role của bạn không có quyền");
+                }
                 if (!newAccount.Password.Equals(newAccount.ConfirmPassword))
                 {
                     return BadRequest("Not matching password");
                 }
-                if (!await _authService.GetAccountByEmail(newAccount.EmailAddress))
+                if (!await _authService.GetAccountByAccountName(newAccount.AccountName))
                 {
                     bool checkRegister = await _authService.CreateAccount(newAccount);
                     if (checkRegister)
@@ -90,7 +94,7 @@ namespace MartyrGraveManagement.Controllers
                 }
                 else
                 {
-                    return BadRequest("Existed email");
+                    return BadRequest("Existed accountName");
                 }
             }
             catch (Exception ex)

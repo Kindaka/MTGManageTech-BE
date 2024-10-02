@@ -13,5 +13,6 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
         Task<(bool status, string result)> AddService(ServiceDtoRequest service);
         Task<(bool status, string result)> UpdateService(ServiceDtoRequest service, int serviceId);
         Task<List<ServiceDtoResponse>> GetAllServices();
+        Task<(bool status, string result)> ChangeStatus(int serviceId);
     }
 }

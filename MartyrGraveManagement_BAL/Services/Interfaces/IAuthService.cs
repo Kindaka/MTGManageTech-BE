@@ -15,7 +15,7 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
 
         Task<bool> CreateAccount(UserRegisterDtoRequest newAccount);
 
-        Task<bool> GetAccountByEmail(string email);
+        Task<bool> GetAccountByAccountName(string accountName);
 
     }
 }

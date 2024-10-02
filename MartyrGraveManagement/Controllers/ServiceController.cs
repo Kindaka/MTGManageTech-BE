@@ -95,5 +95,26 @@ namespace MartyrGraveManagement.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+
+        [HttpPut("status-service")]
+        public async Task<IActionResult> UpdateStatusService(int serviceId)
+        {
+            try
+            {
+                var check = await _service.ChangeStatus(serviceId);
+                if (check.status)
+                {
+                    return Ok(check.result);
+                }
+                else
+                {
+                    return BadRequest(check.result);
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
     }
 }
