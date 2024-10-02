@@ -15,5 +15,7 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
         Task<MartyrGraveDtoResponse> CreateMartyrGraveAsync(MartyrGraveDtoRequest martyrGraveDto);
         Task<MartyrGraveDtoResponse> UpdateMartyrGraveAsync(int id, MartyrGraveDtoRequest martyrGraveDto);
         Task<bool> DeleteMartyrGraveAsync(int id);
+        Task<List<MartyrGraveGetAllDtoResponse>> GetAllMartyrGravesForManagerAsync();
+
     }
 }

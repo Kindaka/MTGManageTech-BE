@@ -103,5 +103,26 @@ namespace MartyrGraveManagement.Controllers
 
             return Ok("Delete Successfully");
         }
+
+
+        /// <summary>
+        /// Retrieves all martyr graves with associated information.
+        /// </summary>
+        /// <returns>A list of martyr graves with additional information like name, location, etc.</returns>
+        /// <response code="200">Returns a list of martyr graves</response>
+        /// <response code="500">If there was an internal server error</response>
+        [HttpGet("GetAllForManager")]
+        public async Task<ActionResult<IEnumerable<MartyrGraveGetAllDtoResponse>>> GetAllMartyrGraves()
+        {
+            try
+            {
+                var graves = await _martyrGraveService.GetAllMartyrGravesForManagerAsync();
+                return Ok(graves);
+            }
+            catch (System.Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
     }
 }

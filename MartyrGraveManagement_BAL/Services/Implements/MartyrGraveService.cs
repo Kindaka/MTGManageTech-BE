@@ -5,6 +5,8 @@ using MartyrGraveManagement_DAL.UnitOfWorks.Interfaces;
 using AutoMapper;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using System.Net.WebSockets;
 
 namespace MartyrGraveManagement_BAL.Services.Implements
 {
@@ -102,5 +104,49 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             await _unitOfWork.SaveAsync();
             return true;
         }
+
+
+        public async Task<List<MartyrGraveGetAllDtoResponse>> GetAllMartyrGravesForManagerAsync()
+        {
+            try
+            {
+                // Lấy toàn bộ dữ liệu từ MartyrGrave bao gồm MartyrGraveInformations và Account
+                var martyrGraves = await _unitOfWork.MartyrGraveRepository.GetAllAsync(includeProperties: "MartyrGraveInformations");
+
+                // Khởi tạo danh sách kết quả
+                List<MartyrGraveGetAllDtoResponse> martyrGraveList = new List<MartyrGraveGetAllDtoResponse>();
+
+                // Duyệt qua tất cả các MartyrGrave đã lấy
+                foreach (var m in martyrGraves)
+                {
+                    // Tìm Account dựa trên CustomerCode (Account có thể là người thân)
+                    var customer = (await _unitOfWork.AccountRepository.FindAsync(a => a.CustomerCode == m.CustomerCode)).FirstOrDefault();
+
+                    // Nếu tìm thấy Account thì thêm vào danh sách kết quả
+                    if (customer != null)
+                    {
+                        var mapping = new MartyrGraveGetAllDtoResponse
+                        {
+                            Code = m.MartyrCode,
+                            Name = m.MartyrGraveInformations.FirstOrDefault()?.Name, // Lấy tên từ MartyrGraveInformation
+                            Location = $"{m.AreaNumber}-{m.RowNumber}-{m.MartyrNumber}", // Định dạng vị trí
+                            RelativeName = customer.FullName, // Lấy tên người thân từ Account
+                            RelativePhone = customer.PhoneNumber, // Lấy số điện thoại người thân từ Account
+                            Status = m.Status // Lấy trạng thái của MartyrGrave
+                        };
+                        martyrGraveList.Add(mapping); // Thêm kết quả vào danh sách
+                    }
+                }
+
+                return martyrGraveList; // Trả về danh sách các MartyrGrave đã được định dạng
+            }
+            catch (Exception ex)
+            {
+                // Ghi lại lỗi hoặc ném ngoại lệ lên phía trên để xử lý thêm
+                throw new Exception($"Error in fetching martyr graves: {ex.Message}", ex);
+            }
+        }
+
+
     }
 }
