@@ -37,6 +37,7 @@ builder.Services.AddScoped<IGraveService_Service, GraveService_Service>();
 builder.Services.AddScoped<ICartService, CartItemsService>();
 builder.Services.AddScoped<ITaskService, TaskService>();
 builder.Services.AddScoped<IJobService, JobService>();
+builder.Services.AddScoped<ICustomerService, CustomerService>();
 
 
 var app = builder.Build();
