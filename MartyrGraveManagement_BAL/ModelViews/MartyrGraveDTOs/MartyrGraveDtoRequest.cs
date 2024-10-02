@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MartyrGraveManagement_BAL.ModelViews.MartyrGraveInformationDTOs;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -22,7 +23,17 @@ namespace MartyrGraveManagement_BAL.ModelViews.MartyrGraveDTOs
         [Range(1, int.MaxValue, ErrorMessage = "AreaNumber must be a positive number.")]
         public int AreaNumber { get; set; }
 
-        public bool Status { get; set; }
+        [StringLength(50, ErrorMessage = "Username must be between 0 and 50 characters.")]
+        public string UserName { get; set; } = null!;
+
+
+        [StringLength(10, ErrorMessage = "Phone must be between 0 and 10 characters.")]
+        public string Phone { get; set; }
+        [StringLength(250, ErrorMessage = "Address must be between 0 and 64 characters.")]
+        public string Address { get; set; }
+        public DateTime Dob { get; set; }
+
+        public List<MartyrGraveInformationDtoRequest> Informations { get; set; } = new List<MartyrGraveInformationDtoRequest>();
 
     }
 }

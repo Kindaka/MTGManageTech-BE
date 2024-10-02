@@ -64,6 +64,32 @@ namespace MartyrGraveManagement.Controllers
         }
 
         /// <summary>
+        /// Creates a new martyr grave version 2.
+        /// </summary>
+        /// <param name="martyrGraveDto">The details of the martyr grave to create.</param>
+        /// <returns>Returns no content if the create is successful.</returns>
+        [HttpPost("create-grave-v2")]
+        public async Task<ActionResult<MartyrGraveDtoResponse>> CreateMartyrGraveV2(MartyrGraveDtoRequest martyrGraveDto)
+        {
+            try
+            {
+                var createGrave = await _martyrGraveService.CreateMartyrGraveAsyncV2(martyrGraveDto);
+                if(createGrave.status)
+                {
+                    return Ok(new { result = createGrave.result, accountName = createGrave.accountName, password = createGrave.password});
+                }
+                else
+                {
+                    return BadRequest($"{createGrave.result}");
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        /// <summary>
         /// Updates a martyr grave with the specified ID.
         /// </summary>
         /// <param name="id">The ID of the martyr grave to update.</param>
