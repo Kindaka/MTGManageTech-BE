@@ -35,5 +35,8 @@ namespace MartyrGraveManagement_BAL.ModelViews.MartyrGraveDTOs
 
         public List<MartyrGraveInformationDtoRequest> Informations { get; set; } = new List<MartyrGraveInformationDtoRequest>();
 
+        public List<GraveImageDtoRequest> Image { get; set; } = new List<GraveImageDtoRequest>();
+
+
     }
 }

@@ -163,6 +163,37 @@ namespace MartyrGraveManagement.Controllers
             }
         }
 
+        /// <summary>
+        /// Updates a martyr grave with the specified ID (Version 2).
+        /// </summary>
+        /// <param name="id">The ID of the martyr grave to update.</param>
+        /// <param name="martyrGraveDto">The updated details of the martyr grave.</param>
+        /// <returns>Returns no content if the update is successful.</returns>
+        [HttpPut("update-grave-v2/{id}")]
+        public async Task<IActionResult> UpdateMartyrGraveV2(int id, MartyrGraveDtoRequest martyrGraveDto)
+        {
+            try
+            {
+                var updateGraveResult = await _martyrGraveService.UpdateMartyrGraveAsyncV2(id, martyrGraveDto);
+
+                if (updateGraveResult.status)
+                {
+                    return Ok(new { result = updateGraveResult.result });
+                }
+                else
+                {
+                    return BadRequest(new { message = updateGraveResult.result });
+                }
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
 
 
     }
