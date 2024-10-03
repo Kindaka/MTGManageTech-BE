@@ -22,6 +22,7 @@ namespace MartyrGraveManagement_DAL.Entities
         public bool Status { get; set; }
 
         public Area? Area { get; set; }
+        public IEnumerable<GraveImage>? GraveImages { get; set; }
         public IEnumerable<OrderDetail>? OrderDetails { get; set; }
         public IEnumerable<MartyrGraveInformation>? MartyrGraveInformations { get; set; }
         public IEnumerable<WeeklyReportGrave>? WeeklyReportGraves { get; set; }
