@@ -1,6 +1,7 @@
 ﻿using MartyrGraveManagement_BAL.ModelViews.CustomerDTOs;
 using MartyrGraveManagement_BAL.Services.Implements;
 using MartyrGraveManagement_BAL.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,6 +19,7 @@ namespace MartyrGraveManagement.Controllers
             _authService = authService;
         }
 
+        [Authorize(Policy = "RequireCustomerRole")]
         [HttpPut("change-password-customer")]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordCustomerRequest account)
         {
