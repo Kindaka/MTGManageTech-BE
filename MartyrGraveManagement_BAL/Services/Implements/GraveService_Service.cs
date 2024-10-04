@@ -24,26 +24,91 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
         public async Task<(bool status, string result)> AddService(ServiceDtoRequest service)
         {
+            using (var transaction = await _unitOfWork.BeginTransactionAsync())
+            {
+                try
+                {
+                    var existedCategory = await _unitOfWork.ServiceCategoryRepository.GetByIDAsync(service.CategoryId);
+                    if (existedCategory != null)
+                    {
+                        double totalPrice = 0;
+                        var newService = new Service
+                        {
+                            CategoryId = service.CategoryId,
+                            ServiceName = service.ServiceName,
+                            Description = service.Description,
+                            ImagePath = service.ImagePath,
+                            Price = 0,
+                            Status = true
+                        };
+                        await _unitOfWork.ServiceRepository.AddAsync(newService);
+                        await _unitOfWork.SaveAsync();
+                        if (service.Materials.Any())
+                        {
+                            foreach (var material in service.Materials)
+                            {
+                                var insertMaterial = new Material
+                                {
+                                    ServiceId = newService.ServiceId,
+                                    MaterialName = material.MaterialName,
+                                    Description = material.Description,
+                                    Price = material.Price
+                                };
+                                await _unitOfWork.MaterialRepository.AddAsync(insertMaterial);
+                                await _unitOfWork.SaveAsync();
+                                totalPrice += material.Price;
+                            }
+                        }
+                        newService.Price = totalPrice + (totalPrice * 0.05);
+                        await _unitOfWork.ServiceRepository.UpdateAsync(newService);
+                        await _unitOfWork.SaveAsync();
+                        await transaction.CommitAsync();
+                        return (true, "Add successfully");
+                    }
+                    else
+                    {
+                        return (false, "Category not found");
+                    }
+
+
+                }
+                catch (Exception ex) 
+                {
+                    await transaction.RollbackAsync();
+                    throw new Exception(ex.Message);
+                }
+            }
+        }
+
+        public async Task<(bool status, string result)> ChangeStatus(int serviceId)
+        {
             try
             {
-                var existedCategory = await _unitOfWork.ServiceCategoryRepository.GetByIDAsync(service.CategoryId);
-                if (existedCategory != null)
+                var service = await _unitOfWork.ServiceRepository.GetByIDAsync(serviceId);
+                if (service != null)
                 {
-                    var newService = _mapper.Map<Service>(service);
-                    await _unitOfWork.ServiceRepository.AddAsync(newService);
-                    await _unitOfWork.SaveAsync();
-                    return (true, "Add successfully");
+                    if (service.Status == true)
+                    {
+                        service.Status = false;
+                        await _unitOfWork.ServiceRepository.UpdateAsync(service);
+                        await _unitOfWork.SaveAsync();
+                        return (true, "Cập nhật thành công");
+                    }
+                    else
+                    {
+                        service.Status = true;
+                        await _unitOfWork.ServiceRepository.UpdateAsync(service);
+                        await _unitOfWork.SaveAsync();
+                        return (true, "Cập nhật thành công");
+                    }
                 }
                 else
                 {
-                    return (false, "Category not found");
+                    return (false, "Không tìm thấy dịch vụ");
                 }
-                
-
             }
-            catch
-            {
-                return (false, "Add unsuccessfully");
+            catch (Exception ex) {
+                throw new Exception(ex.Message);
             }
         }
 
@@ -73,33 +138,74 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
         public async Task<(bool status, string result)> UpdateService(ServiceDtoRequest service, int serviceId)
         {
-            try
+            using (var transaction = await _unitOfWork.BeginTransactionAsync())
             {
-                var existedCategory = await _unitOfWork.ServiceCategoryRepository.GetByIDAsync(service.CategoryId);
-                if (existedCategory == null)
+                try
                 {
-                    
-                    return (false, "Category not found, check again");
-                }
-                var existedService = await _unitOfWork.ServiceRepository.GetByIDAsync(serviceId);
-                if(existedService != null)
-                {
-                    _mapper.Map(service, existedService);
-                    await _unitOfWork.ServiceRepository.UpdateAsync(existedService);
-                    await _unitOfWork.SaveAsync();
-                    return (true, "Update successfully");
-                }
-                else
-                {
-                    return (false, "Service not found, check again");
-                }
-                
+                    var existedCategory = await _unitOfWork.ServiceCategoryRepository.GetByIDAsync(service.CategoryId);
+                    if (existedCategory == null)
+                    {
+
+                        return (false, "Category not found, check again");
+                    }
+                    var existedService = await _unitOfWork.ServiceRepository.GetByIDAsync(serviceId);
+                    if (existedService != null)
+                    {
+                        double totalPrice = 0;
+                        existedService.CategoryId = service.CategoryId;
+                        existedService.ServiceName = service.ServiceName;
+                        existedService.Description = service.Description;
+                        existedService.ImagePath = service.ImagePath;
+                        existedService.Price = 0;
+                        existedService.Status = true;
+                        await _unitOfWork.ServiceRepository.UpdateAsync(existedService);
+                        await _unitOfWork.SaveAsync();
+
+                        var currentMaterials = await _unitOfWork.MaterialRepository.GetAsync(p => p.ServiceId == existedService.ServiceId);
+                        if (currentMaterials.Any())
+                        {
+                            foreach (var material in currentMaterials)
+                            {
+                                await _unitOfWork.MaterialRepository.DeleteAsync(material);
+                                await _unitOfWork.SaveAsync();
+                            }
+                        }
+
+                        if (service.Materials.Any())
+                        {
+                            foreach (var material in service.Materials)
+                            {
+                                var insertMaterial = new Material
+                                {
+                                    ServiceId = existedService.ServiceId,
+                                    MaterialName = material.MaterialName,
+                                    Description = material.Description,
+                                    Price = material.Price
+                                };
+                                await _unitOfWork.MaterialRepository.AddAsync(insertMaterial);
+                                await _unitOfWork.SaveAsync();
+                                totalPrice += material.Price;
+                            }
+                        }
+                        existedService.Price = totalPrice + (totalPrice * 0.05);
+                        await _unitOfWork.ServiceRepository.UpdateAsync(existedService);
+                        await _unitOfWork.SaveAsync();
+                        await transaction.CommitAsync();
+                        return (true, "Update successfully");
+                    }
+                    else
+                    {
+                        return (false, "Service not found, check again");
+                    }
 
 
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
+
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    throw new Exception(ex.Message);
+                }
             }
         }
     }

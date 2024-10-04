@@ -37,7 +37,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 string hashedPassword = await HashPassword(loginInfo.Password);
 
                 var account = (await _unitOfWork.AccountRepository
-                    .FindAsync(a => a.EmailAddress == loginInfo.EmailAddress && a.HashedPassword == hashedPassword))
+                    .FindAsync(a => a.AccountName == loginInfo.AccountName && a.HashedPassword == hashedPassword))
                     .FirstOrDefault();
 
                 if (account != null)
@@ -84,7 +84,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             {
                 // Kiểm tra xem email đã tồn tại chưa
                 var existingAccount = await _unitOfWork.AccountRepository
-                    .FindAsync(a => a.EmailAddress == newAccount.EmailAddress);
+                    .FindAsync(a => a.AccountName == newAccount.AccountName);
                 if (existingAccount.Any())
                 {
                     throw new Exception("Email đã tồn tại.");
@@ -174,11 +174,11 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
         }
 
-        public async Task<bool> GetAccountByEmail(string email)
+        public async Task<bool> GetAccountByAccountName(string accountName)
         {
             try
             {
-                var account = (await _unitOfWork.AccountRepository.GetAsync(c => c.EmailAddress == email)).FirstOrDefault();
+                var account = (await _unitOfWork.AccountRepository.GetAsync(c => c.AccountName == accountName)).FirstOrDefault();
                 if (account == null)
                 {
                     return false;
@@ -187,7 +187,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
             catch (Exception ex)
             {
-                throw new Exception($"Lỗi khi tìm kiếm tài khoản qua email: {ex.Message}");
+                throw new Exception($"Lỗi khi tìm kiếm tài khoản qua name: {ex.Message}");
             }
         }
     }

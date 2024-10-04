@@ -30,6 +30,7 @@ namespace MartyrGraveManagement_DAL.Entities
         public DbSet<Area> Areas { get; set; }
         public DbSet<StaffTask> Tasks { get; set; }
         public DbSet<WorkPerformance> WorkPerformances { get; set; }
+        public DbSet<StaffJob> Jobs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -193,6 +194,34 @@ namespace MartyrGraveManagement_DAL.Entities
                 .WithMany(a => a.WorkPerformances)
                 .HasForeignKey(wp => wp.AccountId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // StaffJob Configuration
+            modelBuilder.Entity<StaffJob>()
+                .HasKey(t => t.JobId);
+            modelBuilder.Entity<StaffJob>()
+                .HasOne(t => t.Account)
+                .WithMany(a => a.Jobs)
+                .HasForeignKey(t => t.AccountId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // GraveImage Configuration
+            modelBuilder.Entity<GraveImage>()
+                .HasKey(t => t.ImageId);
+            modelBuilder.Entity<GraveImage>()
+                .HasOne(t => t.MartyrGrave)
+                .WithMany(a => a.GraveImages)
+                .HasForeignKey(t => t.MartyrId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Material Configuration
+            modelBuilder.Entity<Material>()
+                .HasKey(t => t.MaterialId);
+            modelBuilder.Entity<Material>()
+                .HasOne(t => t.Service)
+                .WithMany(a => a.Materials)
+                .HasForeignKey(t => t.ServiceId)
+                .OnDelete(DeleteBehavior.Restrict);
+
         }
     }
 }

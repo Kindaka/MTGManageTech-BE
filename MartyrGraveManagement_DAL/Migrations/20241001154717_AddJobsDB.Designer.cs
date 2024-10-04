@@ -4,6 +4,7 @@ using MartyrGraveManagement_DAL.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MartyrGraveManagement_DAL.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241001154717_AddJobsDB")]
+    partial class AddJobsDB
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -50,6 +53,7 @@ namespace MartyrGraveManagement_DAL.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("EmailAddress")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FullName")
@@ -206,27 +210,6 @@ namespace MartyrGraveManagement_DAL.Migrations
                     b.ToTable("FeedbackResponses");
                 });
 
-            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.GraveImage", b =>
-                {
-                    b.Property<int>("ImageId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ImageId"));
-
-                    b.Property<int>("MartyrId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("UrlPath")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("ImageId");
-
-                    b.HasIndex("MartyrId");
-
-                    b.ToTable("GraveImage");
-                });
-
             modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.MartyrGrave", b =>
                 {
                     b.Property<int>("MartyrId")
@@ -291,34 +274,6 @@ namespace MartyrGraveManagement_DAL.Migrations
                     b.HasIndex("MartyrId");
 
                     b.ToTable("MartyrGraveInformations");
-                });
-
-            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Material", b =>
-                {
-                    b.Property<int>("MaterialId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaterialId"));
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("MaterialName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<double>("Price")
-                        .HasColumnType("float");
-
-                    b.Property<int>("ServiceId")
-                        .HasColumnType("int");
-
-                    b.HasKey("MaterialId");
-
-                    b.HasIndex("ServiceId");
-
-                    b.ToTable("Material");
                 });
 
             modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Order", b =>
@@ -752,17 +707,6 @@ namespace MartyrGraveManagement_DAL.Migrations
                     b.Navigation("Feedback");
                 });
 
-            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.GraveImage", b =>
-                {
-                    b.HasOne("MartyrGraveManagement_DAL.Entities.MartyrGrave", "MartyrGrave")
-                        .WithMany("GraveImages")
-                        .HasForeignKey("MartyrId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("MartyrGrave");
-                });
-
             modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.MartyrGrave", b =>
                 {
                     b.HasOne("MartyrGraveManagement_DAL.Entities.Area", "Area")
@@ -783,17 +727,6 @@ namespace MartyrGraveManagement_DAL.Migrations
                         .IsRequired();
 
                     b.Navigation("MartyrGrave");
-                });
-
-            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Material", b =>
-                {
-                    b.HasOne("MartyrGraveManagement_DAL.Entities.Service", "Service")
-                        .WithMany("Materials")
-                        .HasForeignKey("ServiceId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Service");
                 });
 
             modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Order", b =>
@@ -939,8 +872,6 @@ namespace MartyrGraveManagement_DAL.Migrations
                 {
                     b.Navigation("CartItems");
 
-                    b.Navigation("GraveImages");
-
                     b.Navigation("MartyrGraveInformations");
 
                     b.Navigation("OrderDetails");
@@ -967,8 +898,6 @@ namespace MartyrGraveManagement_DAL.Migrations
             modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Service", b =>
                 {
                     b.Navigation("CartItems");
-
-                    b.Navigation("Materials");
 
                     b.Navigation("OrderDetails");
                 });

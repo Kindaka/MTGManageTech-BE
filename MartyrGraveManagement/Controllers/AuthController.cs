@@ -60,23 +60,27 @@ namespace MartyrGraveManagement.Controllers
 
 
         /// <summary>
-        /// Register customer account(Role Customer is 4 and in the DB must INSERT data first).
+        /// Register account(Customer cannot created and in the DB must INSERT role data first).
         /// </summary>
         /// <param name="newAccount">The new account information including email, password, and confirmation password.</param>
         /// <returns>
         /// Returns a success message if the account is successfully created, otherwise returns an error message.
         /// </returns>
         [AllowAnonymous]
-        [HttpPost("register-customer")]
+        [HttpPost("register-account-martyrGrave")]
         public async Task<IActionResult> Register([FromBody] UserRegisterDtoRequest newAccount)
         {
             try
             {
+                if(newAccount.RoleId == 4)
+                {
+                    return BadRequest("Role của bạn không có quyền");
+                }
                 if (!newAccount.Password.Equals(newAccount.ConfirmPassword))
                 {
                     return BadRequest("Not matching password");
                 }
-                if (!await _authService.GetAccountByEmail(newAccount.EmailAddress))
+                if (!await _authService.GetAccountByAccountName(newAccount.AccountName))
                 {
                     bool checkRegister = await _authService.CreateAccount(newAccount);
                     if (checkRegister)
@@ -90,7 +94,7 @@ namespace MartyrGraveManagement.Controllers
                 }
                 else
                 {
-                    return BadRequest("Existed email");
+                    return BadRequest("Existed accountName");
                 }
             }
             catch (Exception ex)

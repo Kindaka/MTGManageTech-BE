@@ -19,9 +19,13 @@ namespace MartyrGraveManagement_DAL.UnitOfWorks.Interfaces
         public IGenericRepository<OrderDetail> OrderDetailRepository { get; }
         public IGenericRepository<Payment> PaymentRepository { get; }
         public IGenericRepository<MartyrGrave> MartyrGraveRepository { get; }
+        public IGenericRepository<GraveImage> GraveImageRepository { get; }
         public IGenericRepository<MartyrGraveInformation> MartyrGraveInformationRepository { get; }
         public IGenericRepository<ServiceCategory> ServiceCategoryRepository { get; }
         public IGenericRepository<Service> ServiceRepository { get; }
+        public IGenericRepository<StaffTask> TaskRepository { get; }
+        public IGenericRepository<StaffJob> JobRepository { get; }
+        public IGenericRepository<Material> MaterialRepository { get; }
 
 
         Task SaveAsync();

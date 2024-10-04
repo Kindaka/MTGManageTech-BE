@@ -2,11 +2,13 @@
 using MartyrGraveManagement_BAL.ModelViews.AccountDTOs;
 using MartyrGraveManagement_BAL.ModelViews.AreaDTOs;
 using MartyrGraveManagement_BAL.ModelViews.CartItemsDTOs;
+using MartyrGraveManagement_BAL.ModelViews.JobDTOs;
 using MartyrGraveManagement_BAL.ModelViews.MartyrGraveDTOs;
 using MartyrGraveManagement_BAL.ModelViews.MartyrGraveInformationDTOs;
 using MartyrGraveManagement_BAL.ModelViews.OrdersDTOs;
 using MartyrGraveManagement_BAL.ModelViews.ServiceCategoryDTOs;
 using MartyrGraveManagement_BAL.ModelViews.ServiceDTOs;
+using MartyrGraveManagement_BAL.ModelViews.TaskDTOs;
 using MartyrGraveManagement_BAL.Services.Implements;
 using MartyrGraveManagement_DAL.Entities;
 using System;
@@ -23,7 +25,7 @@ namespace MartyrGraveManagement_BAL.MappingProfiles
         {
             // Account mappings
             CreateMap<UserRegisterDtoRequest, Account>()
-               .ForMember(dest => dest.EmailAddress, opt => opt.MapFrom(src => src.EmailAddress))
+               .ForMember(dest => dest.AccountName, opt => opt.MapFrom(src => src.AccountName))
                .ForMember(dest => dest.HashedPassword, opt => opt.MapFrom(src => src.Password));
 
             CreateMap<UserAuthenticatingDtoResponse, Account>();
@@ -34,6 +36,7 @@ namespace MartyrGraveManagement_BAL.MappingProfiles
             // MartyrGrave mappings
             CreateMap<MartyrGrave, MartyrGraveDtoRequest>().ReverseMap();
             CreateMap<MartyrGrave, MartyrGraveDtoResponse>().ReverseMap();
+            CreateMap<GraveImage, GraveImageDtoRequest>().ReverseMap();
 
             // MartyrGraveInformation mappings
             CreateMap<MartyrGraveInformation, MartyrGraveInformationDtoRequest>().ReverseMap();
@@ -50,9 +53,19 @@ namespace MartyrGraveManagement_BAL.MappingProfiles
             CreateMap<CartItem, CartItemsDTORequest>().ReverseMap();
             CreateMap<CartItem, CartItemsDTOResponse>().ReverseMap();
 
+
             //Order mappings
             CreateMap<Order, OrdersDTORequest>().ReverseMap();
             CreateMap<Order, OrdersDTOResponse>().ReverseMap();
+
+            // Task mapping
+            CreateMap<StaffTask, TaskDtoRequest>().ReverseMap();
+            CreateMap<StaffTask, TaskDtoResponse>().ReverseMap();
+
+            // Job Mapping
+            CreateMap<StaffJob, JobDtoRequest>().ReverseMap();
+            CreateMap<StaffJob, JobDtoResponse>().ReverseMap();
+
 
         }
     }

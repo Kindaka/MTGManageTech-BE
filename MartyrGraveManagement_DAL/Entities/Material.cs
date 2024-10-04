@@ -8,21 +8,17 @@ using System.Threading.Tasks;
 
 namespace MartyrGraveManagement_DAL.Entities
 {
-    public class Service
+    public class Material
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int MaterialId { get; set; }
         public int ServiceId { get; set; }
-        public int CategoryId { get; set; }
-        public string ServiceName { get; set; }
+        public string MaterialName { get; set; }
         public string? Description { get; set; }
-        public string? ImagePath { get; set; }
         public double Price { get; set; }
-        public bool Status { get; set; }
 
-        public ServiceCategory? ServiceCategory { get; set; }
-        public IEnumerable<Material>? Materials { get; set; }
-        public IEnumerable<OrderDetail>? OrderDetails { get; set; }
-        public IEnumerable<CartItem>? CartItems { get; set; }
+        public Service? Service { get; set; }
+
     }
 }
