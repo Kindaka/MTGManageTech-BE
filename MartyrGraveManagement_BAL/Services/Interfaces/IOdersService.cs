@@ -9,11 +9,11 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
 {
     public interface IOdersService
     {
-        Task<IEnumerable<OrdersDTOResponse>> GetAll();
-        Task<IEnumerable<OrdersDTOResponse>> GetById(int id);
+        Task<List<OrdersGetAllDTOResponse>> GetAllOrders();
+        Task<OrdersGetAllDTOResponse> GetOrderById(int orderId);
         Task<OrdersDTOResponse> CreateOrderFromCartAsync(int accountId);
-
-        //Task<OrdersDTOResponse> UpdateAsync(int id, OrdersDTORequest ordersDTO);
+        Task<List<OrdersGetAllDTOResponse>> GetOrderByAccountId(int accountId);
+        Task<bool> UpdateOrderStatus(int orderId, int newStatus);
         Task<bool> DeleteAsync(int id);
     }
 }

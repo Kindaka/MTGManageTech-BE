@@ -53,7 +53,7 @@ namespace MartyrGraveManagement_BAL.MappingProfiles
             //Cart mappings
             CreateMap<CartItem, CartItemsDTORequest>().ReverseMap();
             CreateMap<CartItem, CartItemsDTOResponse>().ReverseMap();
-
+            CreateMap<CartItem, CartItemGetByCustomerDTOResponse>().ReverseMap();
 
             //Order mappings
             CreateMap<Order, OrdersDTORequest>().ReverseMap();

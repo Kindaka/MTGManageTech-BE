@@ -24,71 +24,112 @@ namespace MartyrGraveManagement.Controllers
             _odersService = odersService;
         }
 
-        // GET: api/Orders
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<OrdersDTOResponse>>> GetOrders()
+        public async Task<ActionResult<List<OrdersGetAllDTOResponse>>> GetAllOrders()
         {
-            var orders = await _odersService.GetAll();
-            return Ok(orders);
-        }
-
-        // GET: api/Orders/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<OrdersDTOResponse>> GetOrder(int id)
-        {
-            var orders = await _odersService.GetById(id);
-
-            if (orders == null)
+            try
             {
-                return NotFound();
-            }
+                var orders = await _odersService.GetAllOrders();
 
-            return Ok(orders);
+                if (orders == null || !orders.Any())
+                {
+                    return NotFound(new { message = "No orders found." });
+                }
+
+                return Ok(orders);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An unexpected error occurred.", details = ex.Message });
+            }
         }
 
-        //// PUT: api/Orders/5
-        //// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        //[HttpPut("{id}")]
-        //public async Task<IActionResult> Update(int id, OrdersDTORequest ordersDTO)
-        //{
-        //    try
-        //    {
-        //        var update = await _odersService.UpdateAsync(id, ordersDTO);
+
+        [HttpGet("{id}")]
+        public async Task<ActionResult<OrdersGetAllDTOResponse>> GetOrderById(int id)
+        {
+            try
+            {
+                var order = await _odersService.GetOrderById(id);
+
+                if (order == null)
+                {
+                    return NotFound(new { message = "Order not found." });
+                }
+
+                return Ok(order);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An unexpected error occurred.", details = ex.Message });
+            }
+        }
 
 
-        //        if (update == null)
-        //        {
-        //            return NotFound();
-        //        }
 
-        //        return Ok("Update Successfully");
-        //    }
-        //    catch (KeyNotFoundException ex)
-        //    {
-        //        return NotFound(new { message = ex.Message });
-        //    }
-        //    catch (Exception ex)
-        //    {
 
-        //        return StatusCode(500, new { message = "An unexpected error occurred.", details = ex.Message });
-        //    }
-        //}
 
-        // POST: api/Orders
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpGet("account/{accountId}")]
+        public async Task<ActionResult<List<OrdersGetAllDTOResponse>>> GetOrderByAccountId(int accountId)
+        {
+            try
+            {
+                var orders = await _odersService.GetOrderByAccountId(accountId);
+
+                if (orders == null || !orders.Any())
+                {
+                    return NotFound(new { message = "No orders found for this account." });
+                }
+
+                return Ok(orders);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An unexpected error occurred.", details = ex.Message });
+            }
+        }
+
+
         [HttpPost]
         public async Task<ActionResult<OrdersDTOResponse>> Create(int accountId)
         {
             try
             {
                 var create = await _odersService.CreateOrderFromCartAsync(accountId);
-                return CreatedAtAction(nameof(GetOrder), new { id = create.OrderId }, create);
+                return Ok(create);  
             }
             catch (KeyNotFoundException ex)
             {
                 return NotFound(new { message = ex.Message });
             }
         }
+
+        [HttpPut("/api/v1/updateStatus")]
+        public async Task<IActionResult> UpdateOrderStatus([FromQuery] int id, [FromQuery] int status)
+        {
+            try
+            {
+                var updated = await _odersService.UpdateOrderStatus(id, status);
+
+                if (updated)
+                {
+                    return Ok(new { message = "Order status updated successfully." });
+                }
+
+                return BadRequest(new { message = "Failed to update order status." });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An unexpected error occurred.", details = ex.Message });
+            }
+        }
+
+
+
 
         // DELETE: api/Orders/5
         [HttpDelete("{id}")]

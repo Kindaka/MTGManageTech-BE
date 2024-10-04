@@ -62,19 +62,52 @@ namespace MartyrGraveManagement.Controllers
             }
         }
 
-        // DELETE: api/CartItems/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteCartItem(int id)
-        {
-            var deleted = await _cartItemsService.DeleteCartItemsAsync(id);
-            if (!deleted)
-            {
-                return NotFound();
-            }
+     
 
-            return Ok("Delete Successfully");
+        [HttpGet("cart/{accountId}")]
+        public async Task<ActionResult<List<CartItemGetByCustomerDTOResponse>>> GetCartItemsByAccountId(int accountId)
+        {
+            try
+            {
+                // Gọi service để lấy giỏ hàng của accountId
+                var cartItems = await _cartItemsService.GetCartItemsByAccountId(accountId);
+
+                // Kiểm tra nếu không có giỏ hàng nào được tìm thấy
+                if (cartItems == null || !cartItems.Any())
+                {
+                    return NotFound(new { message = "No cart items found for this account." });
+                }
+
+                // Trả về danh sách các mục trong giỏ hàng
+                return Ok(cartItems);
+            }
+            catch (Exception ex)
+            {
+                // Quản lý lỗi nếu có ngoại lệ xảy ra
+                return StatusCode(500, new { message = "An unexpected error occurred.", details = ex.Message });
+            }
         }
 
-      
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteItemInCart(int id)
+        {
+            try
+            {
+                var check = await _cartItemsService.DeleteCartItemsAsync(id);
+                if (check)
+                {
+                    return Ok("Delete successfully");
+                }
+                else
+                {
+                    return BadRequest("Item does not exist");
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal Server Error: {ex.Message}");
+            }
+        }
+
     }
 }

@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using MartyrGraveManagement_BAL.ModelViews.CartItemsDTOs;
+using MartyrGraveManagement_BAL.ModelViews.OrdersDetailDTOs;
 using MartyrGraveManagement_BAL.ModelViews.OrdersDTOs;
 using MartyrGraveManagement_BAL.Services.Interfaces;
 using MartyrGraveManagement_BAL.VNPay;
@@ -27,16 +28,176 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             _mapper = mapper;
             _configuration = configuration;
         }
-        public async Task<IEnumerable<OrdersDTOResponse>> GetAll()
+
+        public async Task<List<OrdersGetAllDTOResponse>> GetOrderByAccountId(int accountId)
         {
-            var items = await _unitOfWork.OrderRepository.GetAllAsync();
-            return _mapper.Map<IEnumerable<OrdersDTOResponse>>(items);
+            try
+            {
+                // Lấy tất cả các đơn hàng dựa trên AccountId và bao gồm các chi tiết đơn hàng
+                var orders = await _unitOfWork.OrderRepository.GetAsync(
+                    filter: o => o.AccountId == accountId,
+                    includeProperties: "OrderDetails,OrderDetails.Service,OrderDetails.MartyrGrave.MartyrGraveInformations"
+                );
+
+                // Kiểm tra nếu không có đơn hàng nào cho AccountId này
+                if (orders == null || !orders.Any())
+                {
+                    return new List<OrdersGetAllDTOResponse>();  // Trả về danh sách rỗng nếu không có đơn hàng
+                }
+
+                // Ánh xạ từng đơn hàng và chi tiết đơn hàng sang DTO
+                var orderDtoList = new List<OrdersGetAllDTOResponse>();
+
+                foreach (var order in orders)
+                {
+                    var orderDto = new OrdersGetAllDTOResponse
+                    {
+                        OrderId = order.OrderId,
+                        AccountId = order.AccountId,
+                        OrderDate = order.OrderDate,
+                        StartDate = order.StartDate,
+                        EndDate = order.EndDate,
+                        TotalPrice = order.TotalPrice,
+                        Status = order.Status
+                    };
+
+                    // Ánh xạ chi tiết đơn hàng
+                    foreach (var orderDetail in order.OrderDetails)
+                    {
+                        var martyrGraveInfo = orderDetail.MartyrGrave?.MartyrGraveInformations?.FirstOrDefault();
+
+                        var orderDetailDto = new OrderDetailDtoResponse
+                        {
+                            ServiceName = orderDetail.Service?.ServiceName,
+                            MartyrName = martyrGraveInfo?.Name,  // Lấy thông tin liệt sĩ từ MartyrGraveInformation
+                            OrderPrice = orderDetail.OrderPrice
+                        };
+
+                        orderDto.OrderDetails.Add(orderDetailDto);
+                    }
+
+                    // Thêm DTO của đơn hàng vào danh sách kết quả
+                    orderDtoList.Add(orderDto);
+                }
+
+                return orderDtoList;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
-        public async Task<IEnumerable<OrdersDTOResponse>> GetById(int id)
+
+
+
+        public async Task<List<OrdersGetAllDTOResponse>> GetAllOrders()
         {
-            var items = await _unitOfWork.OrderRepository.GetByIDAsync(id);
-            return _mapper.Map<IEnumerable<OrdersDTOResponse>>(items);
+            try
+            {
+                // Lấy tất cả các đơn hàng cùng với chi tiết đơn hàng và các thuộc tính liên quan
+                var orders = await _unitOfWork.OrderRepository.GetAsync(includeProperties: "OrderDetails,OrderDetails.Service,OrderDetails.MartyrGrave.MartyrGraveInformations");
+
+                // Kiểm tra nếu không có đơn hàng nào
+                if (orders == null || !orders.Any())
+                {
+                    return new List<OrdersGetAllDTOResponse>();  // Trả về danh sách rỗng nếu không có đơn hàng
+                }
+
+                // Ánh xạ từng đơn hàng và chi tiết đơn hàng sang DTO
+                var orderDtoList = new List<OrdersGetAllDTOResponse>();
+
+                foreach (var order in orders)
+                {
+                    var orderDto = new OrdersGetAllDTOResponse
+                    {
+                        OrderId = order.OrderId,
+                        AccountId = order.AccountId,
+                        OrderDate = order.OrderDate,
+                        StartDate = order.StartDate,
+                        EndDate = order.EndDate,
+                        TotalPrice = order.TotalPrice,
+                        Status = order.Status
+                    };
+
+                    // Ánh xạ chi tiết đơn hàng
+                    foreach (var orderDetail in order.OrderDetails)
+                    {
+                        var martyrGraveInfo = orderDetail.MartyrGrave?.MartyrGraveInformations?.FirstOrDefault();
+
+                        var orderDetailDto = new OrderDetailDtoResponse
+                        {
+                            ServiceName = orderDetail.Service?.ServiceName,
+                            MartyrName = martyrGraveInfo?.Name, // Lấy thông tin liệt sĩ từ MartyrGraveInformation
+                            OrderPrice = orderDetail.OrderPrice
+                        };
+
+                        orderDto.OrderDetails.Add(orderDetailDto);
+                    }
+
+                    // Thêm DTO của đơn hàng vào danh sách kết quả
+                    orderDtoList.Add(orderDto);
+                }
+
+                return orderDtoList;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
+
+        public async Task<OrdersGetAllDTOResponse> GetOrderById(int orderId)
+        {
+            try
+            {
+                // Lấy đơn hàng dựa trên OrderId và bao gồm các chi tiết liên quan
+                var order = await _unitOfWork.OrderRepository.GetAsync(
+                    filter: o => o.OrderId == orderId,
+                    includeProperties: "OrderDetails,OrderDetails.Service,OrderDetails.MartyrGrave.MartyrGraveInformations"
+                );
+
+                // Kiểm tra nếu đơn hàng không tồn tại
+                var orderEntity = order.FirstOrDefault();
+                if (orderEntity == null)
+                {
+                    return null;  // Hoặc ném lỗi tùy yêu cầu
+                }
+
+                // Ánh xạ từ Order sang DTO
+                var orderDto = new OrdersGetAllDTOResponse
+                {
+                    OrderId = orderEntity.OrderId,
+                    AccountId = orderEntity.AccountId,
+                    OrderDate = orderEntity.OrderDate,
+                    StartDate = orderEntity.StartDate,
+                    EndDate = orderEntity.EndDate,
+                    TotalPrice = orderEntity.TotalPrice,
+                    Status = orderEntity.Status
+                };
+
+                // Ánh xạ chi tiết đơn hàng
+                foreach (var orderDetail in orderEntity.OrderDetails)
+                {
+                    var martyrGraveInfo = orderDetail.MartyrGrave?.MartyrGraveInformations?.FirstOrDefault();
+
+                    var orderDetailDto = new OrderDetailDtoResponse
+                    {
+                        ServiceName = orderDetail.Service?.ServiceName,
+                        MartyrName = martyrGraveInfo?.Name,
+                        OrderPrice = orderDetail.OrderPrice
+                    };
+
+                    orderDto.OrderDetails.Add(orderDetailDto);
+                }
+
+                return orderDto;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"An error occurred while retrieving order: {ex.Message}");
+            }
+        }
+
 
         public async Task<OrdersDTOResponse> CreateOrderFromCartAsync(int accountId)
         {
@@ -51,12 +212,25 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         throw new KeyNotFoundException("AccountID does not exist.");
                     }
 
+                    // Kiểm tra trạng thái tài khoản
+                    if (account.Status == false)
+                    {
+                        throw new InvalidOperationException("This account is not active.");
+                    }
+
                     // Lấy danh sách CartItem cho account
                     var cartItems = await _unitOfWork.CartItemRepository.GetAsync(c => c.AccountId == accountId && c.Status == true);
 
                     if (cartItems == null || !cartItems.Any())
                     {
                         throw new Exception("No items in cart to process.");
+                    }
+
+                    // Kiểm tra nếu người dùng đã có đơn hàng chưa thanh toán
+                    var existingOrder = await _unitOfWork.OrderRepository.GetAsync(o => o.AccountId == accountId && o.Status == 0);
+                    if (existingOrder.Any())
+                    {
+                        throw new InvalidOperationException("You already have an unpaid order.");
                     }
 
                     // Tính tổng tiền dựa trên dịch vụ trong giỏ hàng
@@ -68,6 +242,12 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         var service = await _unitOfWork.ServiceRepository.GetByIDAsync(cartItem.ServiceId);
                         if (service != null)
                         {
+                            // Kiểm tra trạng thái của dịch vụ
+                            if (service.Status == false)
+                            {
+                                throw new InvalidOperationException($"Service {service.ServiceName} is no longer available.");
+                            }
+
                             totalPrice += (decimal)service.Price;  // Sử dụng giá của dịch vụ
                             var orderDetail = new OrderDetail
                             {
@@ -87,13 +267,12 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         OrderDate = DateTime.Now,
                         StartDate = DateTime.Now,  // Hoặc dựa trên yêu cầu cụ thể
                         TotalPrice = totalPrice,
-                        Status = 0,
+                        Status = 0,  // Status = 0 cho đơn hàng chưa thanh toán
                         OrderDetails = orderDetails
                     };
-                    order.EndDate = order.StartDate.AddDays(7);
+                    order.EndDate = order.StartDate.AddDays(7);  // Ví dụ thêm 7 ngày cho thời gian hết hạn
 
                     // Thêm Order vào cơ sở dữ liệu
-
                     await _unitOfWork.OrderRepository.AddAsync(order);
                     await _unitOfWork.SaveAsync();
 
@@ -136,33 +315,35 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
 
 
+        public async Task<bool> UpdateOrderStatus(int orderId, int newStatus)
+        {
+            try
+            {
+                // Lấy đơn hàng dựa trên OrderId
+                var order = await _unitOfWork.OrderRepository.GetByIDAsync(orderId);
 
-        //public async Task<OrdersDTOResponse> UpdateAsync(int id, OrdersDTORequest ordersDTO)
-        //{
-        //    // Kiểm tra AreaId có tồn tại không
-        //    var account = await _unitOfWork.AreaRepository.GetByIDAsync(ordersDTO.AccountId);
-        //    if (account == null)
-        //    {
-        //        throw new KeyNotFoundException("AccountID does not exist.");
-        //    }
-            
+                // Kiểm tra nếu đơn hàng không tồn tại
+                if (order == null)
+                {
+                    throw new KeyNotFoundException("Order not found.");
+                }
 
-        //    var order = await _unitOfWork.OrderRepository.GetByIDAsync(id);
-        //    if (order == null)
-        //    {
-        //        return null;
-        //    }
+                // Cập nhật trạng thái của đơn hàng
+                order.Status = newStatus;
 
-        //    // Cập nhật các thuộc tính từ DTO sang thực thể
-        //    _mapper.Map(ordersDTO, order);
+                // Cập nhật thông tin vào cơ sở dữ liệu
+                await _unitOfWork.OrderRepository.UpdateAsync(order);
 
-        //    // Cập nhật thông tin vào cơ sở dữ liệu
-        //    await _unitOfWork.OrderRepository.UpdateAsync(order);
-        //    await _unitOfWork.SaveAsync();
+                return true;  // Trả về true khi cập nhật thành công
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"An error occurred while updating the order status: {ex.Message}");
+            }
+        }
 
-        //    // Trả về kết quả cập nhật
-        //    return _mapper.Map<OrdersDTOResponse>(order);
-        //}
+
+
 
         public async Task<bool> DeleteAsync(int id)
         {
