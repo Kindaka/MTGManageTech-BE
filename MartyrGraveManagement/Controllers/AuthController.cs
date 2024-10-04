@@ -60,14 +60,14 @@ namespace MartyrGraveManagement.Controllers
 
 
         /// <summary>
-        /// Register customer account(Role Customer is 4 and in the DB must INSERT data first).
+        /// Register account(Customer cannot created and in the DB must INSERT role data first).
         /// </summary>
         /// <param name="newAccount">The new account information including email, password, and confirmation password.</param>
         /// <returns>
         /// Returns a success message if the account is successfully created, otherwise returns an error message.
         /// </returns>
         [AllowAnonymous]
-        [HttpPost("register-customer")]
+        [HttpPost("register-account-martyrGrave")]
         public async Task<IActionResult> Register([FromBody] UserRegisterDtoRequest newAccount)
         {
             try
