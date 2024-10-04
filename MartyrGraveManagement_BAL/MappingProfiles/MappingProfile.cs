@@ -4,6 +4,7 @@ using MartyrGraveManagement_BAL.ModelViews.AreaDTOs;
 using MartyrGraveManagement_BAL.ModelViews.CartItemsDTOs;
 using MartyrGraveManagement_BAL.ModelViews.MartyrGraveDTOs;
 using MartyrGraveManagement_BAL.ModelViews.MartyrGraveInformationDTOs;
+using MartyrGraveManagement_BAL.ModelViews.OrdersDTOs;
 using MartyrGraveManagement_BAL.ModelViews.ServiceCategoryDTOs;
 using MartyrGraveManagement_BAL.ModelViews.ServiceDTOs;
 using MartyrGraveManagement_BAL.Services.Implements;
@@ -48,6 +49,10 @@ namespace MartyrGraveManagement_BAL.MappingProfiles
             //Cart mappings
             CreateMap<CartItem, CartItemsDTORequest>().ReverseMap();
             CreateMap<CartItem, CartItemsDTOResponse>().ReverseMap();
+
+            //Order mappings
+            CreateMap<Order, OrdersDTORequest>().ReverseMap();
+            CreateMap<Order, OrdersDTOResponse>().ReverseMap();
 
         }
     }

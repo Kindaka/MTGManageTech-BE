@@ -37,17 +37,17 @@ namespace MartyrGraveManagement_BAL.Services.Implements
         public async Task<CartItemsDTOResponse> CreateCartItemsAsync(CartItemsDTORequest cartItemsDTO)
         {
             // Kiểm tra AccountID có tồn tại không
-            var account = await _unitOfWork.AreaRepository.GetByIDAsync(cartItemsDTO.AccountId);
+            var account = await _unitOfWork.AccountRepository.GetByIDAsync(cartItemsDTO.AccountId);
             if (account == null)
             {
                 throw new KeyNotFoundException("AccountID does not exist.");
             }
-            var service = await _unitOfWork.AreaRepository.GetByIDAsync(cartItemsDTO.ServiceId);
+            var service = await _unitOfWork.ServiceRepository.GetByIDAsync(cartItemsDTO.ServiceId);
             if (service == null)
             {
                 throw new KeyNotFoundException("ServiceID does not exist.");
             }
-            var martyr = await _unitOfWork.AreaRepository.GetByIDAsync(cartItemsDTO.MartyrId);
+            var martyr = await _unitOfWork.MartyrGraveRepository.GetByIDAsync(cartItemsDTO.MartyrId);
             if (martyr == null)
             {
                 throw new KeyNotFoundException("MartyrID does not exist.");
@@ -85,7 +85,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
 
 
-            var cart = await _unitOfWork.MartyrGraveRepository.GetByIDAsync(id);
+            var cart = await _unitOfWork.CartItemRepository.GetByIDAsync(id);
             if (cart == null)
             {
                 return null;
@@ -95,7 +95,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             _mapper.Map(cartItemsDTO, cart);
 
             // Cập nhật thông tin vào cơ sở dữ liệu
-            await _unitOfWork.MartyrGraveRepository.UpdateAsync(cart);
+            await _unitOfWork.CartItemRepository.UpdateAsync(cart);
             await _unitOfWork.SaveAsync();
 
             // Trả về kết quả cập nhật
