@@ -10,6 +10,7 @@ using System.Net.WebSockets;
 using System.Security.Cryptography;
 using System.Text;
 using System.Security.Principal;
+using MartyrGraveManagement_BAL.ModelViews.MartyrGraveInformationDTOs;
 
 namespace MartyrGraveManagement_BAL.Services.Implements
 {
@@ -94,29 +95,140 @@ namespace MartyrGraveManagement_BAL.Services.Implements
         }
 
 
-        public async Task<IEnumerable<MartyrGraveDtoResponse>> GetAllMartyrGravesAsync()
+        public async Task<List<MartyrGraveDtoResponse>> GetAllMartyrGravesAsync()
         {
-            var graves = await _unitOfWork.MartyrGraveRepository.GetAllAsync();
-            return _mapper.Map<IEnumerable<MartyrGraveDtoResponse>>(graves);
+            //var graves = await _unitOfWork.MartyrGraveRepository.GetAllAsync();
+            //return _mapper.Map<IEnumerable<MartyrGraveDtoResponse>>(graves);
+            try
+            {
+                List<MartyrGraveDtoResponse> graveList = new List<MartyrGraveDtoResponse>();
+                var graves = await _unitOfWork.MartyrGraveRepository.GetAllAsync();
+                if (graves.Any())
+                {
+                    foreach (var grave in graves) {
+                        var graveView = _mapper.Map<MartyrGraveDtoResponse>(grave);
+                        var graveInformations = await _unitOfWork.MartyrGraveInformationRepository.GetAsync(g => g.MartyrId == grave.MartyrId);
+                        if (graveInformations.Any())
+                        {
+                            foreach (var information in graveInformations)
+                            {
+                                var informationView = new MartyrGraveInformationDtoResponse
+                                {
+                                    InformationId = information.InformationId,
+                                    MartyrId = information.MartyrId,
+                                    Name = information.Name,
+                                    Medal = information.Medal,
+                                    DateOfSacrifice = information.DateOfSacrifice
+                                };
+                                graveView.MatyrGraveInformations.Add(informationView);
+                            }
+                        }
+
+                        var graveImages = await _unitOfWork.GraveImageRepository.GetAsync(g => g.MartyrId == grave.MartyrId);
+                        if (graveImages.Any())
+                        {
+                            foreach (var image in graveImages)
+                            {
+                                var imageView = new GraveImageDtoRequest
+                                {
+                                    UrlPath = image.UrlPath
+                                };
+                                graveView.Images.Add(imageView);
+                            }
+                        }
+                        graveList.Add(graveView);
+                    }
+                }
+                
+                return graveList;
+            }
+            catch (Exception ex) { 
+                throw new Exception(ex.Message);
+            }
         }
 
         public async Task<MartyrGraveDtoResponse> GetMartyrGraveByIdAsync(int id)
         {
-            var grave = await _unitOfWork.MartyrGraveRepository.GetByIDAsync(id);
-            return _mapper.Map<MartyrGraveDtoResponse>(grave);
+            //var grave = await _unitOfWork.MartyrGraveRepository.GetByIDAsync(id);
+            //return _mapper.Map<MartyrGraveDtoResponse>(grave);
+            try
+            {
+                var grave = (await _unitOfWork.MartyrGraveRepository.GetAsync(g => g.MartyrId == id)).FirstOrDefault();
+                if (grave != null)
+                {
+                    var graveView = _mapper.Map<MartyrGraveDtoResponse>(grave);
+                    var graveInformations = await _unitOfWork.MartyrGraveInformationRepository.GetAsync(g => g.MartyrId == grave.MartyrId);
+                    if(graveInformations.Any())
+                    {
+                        foreach (var information in graveInformations)
+                        {
+                            var informationView = new MartyrGraveInformationDtoResponse
+                            {
+                                InformationId = information.InformationId,
+                                MartyrId = information.MartyrId,
+                                Name = information.Name,
+                                Medal = information.Medal,
+                                DateOfSacrifice = information.DateOfSacrifice
+                            };
+                            graveView.MatyrGraveInformations.Add(informationView);
+                        }
+                    }
+
+                    var graveImages = await _unitOfWork.GraveImageRepository.GetAsync(g => g.MartyrId == grave.MartyrId);
+                    if(graveImages.Any())
+                    {
+                        foreach(var image in graveImages)
+                        {
+                            var imageView = new GraveImageDtoRequest
+                            {
+                                UrlPath = image.UrlPath
+                            };
+                            graveView.Images.Add(imageView);    
+                        }
+                    }
+
+                    return graveView;
+                }
+                else
+                {
+                    return null;
+                }
+
+            }
+            catch (Exception ex) {
+                throw new Exception(ex.Message);
+            }
         }
 
-        public async Task<bool> DeleteMartyrGraveAsync(int id)
+        public async Task<bool> UpdateStatusMartyrGraveAsync(int id)
         {
-            var martyrGrave = await _unitOfWork.MartyrGraveRepository.GetByIDAsync(id);
-            if (martyrGrave == null)
+            try
             {
-                return false;
+                var martyrGrave = await _unitOfWork.MartyrGraveRepository.GetByIDAsync(id);
+                if (martyrGrave == null)
+                {
+                    return false;
+                }
+                if (martyrGrave.Status == true)
+                {
+                    martyrGrave.Status = false;
+                    await _unitOfWork.MartyrGraveRepository.UpdateAsync(martyrGrave);
+                    await _unitOfWork.SaveAsync();
+                    return true;
+                }
+                else
+                {
+                    martyrGrave.Status = true;
+                    await _unitOfWork.MartyrGraveRepository.UpdateAsync(martyrGrave);
+                    await _unitOfWork.SaveAsync();
+                    return true;
+                }
             }
-
-            await _unitOfWork.MartyrGraveRepository.DeleteAsync(martyrGrave);
-            await _unitOfWork.SaveAsync();
-            return true;
+            catch(Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+            
         }
 
 

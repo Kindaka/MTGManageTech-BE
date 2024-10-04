@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using MartyrGraveManagement_BAL.ModelViews.MaterialDTOs;
 using MartyrGraveManagement_BAL.ModelViews.ServiceCategoryDTOs;
 using MartyrGraveManagement_BAL.ModelViews.ServiceDTOs;
 using MartyrGraveManagement_BAL.Services.Interfaces;
@@ -112,12 +113,12 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
         }
 
-        public async Task<List<ServiceDtoResponse>> GetAllServices()
+        public async Task<List<ServiceDtoResponse>> GetAllServices(int categoryId)
         {
             try
             {
                 List<ServiceDtoResponse> serviceList = new List<ServiceDtoResponse>();
-                var services = await _unitOfWork.ServiceRepository.GetAllAsync();
+                var services = await _unitOfWork.ServiceRepository.GetAsync(s => s.CategoryId == categoryId);
                 if (services != null)
                 {
                     foreach (var service in services)
@@ -134,6 +135,43 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             {
                 throw new Exception(ex.Message);
             }
+        }
+
+        public async Task<ServiceDetailDtoResponse> GetServiceById(int serviceId)
+        {
+            try
+            {
+                var service = await _unitOfWork.ServiceRepository.GetByIDAsync(serviceId);
+                if (service != null) {
+                    var serviceView = _mapper.Map<ServiceDetailDtoResponse>(service);
+                    var materials = await _unitOfWork.MaterialRepository.GetAsync(m => m.ServiceId == service.ServiceId);
+                    if(materials.Any())
+                    {
+                        foreach( var material in materials)
+                        {
+                            var materialView = new MaterialDtoResponse
+                            {
+                                MaterialId = material.MaterialId,
+                                MaterialName = material.MaterialName,
+                                Description = material.Description,
+                                Price = material.Price
+                            };
+                            serviceView.Materials.Add(materialView);
+                        }
+                    }
+                    return serviceView;
+                }
+                else
+                {
+                    return null;
+                }
+
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+
         }
 
         public async Task<(bool status, string result)> UpdateService(ServiceDtoRequest service, int serviceId)

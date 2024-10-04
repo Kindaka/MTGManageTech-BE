@@ -114,20 +114,20 @@ namespace MartyrGraveManagement.Controllers
         }
 
         /// <summary>
-        /// Deletes a martyr grave with the specified ID.
+        /// Update a martyr grave status with the specified ID.
         /// </summary>
-        /// <param name="id">The ID of the martyr grave to delete.</param>
+        /// <param name="id">The ID of the martyr grave to update status.</param>
         /// <returns>Returns no content if the deletion is successful.</returns>
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteMartyrGrave(int id)
+        [HttpPut("updateStatus/{id}")]
+        public async Task<IActionResult> UpdateMartyrGraveStatus(int id)
         {
-            var deleted = await _martyrGraveService.DeleteMartyrGraveAsync(id);
+            var deleted = await _martyrGraveService.UpdateStatusMartyrGraveAsync(id);
             if (!deleted)
             {
                 return NotFound();
             }
 
-            return Ok("Delete Successfully");
+            return Ok("Update Successfully");
         }
 
 

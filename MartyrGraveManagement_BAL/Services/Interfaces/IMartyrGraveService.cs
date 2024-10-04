@@ -10,12 +10,12 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
 {
     public interface IMartyrGraveService
     {
-        Task<IEnumerable<MartyrGraveDtoResponse>> GetAllMartyrGravesAsync();
+        Task<List<MartyrGraveDtoResponse>> GetAllMartyrGravesAsync();
         Task<MartyrGraveDtoResponse> GetMartyrGraveByIdAsync(int id);
         Task<MartyrGraveDtoResponse> CreateMartyrGraveAsync(MartyrGraveDtoRequest martyrGraveDto);
         Task<(bool status, string result, string? accountName, string? password)> CreateMartyrGraveAsyncV2(MartyrGraveDtoRequest martyrGraveDto);
         Task<MartyrGraveDtoResponse> UpdateMartyrGraveAsync(int id, MartyrGraveDtoRequest martyrGraveDto);
-        Task<bool> DeleteMartyrGraveAsync(int id);
+        Task<bool> UpdateStatusMartyrGraveAsync(int id);
         Task<(List<MartyrGraveGetAllDtoResponse> response, int totalPage)> GetAllMartyrGravesForManagerAsync(int page, int pageSize);
 
         Task<(bool status, string result)> UpdateMartyrGraveAsyncV2(int id, MartyrGraveDtoRequest martyrGraveDto);

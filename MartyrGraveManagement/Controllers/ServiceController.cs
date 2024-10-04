@@ -1,6 +1,7 @@
 ﻿using MartyrGraveManagement_BAL.ModelViews.ServiceCategoryDTOs;
 using MartyrGraveManagement_BAL.ModelViews.ServiceDTOs;
 using MartyrGraveManagement_BAL.Services.Interfaces;
+using MartyrGraveManagement_DAL.Entities;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
@@ -24,11 +25,11 @@ namespace MartyrGraveManagement.Controllers
         /// <response code="200">Returns the list of services</response>
         /// <response code="500">If there is any server error</response>
         [HttpGet("services")]
-        public async Task<IActionResult> GetAllCategory()
+        public async Task<IActionResult> GetAllServices(int categoryId)
         {
             try
             {
-                var services = await _service.GetAllServices();
+                var services = await _service.GetAllServices(categoryId);
                 return Ok(services);
             }
             catch (Exception ex)
@@ -110,6 +111,28 @@ namespace MartyrGraveManagement.Controllers
                 {
                     return BadRequest(check.result);
                 }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpGet("service-detail")]
+        public async Task<IActionResult> GetService(int serviceId)
+        {
+            try
+            {
+                var service = await _service.GetServiceById(serviceId);
+                if (service != null)
+                {
+                    return Ok(service);
+                }
+                else
+                {
+                    return NotFound("Không tìm thấy dịch vụ");
+                }
+                
             }
             catch (Exception ex)
             {
