@@ -55,16 +55,6 @@ VALUES
 
 GO
 
--- Insert data for Orders (Before OrderDetails)
-INSERT INTO [dbo].[Orders] (AccountId, OrderDate, StartDate, EndDate, TotalPrice, Status)
-VALUES 
-(1, '2024-09-15', '2024-09-16', '2024-09-17', 500.00, 1),
-(2, '2024-09-18', '2024-09-19', '2024-09-20', 600.00, 1),
-(3, '2024-09-20', '2024-09-21', '2024-09-22', 300.00, 0),
-(4, '2024-09-25', '2024-09-26', '2024-09-27', 450.00, 1);
-
-GO
-
 -- Insert data for ServiceCategories (Before Services)
 INSERT INTO [dbo].[ServiceCategories] (CategoryName, Status)
 VALUES 
@@ -87,25 +77,6 @@ VALUES
 
 GO
 
--- Insert data for OrderDetails (After Orders)
-INSERT INTO [dbo].[OrderDetails] (OrderId, ServiceId, MartyrId, OrderPrice, Quantity, Status)
-VALUES 
-(1, 1, 1, 100.00, 2, 1),
-(2, 2, 2, 200.00, 1, 1),
-(3, 3, 3, 300.00, 4, 0),
-(4, 4, 4, 150.00, 3, 1);
-
-GO
-
--- Insert data for Payments (After Orders)
-INSERT INTO [dbo].[Payments] (OrderId, PaymentMethod, BankCode, BankTransactionNo, CardType, PaymentInfo, PayDate, TransactionNo, TransactionStatus, PaymentAmount)
-VALUES 
-(1, 'Credit Card', 'BC001', 'TXN001', 'VISA', 'Payment for Order 1', '2024-09-16', 'TXN001', 1, 500.00),
-(2, 'Bank Transfer', 'BC002', 'TXN002', 'MASTERCARD', 'Payment for Order 2', '2024-09-19', 'TXN002', 1, 600.00),
-(3, 'Cash', 'BC003', 'TXN003', 'VISA', 'Payment for Order 3', '2024-09-21', 'TXN003', 0, 300.00),
-(4, 'Credit Card', 'BC004', 'TXN004', 'AMEX', 'Payment for Order 4', '2024-09-26', 'TXN004', 1, 450.00);
-
-GO
 
 
 
@@ -119,13 +90,6 @@ VALUES
 
 GO
 
--- Insert data for Tasks (After Accounts and Orders)
-INSERT INTO [dbo].[Tasks] (AccountId, OrderId, NameOfWork, TypeOfWork, StartDate, EndDate, Description, Status)
-VALUES 
-(1, 1, 'Grave Cleaning Task', 1, '2024-09-15', '2024-09-16', 'Cleaning graves in area A', 1),
-(2, 2, 'Flower Maintenance Task', 2, '2024-09-18', '2024-09-19', 'Maintaining flowers in section B', 1),
-(4, 4, 'Event Task', 1, '2024-09-25', '2024-09-26', 'Organizing events for memorial', 1);
-GO
 
 -- Insert data for WeeklyReportGraves (After MartyrGraves and Accounts)
 INSERT INTO [dbo].[WeeklyReportGraves] (MartyrId, AccountId, QualityOfTotalGravePoint, QualityOfFlowerPoint, DisciplinePoint, Description, Status)

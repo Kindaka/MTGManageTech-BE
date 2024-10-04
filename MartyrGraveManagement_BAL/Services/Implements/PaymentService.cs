@@ -42,7 +42,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                             PaymentMethod = "VNPay",
                             BankCode = paymentRequest.vnp_BankCode,
 
-                            //BankTranNo = paymentRequest.vnp_BankTranNo,
+                            BankTransactionNo = paymentRequest.vnp_BankTranNo,
 
                             CardType = paymentRequest.vnp_CardType,
                             PaymentInfo = paymentRequest.vnp_OrderInfo,
@@ -121,7 +121,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                             PaymentMethod = "VNPay",
                             BankCode = paymentRequest.vnp_BankCode,
 
-                            //BankTranNo = paymentRequest.vnp_BankTranNo,
+                            BankTransactionNo = paymentRequest.vnp_BankTranNo,
 
                             CardType = paymentRequest.vnp_CardType,
                             PaymentInfo = paymentRequest.vnp_OrderInfo,

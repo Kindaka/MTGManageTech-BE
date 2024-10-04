@@ -36,71 +36,43 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
         public async Task<CartItemsDTOResponse> CreateCartItemsAsync(CartItemsDTORequest cartItemsDTO)
         {
-            // Kiểm tra AccountID có tồn tại không
+            // Kiểm tra xem AccountID có tồn tại không
             var account = await _unitOfWork.AccountRepository.GetByIDAsync(cartItemsDTO.AccountId);
             if (account == null)
             {
                 throw new KeyNotFoundException("AccountID does not exist.");
             }
+
+            // Kiểm tra ServiceID có tồn tại không
             var service = await _unitOfWork.ServiceRepository.GetByIDAsync(cartItemsDTO.ServiceId);
             if (service == null)
             {
                 throw new KeyNotFoundException("ServiceID does not exist.");
             }
-            var martyr = await _unitOfWork.MartyrGraveRepository.GetByIDAsync(cartItemsDTO.MartyrId);
-            if (martyr == null)
+
+            // Tìm MartyrGrave dựa trên CustomerCode của tài khoản
+            var martyrGrave = (await _unitOfWork.MartyrGraveRepository.FindAsync(m => m.CustomerCode == account.CustomerCode)).FirstOrDefault();
+            if (martyrGrave != null)
             {
-                throw new KeyNotFoundException("MartyrID does not exist.");
+                // Tạo thực thể CartItem từ DTO và đặt Status = 1
+                var cart = _mapper.Map<CartItem>(cartItemsDTO);
+                cart.MartyrId = martyrGrave.MartyrId;
+                cart.Status = true;  // Đặt Status là 1 (true)
+
+                // Thêm CartItem vào cơ sở dữ liệu
+                await _unitOfWork.CartItemRepository.AddAsync(cart);
+                await _unitOfWork.SaveAsync();
+
+                // Trả về DTO response
+                return _mapper.Map<CartItemsDTOResponse>(cart);
             }
-
-            // Tạo thực thể từ DTO
-            var cart = _mapper.Map<CartItem>(cartItemsDTO);
-
-            // Thêm Cart vào cơ sở dữ liệu
-            await _unitOfWork.CartItemRepository.AddAsync(cart);
-            await _unitOfWork.SaveAsync();
-
-            // Trả về DTO response
-            return _mapper.Map<CartItemsDTOResponse>(cart);
+            else
+            {
+                throw new KeyNotFoundException("MartyrGrave for the account's CustomerCode does not exist.");
+            }
         }
 
-        public async Task<CartItemsDTOResponse> UpdateCartItemsAsync(int id, CartItemsDTORequest cartItemsDTO)
-        {
-            // Kiểm tra AreaId có tồn tại không
-            var account = await _unitOfWork.AreaRepository.GetByIDAsync(cartItemsDTO.AccountId);
-            if (account == null)
-            {
-                throw new KeyNotFoundException("AccountID does not exist.");
-            }
-            var service = await _unitOfWork.AreaRepository.GetByIDAsync(cartItemsDTO.ServiceId);
-            if (service == null)
-            {
-                throw new KeyNotFoundException("ServiceID does not exist.");
-            }
-            var martyr = await _unitOfWork.AreaRepository.GetByIDAsync(cartItemsDTO.MartyrId);
-            if (martyr == null)
-            {
-                throw new KeyNotFoundException("MartyrID does not exist.");
-            }
 
-
-
-            var cart = await _unitOfWork.CartItemRepository.GetByIDAsync(id);
-            if (cart == null)
-            {
-                return null;
-            }
-
-            // Cập nhật các thuộc tính từ DTO sang thực thể
-            _mapper.Map(cartItemsDTO, cart);
-
-            // Cập nhật thông tin vào cơ sở dữ liệu
-            await _unitOfWork.CartItemRepository.UpdateAsync(cart);
-            await _unitOfWork.SaveAsync();
-
-            // Trả về kết quả cập nhật
-            return _mapper.Map<CartItemsDTOResponse>(cart);
-        }
 
         public async Task<bool> DeleteCartItemsAsync(int id)
         {

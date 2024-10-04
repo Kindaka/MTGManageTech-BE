@@ -6,6 +6,7 @@ using MartyrGraveManagement_BAL.ModelViews.JobDTOs;
 using MartyrGraveManagement_BAL.ModelViews.MartyrGraveDTOs;
 using MartyrGraveManagement_BAL.ModelViews.MartyrGraveInformationDTOs;
 using MartyrGraveManagement_BAL.ModelViews.OrdersDTOs;
+using MartyrGraveManagement_BAL.ModelViews.PaymentDTOs;
 using MartyrGraveManagement_BAL.ModelViews.ServiceCategoryDTOs;
 using MartyrGraveManagement_BAL.ModelViews.ServiceDTOs;
 using MartyrGraveManagement_BAL.ModelViews.TaskDTOs;
@@ -65,6 +66,11 @@ namespace MartyrGraveManagement_BAL.MappingProfiles
             // Job Mapping
             CreateMap<StaffJob, JobDtoRequest>().ReverseMap();
             CreateMap<StaffJob, JobDtoResponse>().ReverseMap();
+
+            //Payment mapping
+            CreateMap<Payment, PaymentDTORequest>().ReverseMap();
+            CreateMap<Payment, PaymentDTOResponse>().ReverseMap();
+
 
 
         }

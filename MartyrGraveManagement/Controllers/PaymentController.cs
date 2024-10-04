@@ -11,8 +11,8 @@ namespace MartyrGraveManagement.Controllers
     public class PaymentController : ControllerBase
     {
         private readonly IPaymentService _paymentService;
-        private static readonly string URL_SUCCESS = "https://localhost:7190/PaymentPage/Success";
-        private static readonly string URL_ERROR = "https://localhost:7190/PaymentPage/Error";
+        private static readonly string URL_SUCCESS = "http://localhost:7006/PaymentPage/Success";
+        private static readonly string URL_ERROR = "http://localhost:7006/PaymentPage/Error";
 
         public PaymentController(IPaymentService paymentService)
         {

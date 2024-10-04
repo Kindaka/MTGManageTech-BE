@@ -16,7 +16,6 @@ namespace MartyrGraveManagement_DAL.Entities
         public int AccountId { get; set; }
         public int ServiceId { get; set; }
         public int MartyrId { get; set; }
-        public int CartQuantity { get; set; }
         public bool Status { get; set; }
 
         public Account? Account { get; set; }

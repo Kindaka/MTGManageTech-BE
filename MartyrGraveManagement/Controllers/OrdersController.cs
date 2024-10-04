@@ -46,42 +46,42 @@ namespace MartyrGraveManagement.Controllers
             return Ok(orders);
         }
 
-        // PUT: api/Orders/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, OrdersDTORequest ordersDTO)
-        {
-            try
-            {
-                var update = await _odersService.UpdateAsync(id, ordersDTO);
+        //// PUT: api/Orders/5
+        //// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        //[HttpPut("{id}")]
+        //public async Task<IActionResult> Update(int id, OrdersDTORequest ordersDTO)
+        //{
+        //    try
+        //    {
+        //        var update = await _odersService.UpdateAsync(id, ordersDTO);
 
 
-                if (update == null)
-                {
-                    return NotFound();
-                }
+        //        if (update == null)
+        //        {
+        //            return NotFound();
+        //        }
 
-                return Ok("Update Successfully");
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
+        //        return Ok("Update Successfully");
+        //    }
+        //    catch (KeyNotFoundException ex)
+        //    {
+        //        return NotFound(new { message = ex.Message });
+        //    }
+        //    catch (Exception ex)
+        //    {
 
-                return StatusCode(500, new { message = "An unexpected error occurred.", details = ex.Message });
-            }
-        }
+        //        return StatusCode(500, new { message = "An unexpected error occurred.", details = ex.Message });
+        //    }
+        //}
 
         // POST: api/Orders
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<OrdersDTOResponse>> Create(OrdersDTORequest ordersDTO)
+        public async Task<ActionResult<OrdersDTOResponse>> Create(int accountId)
         {
             try
             {
-                var create = await _odersService.CreateAsync(ordersDTO);
+                var create = await _odersService.CreateOrderFromCartAsync(accountId);
                 return CreatedAtAction(nameof(GetOrder), new { id = create.OrderId }, create);
             }
             catch (KeyNotFoundException ex)

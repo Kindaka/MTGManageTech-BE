@@ -11,9 +11,9 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
     {
         Task<IEnumerable<OrdersDTOResponse>> GetAll();
         Task<IEnumerable<OrdersDTOResponse>> GetById(int id);
-        Task<OrdersDTOResponse> CreateAsync(OrdersDTORequest ordersDTO);
+        Task<OrdersDTOResponse> CreateOrderFromCartAsync(int accountId);
 
-        Task<OrdersDTOResponse> UpdateAsync(int id, OrdersDTORequest ordersDTO);
+        //Task<OrdersDTOResponse> UpdateAsync(int id, OrdersDTORequest ordersDTO);
         Task<bool> DeleteAsync(int id);
     }
 }

@@ -13,7 +13,6 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
         Task<IEnumerable<CartItemsDTOResponse>> GetAllCartItems();
         Task<IEnumerable<CartItemsDTOResponse>> GetAllCartItemById(int id);
         Task<CartItemsDTOResponse> CreateCartItemsAsync(CartItemsDTORequest cartItemsDTO);
-        Task<CartItemsDTOResponse> UpdateCartItemsAsync(int id, CartItemsDTORequest cartItemsDTO);
         Task<bool> DeleteCartItemsAsync(int id);
 
 

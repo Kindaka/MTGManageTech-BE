@@ -15,13 +15,5 @@ namespace MartyrGraveManagement_BAL.ModelViews.CartItemsDTOs
         [Required(ErrorMessage = "Service ID is required.")]
         public int ServiceId { get; set; }
 
-        [Required(ErrorMessage = "Martyr ID is required.")]
-        public int MartyrId { get; set; }
-
-        [Range(0,int.MaxValue)]
-        public int CartQuantity { get; set; }
-
-        public bool Status { get; set; } = true;
-
     }
 }

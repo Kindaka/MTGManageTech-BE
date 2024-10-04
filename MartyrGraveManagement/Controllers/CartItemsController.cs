@@ -45,33 +45,6 @@ namespace MartyrGraveManagement.Controllers
             return Ok(cartItem);
         }
 
-        // PUT: api/CartItems/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateCartItem(int id, CartItemsDTORequest cartItemDTO)
-        {
-            try
-            {
-                var updateCartItem = await _cartItemsService.UpdateCartItemsAsync(id, cartItemDTO);
-
-          
-                if (updateCartItem == null)
-                {
-                    return NotFound();
-                }
-
-                return Ok("Update Successfully");
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                
-                return StatusCode(500, new { message = "An unexpected error occurred.", details = ex.Message });
-            }
-        }
 
         // POST: api/CartItems
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
