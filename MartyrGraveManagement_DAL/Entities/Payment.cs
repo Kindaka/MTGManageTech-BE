@@ -16,7 +16,7 @@ namespace MartyrGraveManagement_DAL.Entities
         public int OrderId { get; set; }
         public string PaymentMethod { get; set; }
         public string BankCode { get; set; }
-        public string BankTransactionNo { get; set; }
+        public string? BankTransactionNo { get; set; }
         public string CardType { get; set; }
         public string PaymentInfo { get; set; }
         public DateTime PayDate { get; set; }

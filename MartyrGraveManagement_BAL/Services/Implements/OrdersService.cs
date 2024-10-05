@@ -15,14 +15,14 @@ using System.Threading.Tasks;
 
 namespace MartyrGraveManagement_BAL.Services.Implements
 {
-    public class OdersService : IOdersService
+    public class OrdersService : IOrdersService
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IConfiguration _configuration;
 
 
-        public OdersService(IUnitOfWork unitOfWork, IMapper mapper, IConfiguration configuration)
+        public OrdersService(IUnitOfWork unitOfWork, IMapper mapper, IConfiguration configuration)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -199,7 +199,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
         }
 
 
-        public async Task<OrdersDTOResponse> CreateOrderFromCartAsync(int accountId)
+        public async Task<(bool status, string? paymentUrl, string responseContent)> CreateOrderFromCartAsync(int accountId)
         {
             using (var transaction = await _unitOfWork.BeginTransactionAsync())
             {
@@ -209,13 +209,13 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     var account = await _unitOfWork.AccountRepository.GetByIDAsync(accountId);
                     if (account == null)
                     {
-                        throw new KeyNotFoundException("AccountID does not exist.");
+                        return (false, null, "Không tìm thấy account, kiểm tra lại");
                     }
 
                     // Kiểm tra trạng thái tài khoản
                     if (account.Status == false)
                     {
-                        throw new InvalidOperationException("This account is not active.");
+                        return (false, null, "Account đã bị lock");
                     }
 
                     // Lấy danh sách CartItem cho account
@@ -223,14 +223,14 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
                     if (cartItems == null || !cartItems.Any())
                     {
-                        throw new Exception("No items in cart to process.");
+                        return (false, null, "Không có item trong cart");
                     }
 
                     // Kiểm tra nếu người dùng đã có đơn hàng chưa thanh toán
                     var existingOrder = await _unitOfWork.OrderRepository.GetAsync(o => o.AccountId == accountId && o.Status == 0);
                     if (existingOrder.Any())
                     {
-                        throw new InvalidOperationException("You already have an unpaid order.");
+                        return (false, null, "Bạn có đơn hàng chưa thanh toán");
                     }
 
                     // Tính tổng tiền dựa trên dịch vụ trong giỏ hàng
@@ -245,7 +245,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                             // Kiểm tra trạng thái của dịch vụ
                             if (service.Status == false)
                             {
-                                throw new InvalidOperationException($"Service {service.ServiceName} is no longer available.");
+                                return (false, null, "Dịch vụ đã bị dừng");
                             }
 
                             totalPrice += (decimal)service.Price;  // Sử dụng giá của dịch vụ
@@ -268,7 +268,6 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         StartDate = DateTime.Now,  // Hoặc dựa trên yêu cầu cụ thể
                         TotalPrice = totalPrice,
                         Status = 0,  // Status = 0 cho đơn hàng chưa thanh toán
-                        OrderDetails = orderDetails
                     };
                     order.EndDate = order.StartDate.AddDays(7);  // Ví dụ thêm 7 ngày cho thời gian hết hạn
 
@@ -285,12 +284,13 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     }
                     await _unitOfWork.SaveAsync();
 
+
                     // Xóa các mục trong giỏ hàng sau khi tạo đơn hàng
                     foreach (var cartItem in cartItems)
                     {
                         await _unitOfWork.CartItemRepository.DeleteAsync(cartItem);
                     }
-                    await _unitOfWork.SaveAsync();
+                   
 
                     // Tạo liên kết thanh toán VNPay
                     var paymentUrl = CreateVnpayLink(order);
@@ -298,11 +298,9 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     // Commit transaction
                     await transaction.CommitAsync();
 
-                    // Trả về DTO response với Payment URL
-                    var response = _mapper.Map<OrdersDTOResponse>(order);
-                    response.PaymentUrl = paymentUrl;
 
-                    return response;
+
+                    return (true, paymentUrl, "Đơn hàng đã được tạo thành công, hãy thanh toán đơn hàng với đường link đính kèm để hoàn thành thanh toán");
                 }
                 catch (Exception ex)
                 {

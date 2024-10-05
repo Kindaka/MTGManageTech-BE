@@ -31,6 +31,9 @@ namespace MartyrGraveManagement_BAL.ModelViews.MartyrGraveDTOs
         public string Phone { get; set; }
         [StringLength(250, ErrorMessage = "Address must be between 0 and 64 characters.")]
         public string Address { get; set; }
+        [EmailAddress]
+        [Required]
+        public string? EmailAddress { get; set; }
         public DateTime Dob { get; set; }
 
         public List<MartyrGraveInformationDtoRequest> Informations { get; set; } = new List<MartyrGraveInformationDtoRequest>();

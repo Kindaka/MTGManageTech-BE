@@ -78,10 +78,11 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("RequireAdminOrStaffRole", policy => policy.RequireClaim(ClaimTypes.Role, "1", "3"));
     options.AddPolicy("RequireAdminOrCustomerRole", policy => policy.RequireClaim(ClaimTypes.Role, "1", "4"));
     options.AddPolicy("RequireStaffOrCustomerRole", policy => policy.RequireClaim(ClaimTypes.Role, "3", "4"));
-    options.AddPolicy("RequireAllRoles", policy => policy.RequireClaim(ClaimTypes.Role, "1", "3", "4", "5"));
-    options.AddPolicy("RequireManagerRole", policy => policy.RequireClaim(ClaimTypes.Role, "5"));
-    options.AddPolicy("RequireManagerOrStaffRole", policy => policy.RequireClaim(ClaimTypes.Role, "3", "5"));
-    options.AddPolicy("RequireManagerOrStaffOrCustomerRole", policy => policy.RequireClaim(ClaimTypes.Role, "3", "4", "5"));
+    options.AddPolicy("RequireAllRoles", policy => policy.RequireClaim(ClaimTypes.Role, "1", "3", "4", "2"));
+    options.AddPolicy("RequireManagerRole", policy => policy.RequireClaim(ClaimTypes.Role, "2"));
+    options.AddPolicy("RequireManagerOrStaffRole", policy => policy.RequireClaim(ClaimTypes.Role, "3", "2"));
+    options.AddPolicy("RequireManagerOrStaffOrCustomerRole", policy => policy.RequireClaim(ClaimTypes.Role, "3", "4", "2"));
+    options.AddPolicy("RequireManagerOrAdminRole", policy => policy.RequireClaim(ClaimTypes.Role, "1", "2"));
 });
 
 // Đăng ký AutoMapper với cấu hình ánh xạ
@@ -99,7 +100,7 @@ builder.Services.AddScoped<ICartService, CartItemsService>();
 builder.Services.AddScoped<ITaskService, TaskService>();
 builder.Services.AddScoped<IJobService, JobService>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
-builder.Services.AddScoped<IOdersService, OdersService>();
+builder.Services.AddScoped<IOrdersService, OrdersService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 
 

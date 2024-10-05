@@ -17,9 +17,9 @@ namespace MartyrGraveManagement.Controllers
     [ApiController]
     public class OrdersController : ControllerBase
     {
-        private readonly IOdersService _odersService;
+        private readonly IOrdersService _odersService;
 
-        public OrdersController(IOdersService odersService)
+        public OrdersController(IOrdersService odersService)
         {
             _odersService = odersService;
         }
@@ -96,7 +96,15 @@ namespace MartyrGraveManagement.Controllers
             try
             {
                 var create = await _odersService.CreateOrderFromCartAsync(accountId);
-                return Ok(create);  
+                if (create.status)
+                {
+                    return Ok(new { paymentUrl = create.paymentUrl, responseContent = create.responseContent });
+                }
+                else
+                {
+                    return BadRequest(create.responseContent);
+                }
+                
             }
             catch (KeyNotFoundException ex)
             {
