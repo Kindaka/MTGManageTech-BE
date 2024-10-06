@@ -102,6 +102,7 @@ builder.Services.AddScoped<IJobService, JobService>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<IOrdersService, OrdersService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<ISendEmailService, SendEmailService>();
 
 
 var app = builder.Build();

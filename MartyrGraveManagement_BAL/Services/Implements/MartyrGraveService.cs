@@ -11,6 +11,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Security.Principal;
 using MartyrGraveManagement_BAL.ModelViews.MartyrGraveInformationDTOs;
+using MartyrGraveManagement_BAL.ModelViews.EmailDTOs;
 
 namespace MartyrGraveManagement_BAL.Services.Implements
 {
@@ -18,11 +19,13 @@ namespace MartyrGraveManagement_BAL.Services.Implements
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly ISendEmailService _sendEmailService;
 
-        public MartyrGraveService(IUnitOfWork unitOfWork, IMapper mapper)
+        public MartyrGraveService(IUnitOfWork unitOfWork, IMapper mapper, ISendEmailService sendEmailService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _sendEmailService = sendEmailService;
         }
 
         // Hàm tạo MartyrCode bằng cách ghép AreaNumber, RowNumber, MartyrNumber
@@ -117,7 +120,11 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                                     InformationId = information.InformationId,
                                     MartyrId = information.MartyrId,
                                     Name = information.Name,
+                                    NickName = information.NickName,
+                                    Position = information.Position,
                                     Medal = information.Medal,
+                                    HomeTown = information.HomeTown,
+                                    DateOfBirth = information.DateOfBirth,
                                     DateOfSacrifice = information.DateOfSacrifice
                                 };
                                 graveView.MatyrGraveInformations.Add(informationView);
@@ -167,7 +174,11 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                                 InformationId = information.InformationId,
                                 MartyrId = information.MartyrId,
                                 Name = information.Name,
+                                NickName = information.NickName,
+                                Position = information.Position,
                                 Medal = information.Medal,
+                                HomeTown = information.HomeTown,
+                                DateOfBirth = information.DateOfBirth,
                                 DateOfSacrifice = information.DateOfSacrifice
                             };
                             graveView.MatyrGraveInformations.Add(informationView);
@@ -334,7 +345,11 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                                 {
                                     MartyrId = insertedGrave.MartyrId,
                                     Name = martyrGraveInformation.Name,
+                                    NickName = martyrGraveInformation.NickName,
+                                    Position = martyrGraveInformation.Position,
                                     Medal = martyrGraveInformation.Medal,
+                                    HomeTown = martyrGraveInformation.HomeTown,
+                                    DateOfBirth = martyrGraveInformation.DateOfBirth,
                                     DateOfSacrifice = martyrGraveInformation.DateOfSacrifice
                                 };
                                 await _unitOfWork.MartyrGraveInformationRepository.AddAsync(information);
@@ -372,6 +387,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     FullName = martyrGraveDto.UserName,
                     PhoneNumber = martyrGraveDto.Phone,
                     Address = martyrGraveDto.Address,
+                    EmailAddress = martyrGraveDto.EmailAddress,
                     DateOfBirth = martyrGraveDto.Dob,
                     RoleId = 4,
                     Status = true,
@@ -409,7 +425,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     await _unitOfWork.MartyrGraveRepository.AddAsync(martyrGrave);
                     await _unitOfWork.SaveAsync();
 
-                    var insertedGrave = (await _unitOfWork.MartyrGraveRepository.FindAsync(m => m.MartyrCode == martyrGrave.MartyrCode)).FirstOrDefault();
+                    var insertedGrave = (await _unitOfWork.MartyrGraveRepository.GetAsync(m => m.MartyrCode == martyrGrave.MartyrCode, includeProperties: "MartyrGraveInformations")).FirstOrDefault();
 
                     if (insertedGrave != null)
                     {
@@ -422,7 +438,11 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                                 {
                                     MartyrId = insertedGrave.MartyrId,
                                     Name = martyrGraveInformation.Name,
+                                    NickName = martyrGraveInformation.NickName,
+                                    Position = martyrGraveInformation.Position,
                                     Medal = martyrGraveInformation.Medal,
+                                    HomeTown = martyrGraveInformation.HomeTown,
+                                    DateOfBirth = martyrGraveInformation.DateOfBirth,
                                     DateOfSacrifice = martyrGraveInformation.DateOfSacrifice
                                 };
                                 await _unitOfWork.MartyrGraveInformationRepository.AddAsync(information);
@@ -444,6 +464,13 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                             }
                             await _unitOfWork.SaveAsync();
                         }
+                        EmailDTO email = new EmailDTO
+                        {
+                            To = accountMapping.EmailAddress,
+                            Subject = "Tài khoản đăng nhập vào phần mềm An Nhiên",
+                            Body = _sendEmailService.emailBodyForMartyrGraveAccount(accountMapping, insertedGrave, randomPassword)
+                        };
+                        await _sendEmailService.SendEmailMartyrGraveAccount(email);
                     }
                     else
                     {
@@ -534,7 +561,11 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         {
                             MartyrId = existingGrave.MartyrId,
                             Name = martyrGraveInformation.Name,
+                            NickName = martyrGraveInformation.NickName,
+                            Position = martyrGraveInformation.Position,
                             Medal = martyrGraveInformation.Medal,
+                            HomeTown = martyrGraveInformation.HomeTown,
+                            DateOfBirth = martyrGraveInformation.DateOfBirth,
                             DateOfSacrifice = martyrGraveInformation.DateOfSacrifice
                         };
                         await _unitOfWork.MartyrGraveInformationRepository.AddAsync(information);
