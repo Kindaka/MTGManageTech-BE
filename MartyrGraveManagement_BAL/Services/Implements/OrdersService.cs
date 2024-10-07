@@ -226,12 +226,12 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         return (false, null, "Không có item trong cart");
                     }
 
-                    // Kiểm tra nếu người dùng đã có đơn hàng chưa thanh toán
-                    var existingOrder = await _unitOfWork.OrderRepository.GetAsync(o => o.AccountId == accountId && o.Status == 0);
-                    if (existingOrder.Any())
-                    {
-                        return (false, null, "Bạn có đơn hàng chưa thanh toán");
-                    }
+                    //// Kiểm tra nếu người dùng đã có đơn hàng chưa thanh toán
+                    //var existingOrder = await _unitOfWork.OrderRepository.GetAsync(o => o.AccountId == accountId && o.Status == 0);
+                    //if (existingOrder.Any())
+                    //{
+                    //    return (false, null, "Bạn có đơn hàng chưa thanh toán");
+                    //}
 
                     // Tính tổng tiền dựa trên dịch vụ trong giỏ hàng
                     decimal totalPrice = 0;

@@ -20,7 +20,7 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
         Task<bool> UpdateStatusMartyrGraveAsync(int id);
         Task<(List<MartyrGraveGetAllDtoResponse> response, int totalPage)> GetAllMartyrGravesForManagerAsync(int page, int pageSize);
 
-        Task<(bool status, string result)> UpdateMartyrGraveAsyncV2(int id, MartyrGraveDtoRequest martyrGraveDto);
+        Task<(bool status, string result)> UpdateMartyrGraveAsyncV2(int id, MartyrGraveUpdateDtoRequest martyrGraveDto);
 
     }
 }

@@ -196,7 +196,7 @@ namespace MartyrGraveManagement.Controllers
         /// <param name="martyrGraveDto">The updated details of the martyr grave.</param>
         /// <returns>Returns no content if the update is successful.</returns>
         [HttpPut("update-grave-v2/{id}")]
-        public async Task<IActionResult> UpdateMartyrGraveV2(int id, MartyrGraveDtoRequest martyrGraveDto)
+        public async Task<IActionResult> UpdateMartyrGraveV2(int id, MartyrGraveUpdateDtoRequest martyrGraveDto)
         {
             try
             {

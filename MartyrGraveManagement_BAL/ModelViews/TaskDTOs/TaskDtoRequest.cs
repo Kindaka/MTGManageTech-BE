@@ -22,16 +22,12 @@ namespace MartyrGraveManagement_BAL.ModelViews.TaskDTOs
         [Required(ErrorMessage = "TypeOfWork is required.")]
         public int TypeOfWork { get; set; }
 
-        [Required(ErrorMessage = "StartDate is required.")]
-        public DateTime StartDate { get; set; }
-
-        [Required(ErrorMessage = "EndDate is required.")]
-        public DateTime EndDate { get; set; }
-
         [StringLength(500, ErrorMessage = "Description can't be longer than 500 characters.")]
         public string Description { get; set; }
 
         [Required(ErrorMessage = "Status is required.")]
         public int Status { get; set; }
+
+        public string? UrlImage { get; set; }
     }
 }

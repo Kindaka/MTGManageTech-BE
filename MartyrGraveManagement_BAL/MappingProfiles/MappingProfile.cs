@@ -2,6 +2,7 @@
 using MartyrGraveManagement_BAL.ModelViews.AccountDTOs;
 using MartyrGraveManagement_BAL.ModelViews.AreaDTOs;
 using MartyrGraveManagement_BAL.ModelViews.CartItemsDTOs;
+using MartyrGraveManagement_BAL.ModelViews.FeedbackDTOs;
 using MartyrGraveManagement_BAL.ModelViews.JobDTOs;
 using MartyrGraveManagement_BAL.ModelViews.MartyrGraveDTOs;
 using MartyrGraveManagement_BAL.ModelViews.MartyrGraveInformationDTOs;
@@ -38,6 +39,7 @@ namespace MartyrGraveManagement_BAL.MappingProfiles
             CreateMap<MartyrGrave, MartyrGraveDtoRequest>().ReverseMap();
             CreateMap<MartyrGrave, MartyrGraveDtoResponse>().ReverseMap();
             CreateMap<GraveImage, GraveImageDtoRequest>().ReverseMap();
+            CreateMap<MartyrGrave, MartyrGraveUpdateDtoRequest>().ReverseMap();
 
             // MartyrGraveInformation mappings
             CreateMap<MartyrGraveInformation, MartyrGraveInformationDtoRequest>().ReverseMap();
@@ -71,6 +73,9 @@ namespace MartyrGraveManagement_BAL.MappingProfiles
             CreateMap<Payment, PaymentDTORequest>().ReverseMap();
             CreateMap<Payment, PaymentDTOResponse>().ReverseMap();
 
+            //Feeback mapping
+            CreateMap<FeedbackDtoRequest, Feedback>();
+            CreateMap<Feedback, FeedbackDtoResponse>();
 
 
         }

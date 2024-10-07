@@ -84,7 +84,7 @@ namespace MartyrGraveManagement.Controllers
 
 
         [Authorize(Policy = "RequireCustomerRole")]
-        [HttpGet("cart/{accountId}")]
+        [HttpGet("cart/{customerId}")]
         public async Task<ActionResult<List<CartItemGetByCustomerDTOResponse>>> GetCartItemsByAccountId(int customerId)
         {
             try

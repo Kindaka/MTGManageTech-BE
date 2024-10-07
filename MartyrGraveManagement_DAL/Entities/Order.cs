@@ -19,7 +19,7 @@ namespace MartyrGraveManagement_DAL.Entities
         public DateTime EndDate { get; set; }
         public decimal TotalPrice { get; set; }
         public int Status { get; set; }
-
+        public string? Note { get; set; }
         public Account? Account { get; set; }
         public IEnumerable<OrderDetail>? OrderDetails { get; set; }
         public Payment? Payment { get; set; }

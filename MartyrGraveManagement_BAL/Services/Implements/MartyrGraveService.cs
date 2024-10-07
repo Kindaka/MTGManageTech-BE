@@ -582,7 +582,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
         }
 
-        public async Task<(bool status, string result)> UpdateMartyrGraveAsyncV2(int id, MartyrGraveDtoRequest martyrGraveDto)
+        public async Task<(bool status, string result)> UpdateMartyrGraveAsyncV2(int id, MartyrGraveUpdateDtoRequest martyrGraveDto)
         {
             try
             {

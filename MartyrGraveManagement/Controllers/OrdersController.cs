@@ -161,20 +161,5 @@ namespace MartyrGraveManagement.Controllers
             }
         }
 
-
-
-
-        // DELETE: api/Orders/5
-        //[HttpDelete("{id}")]
-        //public async Task<IActionResult> DeleteOrder(int id)
-        //{
-        //    var deleted = await _odersService.DeleteAsync(id);
-        //    if (!deleted)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    return Ok("Delete Successfully");
-        //}
     }
 }

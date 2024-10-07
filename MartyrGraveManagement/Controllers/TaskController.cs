@@ -62,6 +62,45 @@ namespace MartyrGraveManagement.Controllers
             }
         }
 
-       
+
+
+        /// <summary>
+        /// Create a new task.
+        /// </summary>
+        /// <param name="taskDto">Task data to create.</param>
+        /// <returns>Returns the created task.</returns>
+        [Authorize(Policy = "RequireManagerOrStaffRole")]
+        [HttpPost("tasks")]
+        public async Task<IActionResult> CreateTask([FromBody] TaskDtoRequest taskDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                var createdTask = await _taskService.CreateTaskAsync(taskDto);
+                return CreatedAtAction(nameof(GetTaskById), new { taskId = createdTask.TaskId }, createdTask);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);  // Trả về lỗi nếu không tìm thấy Account hoặc Order
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Forbid(ex.Message);  // Trả về lỗi nếu nhân viên không có quyền làm việc
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);  // Trả về lỗi nếu có điều kiện không hợp lệ
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+
     }
 }

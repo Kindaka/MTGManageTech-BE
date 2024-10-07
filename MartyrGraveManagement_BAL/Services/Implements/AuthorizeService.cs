@@ -1,4 +1,5 @@
-﻿using MartyrGraveManagement_DAL.UnitOfWorks.Interfaces;
+﻿using MartyrGraveManagement_BAL.Services.Interfaces;
+using MartyrGraveManagement_DAL.UnitOfWorks.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace MartyrGraveManagement_BAL.Services.Implements
 {
-    public class AuthorizeService
+    public class AuthorizeService : IAuthorizeService
     {
         private readonly IUnitOfWork _unitOfWork;
 
