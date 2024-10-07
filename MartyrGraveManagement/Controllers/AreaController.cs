@@ -1,5 +1,6 @@
 ﻿using MartyrGraveManagement_BAL.ModelViews.AreaDTos;
 using MartyrGraveManagement_BAL.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 
@@ -18,6 +19,7 @@ namespace MartyrGraveManagement.Controllers
         /// <summary>
         /// Create a new Area.
         /// </summary>
+        [Authorize(Policy = "RequireManagerOrAdminRole")]
         [HttpPost("create-area")]
         public async Task<IActionResult> CreateNewArea(AreaDtoRequest areaRequest)
         {
@@ -47,6 +49,7 @@ namespace MartyrGraveManagement.Controllers
         /// <summary>
         /// Get a list of Areas.
         /// </summary>
+        [AllowAnonymous]
         [HttpGet("areas")]
         public async Task<IActionResult> GetAllAreas()
         {
@@ -66,6 +69,7 @@ namespace MartyrGraveManagement.Controllers
         /// </summary>
         /// <param name="id">Area ID</param>
         /// <returns>Returns the specified area.</returns>
+        [AllowAnonymous]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetAreaById(int id)
         {
@@ -86,6 +90,8 @@ namespace MartyrGraveManagement.Controllers
         /// <param name="id">Area ID</param>
         /// <param name="updateArea">Updated area data</param>
         /// <returns>Returns success message.</returns>
+
+        [Authorize(Policy = "RequireManagerOrAdminRole")]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateArea(int id, [FromBody] AreaDtoRequest updateArea)
         {
@@ -110,6 +116,7 @@ namespace MartyrGraveManagement.Controllers
         /// </summary>
         /// <param name="id">Area ID</param>
         /// <returns>Returns success message.</returns>
+        [Authorize(Policy = "RequireManagerOrAdminRole")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteArea(int id)
         {

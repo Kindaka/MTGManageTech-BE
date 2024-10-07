@@ -1,5 +1,6 @@
 ﻿using MartyrGraveManagement_BAL.ModelViews.ServiceCategoryDTOs;
 using MartyrGraveManagement_BAL.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
@@ -22,6 +23,7 @@ namespace MartyrGraveManagement.Controllers
         /// <returns>Returns a list of all service categories.</returns>
         /// <response code="200">Returns the list of categories</response>
         /// <response code="500">If there is any server error</response>
+        [AllowAnonymous]
         [HttpGet("categories")]
         public async Task<IActionResult> GetAllCategory()
         {
@@ -44,6 +46,7 @@ namespace MartyrGraveManagement.Controllers
         /// <response code="200">If the category is created successfully</response>
         /// <response code="400">If the category creation fails</response>
         /// <response code="500">If there is any server error</response>
+        [Authorize(Policy = "RequireAdminRole")]
         [HttpPost("categories")]
         public async Task<IActionResult> AddCategory(ServiceCategoryDto category)
         {
@@ -74,6 +77,7 @@ namespace MartyrGraveManagement.Controllers
         /// <response code="200">If the category is updated successfully</response>
         /// <response code="400">If the update fails</response>
         /// <response code="500">If there is any server error</response>
+        [Authorize(Policy = "RequireAdminRole")]
         [HttpPut("categories")]
         public async Task<IActionResult> UpdateCategory(ServiceCategoryDto category, int id)
         {

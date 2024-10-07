@@ -9,6 +9,7 @@ using MartyrGraveManagement_DAL.Entities;
 using MartyrGraveManagement_BAL.Services.Implements;
 using MartyrGraveManagement_BAL.Services.Interfaces;
 using MartyrGraveManagement_BAL.ModelViews.CartItemsDTOs;
+using Microsoft.AspNetCore.Authorization;
 
 namespace MartyrGraveManagement.Controllers
 {
@@ -17,13 +18,16 @@ namespace MartyrGraveManagement.Controllers
     public class CartItemsController : ControllerBase
     {
         private readonly ICartService _cartItemsService;
+        private readonly IAuthorizeService _authorizeService;
 
-        public CartItemsController(ICartService cartItemsService)
+        public CartItemsController(ICartService cartItemsService, IAuthorizeService authorizeService)
         {
             _cartItemsService = cartItemsService;
+            _authorizeService = authorizeService;
         }
 
         // GET: api/CartItems
+        [Authorize(Policy = "RequireCustomerRole")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<CartItemsDTOResponse>>> GetCartItems()
         {
@@ -32,6 +36,7 @@ namespace MartyrGraveManagement.Controllers
         }
 
         // GET: api/CartItems/5
+        [Authorize(Policy = "RequireCustomerRole")]
         [HttpGet("{id}")]
         public async Task<ActionResult<CartItemsDTOResponse>> GetCartItem(int id)
         {
@@ -48,11 +53,26 @@ namespace MartyrGraveManagement.Controllers
 
         // POST: api/CartItems
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(Policy = "RequireCustomerRole")]
         [HttpPost]
         public async Task<ActionResult<CartItemsDTOResponse>> CreateCartItems(CartItemsDTORequest cartItemDTO)
         {
             try
             {
+                var accountId = User.FindFirst("AccountId")?.Value;
+                if (accountId == null)
+                {
+                    return Forbid();
+                }
+                var checkMatchedId = await _authorizeService.CheckAuthorizeByCustomerId(cartItemDTO.AccountId, int.Parse(accountId));
+                if (!checkMatchedId.isMatchedCustomer)
+                {
+                    return Forbid();
+                }
+                if (cartItemDTO == null)
+                {
+                    return BadRequest("Cannot add empty object to cart");
+                }
                 var createCartItem = await _cartItemsService.CreateCartItemsAsync(cartItemDTO);
                 return CreatedAtAction(nameof(GetCartItem), new { id = createCartItem.CartId }, createCartItem);
             }
@@ -62,15 +82,25 @@ namespace MartyrGraveManagement.Controllers
             }
         }
 
-     
 
+        [Authorize(Policy = "RequireCustomerRole")]
         [HttpGet("cart/{accountId}")]
-        public async Task<ActionResult<List<CartItemGetByCustomerDTOResponse>>> GetCartItemsByAccountId(int accountId)
+        public async Task<ActionResult<List<CartItemGetByCustomerDTOResponse>>> GetCartItemsByAccountId(int customerId)
         {
             try
             {
+                var accountId = User.FindFirst("AccountId")?.Value;
+                if (accountId == null)
+                {
+                    return Forbid();
+                }
+                var checkMatchedId = await _authorizeService.CheckAuthorizeByCustomerId(customerId, int.Parse(accountId));
+                if (!checkMatchedId.isMatchedCustomer)
+                {
+                    return Forbid();
+                }
                 // Gọi service để lấy giỏ hàng của accountId
-                var cartItems = await _cartItemsService.GetCartItemsByAccountId(accountId);
+                var cartItems = await _cartItemsService.GetCartItemsByAccountId(customerId);
 
                 // Kiểm tra nếu không có giỏ hàng nào được tìm thấy
                 if (cartItems == null || !cartItems.Any())
@@ -87,12 +117,22 @@ namespace MartyrGraveManagement.Controllers
                 return StatusCode(500, new { message = "An unexpected error occurred.", details = ex.Message });
             }
         }
-
+        [Authorize(Policy = "RequireCustomerRole")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteItemInCart(int id)
         {
             try
             {
+                var customerId = User.FindFirst("AccountId")?.Value;
+                if (customerId == null)
+                {
+                    return Forbid();
+                }
+                var checkMatchedId = await _authorizeService.CheckAuthorizeByCartId(id, int.Parse(customerId));
+                if (!checkMatchedId)
+                {
+                    return Forbid();
+                }
                 var check = await _cartItemsService.DeleteCartItemsAsync(id);
                 if (check)
                 {

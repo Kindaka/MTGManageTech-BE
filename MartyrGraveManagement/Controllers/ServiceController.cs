@@ -2,6 +2,7 @@
 using MartyrGraveManagement_BAL.ModelViews.ServiceDTOs;
 using MartyrGraveManagement_BAL.Services.Interfaces;
 using MartyrGraveManagement_DAL.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
@@ -24,6 +25,7 @@ namespace MartyrGraveManagement.Controllers
         /// <returns>Returns a list of all services.</returns>
         /// <response code="200">Returns the list of services</response>
         /// <response code="500">If there is any server error</response>
+        [AllowAnonymous]
         [HttpGet("services")]
         public async Task<IActionResult> GetAllServices(int categoryId)
         {
@@ -46,6 +48,7 @@ namespace MartyrGraveManagement.Controllers
         /// <response code="200">If the service is created successfully</response>
         /// <response code="400">If the service creation fails</response>
         /// <response code="500">If there is any server error</response>
+        [Authorize(Policy = "RequireAdminRole")]
         [HttpPost("services")]
         public async Task<IActionResult> AddService(ServiceDtoRequest service)
         {
@@ -76,6 +79,7 @@ namespace MartyrGraveManagement.Controllers
         /// <response code="200">If the service is updated successfully</response>
         /// <response code="400">If the update fails</response>
         /// <response code="500">If there is any server error</response>
+        [Authorize(Policy = "RequireAdminRole")]
         [HttpPut("services")]
         public async Task<IActionResult> UpdateService(ServiceDtoRequest service, int serviceId)
         {
@@ -96,7 +100,7 @@ namespace MartyrGraveManagement.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
-
+        [Authorize(Policy = "RequireAdminRole")]
         [HttpPut("status-service")]
         public async Task<IActionResult> UpdateStatusService(int serviceId)
         {
@@ -117,7 +121,7 @@ namespace MartyrGraveManagement.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
-
+        [AllowAnonymous]
         [HttpGet("service-detail")]
         public async Task<IActionResult> GetService(int serviceId)
         {

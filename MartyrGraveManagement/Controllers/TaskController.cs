@@ -1,5 +1,6 @@
 ﻿using MartyrGraveManagement_BAL.ModelViews.TaskDTOs;
 using MartyrGraveManagement_BAL.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -22,6 +23,7 @@ namespace MartyrGraveManagement.Controllers
         /// Get all tasks.
         /// </summary>
         /// <returns>Returns a list of all tasks.</returns>
+        [Authorize(Policy = "RequireManagerOrStaffRole")]
         [HttpGet("tasks")]
         public async Task<IActionResult> GetAllTasks()
         {
@@ -41,6 +43,7 @@ namespace MartyrGraveManagement.Controllers
         /// </summary>
         /// <param name="taskId">The ID of the task.</param>
         /// <returns>Returns the task with the specified ID.</returns>
+        [Authorize(Policy = "RequireManagerOrStaffRole")]
         [HttpGet("tasks/{taskId}")]
         public async Task<IActionResult> GetTaskById(int taskId)
         {

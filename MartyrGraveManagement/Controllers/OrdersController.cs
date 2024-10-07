@@ -10,6 +10,7 @@ using MartyrGraveManagement_DAL.Entities;
 using MartyrGraveManagement_BAL.ModelViews.OrdersDTOs;
 using MartyrGraveManagement_BAL.Services.Implements;
 using MartyrGraveManagement_BAL.ModelViews.CartItemsDTOs;
+using Microsoft.AspNetCore.Authorization;
 
 namespace MartyrGraveManagement.Controllers
 {
@@ -18,12 +19,15 @@ namespace MartyrGraveManagement.Controllers
     public class OrdersController : ControllerBase
     {
         private readonly IOrdersService _odersService;
+        private readonly IAuthorizeService _authorizeService;
 
-        public OrdersController(IOrdersService odersService)
+        public OrdersController(IOrdersService odersService, IAuthorizeService authorizeService)
         {
             _odersService = odersService;
+            _authorizeService = authorizeService;
         }
 
+        [Authorize(Policy = "RequireManagerRole")]
         [HttpGet]
         public async Task<ActionResult<List<OrdersGetAllDTOResponse>>> GetAllOrders()
         {
@@ -44,7 +48,7 @@ namespace MartyrGraveManagement.Controllers
             }
         }
 
-
+        [Authorize(Policy = "RequireManagerRole")]
         [HttpGet("{id}")]
         public async Task<ActionResult<OrdersGetAllDTOResponse>> GetOrderById(int id)
         {
@@ -68,13 +72,23 @@ namespace MartyrGraveManagement.Controllers
 
 
 
-
+        [Authorize(Policy = "RequireCustomerRole")]
         [HttpGet("account/{accountId}")]
-        public async Task<ActionResult<List<OrdersGetAllDTOResponse>>> GetOrderByAccountId(int accountId)
+        public async Task<ActionResult<List<OrdersGetAllDTOResponse>>> GetOrderByAccountId(int customerId)
         {
             try
             {
-                var orders = await _odersService.GetOrderByAccountId(accountId);
+                var accountId = User.FindFirst("AccountId")?.Value;
+                if (accountId == null)
+                {
+                    return Forbid();
+                }
+                var checkMatchedId = await _authorizeService.CheckAuthorizeByCustomerId(customerId, int.Parse(accountId));
+                if (!checkMatchedId.isMatchedCustomer)
+                {
+                    return Forbid();
+                }
+                var orders = await _odersService.GetOrderByAccountId(customerId);
 
                 if (orders == null || !orders.Any())
                 {
@@ -89,13 +103,23 @@ namespace MartyrGraveManagement.Controllers
             }
         }
 
-
+        [Authorize(Policy = "RequireCustomerRole")]
         [HttpPost]
-        public async Task<ActionResult<OrdersDTOResponse>> Create(int accountId)
+        public async Task<ActionResult<OrdersDTOResponse>> Create(int customerId)
         {
             try
             {
-                var create = await _odersService.CreateOrderFromCartAsync(accountId);
+                var accountId = User.FindFirst("AccountId")?.Value;
+                if (accountId == null)
+                {
+                    return Forbid();
+                }
+                var checkMatchedId = await _authorizeService.CheckAuthorizeByCustomerId(customerId, int.Parse(accountId));
+                if (!checkMatchedId.isMatchedCustomer)
+                {
+                    return Forbid();
+                }
+                var create = await _odersService.CreateOrderFromCartAsync(customerId);
                 if (create.status)
                 {
                     return Ok(new { paymentUrl = create.paymentUrl, responseContent = create.responseContent });
@@ -112,6 +136,7 @@ namespace MartyrGraveManagement.Controllers
             }
         }
 
+        [Authorize(Policy = "RequireManagerOrStaffRole")]
         [HttpPut("/api/v1/updateStatus")]
         public async Task<IActionResult> UpdateOrderStatus([FromQuery] int id, [FromQuery] int status)
         {
@@ -140,16 +165,16 @@ namespace MartyrGraveManagement.Controllers
 
 
         // DELETE: api/Orders/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteOrder(int id)
-        {
-            var deleted = await _odersService.DeleteAsync(id);
-            if (!deleted)
-            {
-                return NotFound();
-            }
+        //[HttpDelete("{id}")]
+        //public async Task<IActionResult> DeleteOrder(int id)
+        //{
+        //    var deleted = await _odersService.DeleteAsync(id);
+        //    if (!deleted)
+        //    {
+        //        return NotFound();
+        //    }
 
-            return Ok("Delete Successfully");
-        }
+        //    return Ok("Delete Successfully");
+        //}
     }
 }

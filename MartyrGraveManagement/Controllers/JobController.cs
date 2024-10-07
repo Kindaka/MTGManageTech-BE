@@ -1,5 +1,6 @@
 ﻿using MartyrGraveManagement_BAL.ModelViews.JobDTOs;
 using MartyrGraveManagement_BAL.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MartyrGraveManagement.Controllers
@@ -19,6 +20,7 @@ namespace MartyrGraveManagement.Controllers
         /// Get all jobs.
         /// </summary>
         /// <returns>Returns a list of all jobs.</returns>
+        [Authorize(Policy = "RequireManagerOrStaffRole")]
         [HttpGet("jobs")]
         public async Task<IActionResult> GetAllJobs()
         {
@@ -38,6 +40,7 @@ namespace MartyrGraveManagement.Controllers
         /// </summary>
         /// <param name="jobId">The ID of the job.</param>
         /// <returns>Returns the job with the specified ID.</returns>
+        [Authorize(Policy = "RequireManagerOrStaffRole")]
         [HttpGet("jobs/{jobId}")]
         public async Task<IActionResult> GetJobById(int jobId)
         {
@@ -61,6 +64,7 @@ namespace MartyrGraveManagement.Controllers
         /// </summary>
         /// <param name="newJob">Details of the new job.</param>
         /// <returns>Returns the created job.</returns>
+        [Authorize(Policy = "RequireManagerRole")]
         [HttpPost("jobs")]
         public async Task<IActionResult> CreateJob([FromBody] JobDtoRequest newJob)
         {
@@ -90,6 +94,7 @@ namespace MartyrGraveManagement.Controllers
         /// <param name="jobId">The ID of the job to update.</param>
         /// <param name="updatedJob">The updated job details.</param>
         /// <returns>Returns success message.</returns>
+        [Authorize(Policy = "RequireManagerRole")]
         [HttpPut("jobs/{jobId}")]
         public async Task<IActionResult> UpdateJob(int jobId, [FromBody] JobDtoRequest updatedJob)
         {
@@ -123,6 +128,7 @@ namespace MartyrGraveManagement.Controllers
         /// </summary>
         /// <param name="jobId">The ID of the job to delete.</param>
         /// <returns>Returns success message.</returns>
+        [Authorize(Policy = "RequireManagerRole")]
         [HttpDelete("jobs/{jobId}")]
         public async Task<IActionResult> DeleteJob(int jobId)
         {
