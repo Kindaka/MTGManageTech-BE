@@ -1,4 +1,5 @@
-﻿using MartyrGraveManagement_BAL.ModelViews.MartyrGraveDTOs;
+﻿using MartyrGraveManagement_BAL.ModelViews.CustomerDTOs;
+using MartyrGraveManagement_BAL.ModelViews.MartyrGraveDTOs;
 using MartyrGraveManagement_DAL.Entities;
 using System;
 using System.Collections.Generic;
@@ -14,6 +15,7 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
         Task<MartyrGraveDtoResponse> GetMartyrGraveByIdAsync(int id);
         Task<MartyrGraveDtoResponse> CreateMartyrGraveAsync(MartyrGraveDtoRequest martyrGraveDto);
         Task<(bool status, string result, string? accountName, string? password)> CreateMartyrGraveAsyncV2(MartyrGraveDtoRequest martyrGraveDto);
+        Task<(bool status, string result, string? accountName, string? password)> CreateRelativeGraveAsync(int martyrGraveId,CustomerDtoRequest customer);
         Task<MartyrGraveDtoResponse> UpdateMartyrGraveAsync(int id, MartyrGraveDtoRequest martyrGraveDto);
         Task<bool> UpdateStatusMartyrGraveAsync(int id);
         Task<(List<MartyrGraveGetAllDtoResponse> response, int totalPage)> GetAllMartyrGravesForManagerAsync(int page, int pageSize);

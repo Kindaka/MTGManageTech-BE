@@ -12,5 +12,6 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
     {
         Task SendEmailMartyrGraveAccount(EmailDTO emailDTO);
         string emailBodyForMartyrGraveAccount(Account account, MartyrGrave grave, string randomPassword);
+        string emailBodyForUpdateMartyrGraveAccount(Account account, MartyrGrave grave, string randomPassword);
     }
 }

@@ -1,4 +1,5 @@
-﻿using MartyrGraveManagement_BAL.ModelViews.MartyrGraveDTOs;
+﻿using MartyrGraveManagement_BAL.ModelViews.CustomerDTOs;
+using MartyrGraveManagement_BAL.ModelViews.MartyrGraveDTOs;
 using MartyrGraveManagement_BAL.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
@@ -69,7 +70,7 @@ namespace MartyrGraveManagement.Controllers
         /// <param name="martyrGraveDto">The details of the martyr grave to create.</param>
         /// <returns>Returns no content if the create is successful.</returns>
         [HttpPost("create-grave-v2")]
-        public async Task<ActionResult<MartyrGraveDtoResponse>> CreateMartyrGraveV2(MartyrGraveDtoRequest martyrGraveDto)
+        public async Task<ActionResult<MartyrGraveDtoResponse>> CreateMartyrGraveV2([FromBody] MartyrGraveDtoRequest martyrGraveDto)
         {
             try
             {
@@ -77,6 +78,31 @@ namespace MartyrGraveManagement.Controllers
                 if(createGrave.status)
                 {
                     return Ok(new { result = createGrave.result, accountName = createGrave.accountName, password = createGrave.password});
+                }
+                else
+                {
+                    return BadRequest($"{createGrave.result}");
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpPost("create-relative-grave-v2")]
+        public async Task<IActionResult> CreateRelativeGrave([FromBody] CustomerDtoRequest customerDtoRequest, int graveId)
+        {
+            try
+            {
+                if(customerDtoRequest.UserName == null || customerDtoRequest.Phone == null)
+                {
+                    return BadRequest("Username or phone must be required");
+                }
+                var createGrave = await _martyrGraveService.CreateRelativeGraveAsync(graveId, customerDtoRequest);
+                if (createGrave.status)
+                {
+                    return Ok(new { result = createGrave.result, accountName = createGrave.accountName, password = createGrave.password });
                 }
                 else
                 {
