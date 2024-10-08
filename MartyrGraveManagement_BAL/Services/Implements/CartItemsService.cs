@@ -58,24 +58,32 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
 
             // Tìm MartyrGrave dựa trên CustomerCode của tài khoản
-            var martyrGrave = (await _unitOfWork.MartyrGraveRepository.FindAsync(m => m.CustomerCode == account.CustomerCode)).FirstOrDefault();
+            var martyrGrave = (await _unitOfWork.MartyrGraveRepository.FindAsync(m => m.MartyrId == cartItemsDTO.MartyrId)).FirstOrDefault();
             if (martyrGrave != null)
             {
-                // Tạo thực thể CartItem từ DTO và đặt Status = 1
-                var cart = _mapper.Map<CartItem>(cartItemsDTO);
-                cart.MartyrId = martyrGrave.MartyrId;
-                cart.Status = true;  // Đặt Status là 1 (true)
+                if (martyrGrave.CustomerCode == account.CustomerCode)
+                {
+                    // Tạo thực thể CartItem từ DTO và đặt Status = 1
+                    var cart = _mapper.Map<CartItem>(cartItemsDTO);
+                    cart.MartyrId = martyrGrave.MartyrId;
+                    cart.Status = true;  // Đặt Status là 1 (true)
 
-                // Thêm CartItem vào cơ sở dữ liệu
-                await _unitOfWork.CartItemRepository.AddAsync(cart);
-                await _unitOfWork.SaveAsync();
+                    // Thêm CartItem vào cơ sở dữ liệu
+                    await _unitOfWork.CartItemRepository.AddAsync(cart);
+                    await _unitOfWork.SaveAsync();
 
-                // Trả về DTO response
-                return _mapper.Map<CartItemsDTOResponse>(cart);
+                    // Trả về DTO response
+                    return _mapper.Map<CartItemsDTOResponse>(cart);
+                }
+                else
+                {
+                    throw new KeyNotFoundException("Bạn không phải thân nhân của mộ này. Không thể đặt dịch vụ.");
+                }
+
             }
             else
             {
-                throw new KeyNotFoundException("MartyrGrave for the account's CustomerCode does not exist.");
+                throw new KeyNotFoundException("MartyrGrave  does not exist.");
             }
         }
 

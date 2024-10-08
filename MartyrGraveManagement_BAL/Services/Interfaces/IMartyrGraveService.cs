@@ -13,6 +13,7 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
     {
         Task<List<MartyrGraveDtoResponse>> GetAllMartyrGravesAsync();
         Task<MartyrGraveDtoResponse> GetMartyrGraveByIdAsync(int id);
+        Task<List<MartyrGraveDtoResponse>> GetMartyrGraveByCustomerCode(string customerCode);
         Task<MartyrGraveDtoResponse> CreateMartyrGraveAsync(MartyrGraveDtoRequest martyrGraveDto);
         Task<(bool status, string result, string? accountName, string? password)> CreateMartyrGraveAsyncV2(MartyrGraveDtoRequest martyrGraveDto);
         Task<(bool status, string result, string? accountName, string? password)> CreateRelativeGraveAsync(int martyrGraveId,CustomerDtoRequest customer);

@@ -46,6 +46,22 @@ namespace MartyrGraveManagement.Controllers
         }
 
         /// <summary>
+        /// Gets a specific martyr grave by its customerCode.
+        /// </summary>
+        /// <param name="id">The customerCode of the martyr grave.</param>
+        /// <returns>Returns the martyr grave with the specified customerCode.</returns>
+        [HttpGet("getMartyrGraveByCustomerCode/{customerCode}")]
+        public async Task<ActionResult<IEnumerable<MartyrGraveDtoResponse>>> GetMartyrGraveByMartyrCode(string customerCode)
+        {
+            var graves = await _martyrGraveService.GetMartyrGraveByCustomerCode(customerCode);
+            if (graves == null)
+            {
+                return NotFound();
+            }
+            return Ok(graves);
+        }
+
+        /// <summary>
         /// Creates a new martyr grave.
         /// </summary>
         /// <param name="martyrGraveDto">The details of the martyr grave to create.</param>
