@@ -50,5 +50,19 @@ namespace MartyrGraveManagement.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
+
+        [HttpGet("get-payments")]
+        public async Task<IActionResult> GetPayments(DateTime startDate, DateTime endDate, int status)
+        {
+            try
+            {
+                var payments = await _paymentService.GetPaymentList(startDate, endDate, status);
+                return Ok(payments);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
     }
 }

@@ -158,6 +158,90 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 }
             }
         }
+
+        public async Task<List<PaymentDTOResponseForAdmin>> GetPaymentList(DateTime startDate, DateTime endDate, int? status)
+        {
+            try
+            {
+                var payments = await _unitOfWork.PaymentRepository.GetAsync(p => p.PayDate >= startDate.Date && p.PayDate <= endDate.Date.AddDays(1).AddTicks(-1));
+
+                if( payments != null && payments.Any())
+                {
+                    var paymentList = new List<PaymentDTOResponseForAdmin>();
+                    foreach ( var payment in payments )
+                    {
+                        if (status != 0)
+                        {
+                            var order = (await _unitOfWork.OrderRepository.FindAsync(p => p.OrderId == payment.OrderId && p.Status == status)).FirstOrDefault();
+                            if (order != null)
+                            {
+                                var customer = await _unitOfWork.AccountRepository.GetByIDAsync(order.AccountId);
+                                if (customer != null)
+                                {
+                                    var paymentDtoResponse = new PaymentDTOResponseForAdmin
+                                    {
+                                        OrderId = payment.OrderId,
+                                        PaymentMethod = payment.PaymentMethod,
+                                        CustomerName = customer.FullName,
+                                        PayDate = payment.PayDate,
+                                        Status = order.Status,
+                                        PaymentAmount = payment.PaymentAmount,
+                                    };
+                                    paymentList.Add(paymentDtoResponse);
+                                }
+                                else
+                                {
+                                    throw new KeyNotFoundException("Customer not found");
+                                }
+                            }
+                            else
+                            {
+                                continue;
+                            }
+                        }
+                        else
+                        {
+                            var order = (await _unitOfWork.OrderRepository.FindAsync(p => p.OrderId == payment.OrderId)).FirstOrDefault();
+                            if (order != null)
+                            {
+                                var customer = await _unitOfWork.AccountRepository.GetByIDAsync(order.AccountId);
+                                if (customer != null)
+                                {
+                                    var paymentDtoResponse = new PaymentDTOResponseForAdmin
+                                    {
+                                        OrderId = payment.OrderId,
+                                        PaymentMethod = payment.PaymentMethod,
+                                        CustomerName = customer.FullName,
+                                        PayDate = payment.PayDate,
+                                        Status = order.Status,
+                                        PaymentAmount = payment.PaymentAmount,
+                                    };
+                                    paymentList.Add(paymentDtoResponse);
+                                }
+                                else
+                                {
+                                    throw new KeyNotFoundException("Customer not found");
+                                }
+                            }
+                            else
+                            {
+                                continue;
+                            }
+                        }
+                        
+                    }
+                    return paymentList;
+                }
+                else
+                {
+                    return new List<PaymentDTOResponseForAdmin>();
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
     }
 }
 

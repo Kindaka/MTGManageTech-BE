@@ -103,13 +103,13 @@ namespace MartyrGraveManagement.Controllers
                 var cartItems = await _cartItemsService.GetCartItemsByAccountId(customerId);
 
                 // Kiểm tra nếu không có giỏ hàng nào được tìm thấy
-                if (cartItems == null || !cartItems.Any())
+                if (cartItems.cartitemList == null || !cartItems.cartitemList.Any())
                 {
                     return NotFound(new { message = "No cart items found for this account." });
                 }
 
                 // Trả về danh sách các mục trong giỏ hàng
-                return Ok(cartItems);
+                return Ok(new { cartItemList = cartItems.cartitemList, totalPrice = cartItems.totalPriceInCart});
             }
             catch (Exception ex)
             {

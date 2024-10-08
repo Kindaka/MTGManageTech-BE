@@ -143,6 +143,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             {
                 var service = await _unitOfWork.ServiceRepository.GetByIDAsync(serviceId);
                 if (service != null) {
+                    double wage = 0;
                     var serviceView = _mapper.Map<ServiceDetailDtoResponse>(service);
                     var materials = await _unitOfWork.MaterialRepository.GetAsync(m => m.ServiceId == service.ServiceId);
                     if(materials.Any())
@@ -157,8 +158,10 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                                 Price = material.Price
                             };
                             serviceView.Materials.Add(materialView);
+                            wage += material.Price;
                         }
                     }
+                    serviceView.wage = wage * 0.05;
                     return serviceView;
                 }
                 else

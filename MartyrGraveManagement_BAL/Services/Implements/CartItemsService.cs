@@ -51,7 +51,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 throw new KeyNotFoundException("ServiceID does not exist.");
             }
 
-            var existingCartItem = await _unitOfWork.CartItemRepository.FindAsync(c => c.AccountId == cartItemsDTO.AccountId && c.ServiceId == cartItemsDTO.ServiceId && c.Status == true);
+            var existingCartItem = await _unitOfWork.CartItemRepository.FindAsync(c => c.AccountId == cartItemsDTO.AccountId && c.ServiceId == cartItemsDTO.ServiceId && c.MartyrId == cartItemsDTO.MartyrId && c.Status == true);
             if (existingCartItem.Any())
             {
                 throw new InvalidOperationException("This service is already in the cart.");
@@ -114,7 +114,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
 
 
-        public async Task<List<CartItemGetByCustomerDTOResponse>> GetCartItemsByAccountId(int accountId)
+        public async Task<(List<CartItemGetByCustomerDTOResponse> cartitemList, double totalPriceInCart)> GetCartItemsByAccountId(int accountId)
         {
             try
             {
@@ -124,35 +124,43 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 // Kiểm tra xem có mặt hàng nào trong giỏ hàng không
                 if (cartItems == null || !cartItems.Any())
                 {
-                    return new List<CartItemGetByCustomerDTOResponse>();  // Trả về danh sách rỗng nếu không có giỏ hàng
+                    return (new List<CartItemGetByCustomerDTOResponse>(), 0);  // Trả về danh sách rỗng nếu không có giỏ hàng
                 }
 
                 // Tạo danh sách CartItemGetByCustomerDTOResponse để chứa kết quả
                 var cartItemResponses = new List<CartItemGetByCustomerDTOResponse>();
-
+                double totalPriceInCart = 0;
                 foreach (var cartItem in cartItems)
                 {
-                    // Tạo DTO response cho từng CartItem
-                    var cartItemResponse = new CartItemGetByCustomerDTOResponse
+                    var grave = (await _unitOfWork.MartyrGraveRepository.FindAsync(m => m.MartyrId == cartItem.MartyrId)).FirstOrDefault();
+                    if (grave != null)
                     {
-                        CartId = cartItem.CartId,
-                        AccountId = cartItem.AccountId,
-                        ServiceId = cartItem.ServiceId,
-                        MartyrId = cartItem.MartyrId,
-                        Status = cartItem.Status
-                    };
+                        // Tạo DTO response cho từng CartItem
+                        var cartItemResponse = new CartItemGetByCustomerDTOResponse
+                        {
+                            CartId = cartItem.CartId,
+                            AccountId = cartItem.AccountId,
+                            ServiceId = cartItem.ServiceId,
+                            MartyrCode = grave.MartyrCode,
+                            Status = cartItem.Status
+                        };
 
-                    // Lấy thông tin chi tiết của dịch vụ (Service) và ánh xạ sang DTO
-                    if (cartItem.Service != null)
-                    {
-                        cartItemResponse.ServiceView = _mapper.Map<ServiceDtoResponse>(cartItem.Service);
+                        // Lấy thông tin chi tiết của dịch vụ (Service) và ánh xạ sang DTO
+                        if (cartItem.Service != null)
+                        {
+                            cartItemResponse.ServiceView = _mapper.Map<ServiceDtoResponse>(cartItem.Service);
+                            totalPriceInCart += cartItemResponse.ServiceView.Price;
+                        }
+
+                        // Thêm đối tượng vào danh sách kết quả
+                        cartItemResponses.Add(cartItemResponse);
                     }
-
-                    // Thêm đối tượng vào danh sách kết quả
-                    cartItemResponses.Add(cartItemResponse);
+                    else
+                    {
+                        throw new KeyNotFoundException("Grave not found.");
+                    }
                 }
-
-                return cartItemResponses;  // Trả về danh sách giỏ hàng
+                return (cartItemResponses, totalPriceInCart);  // Trả về danh sách giỏ hàng
             }
             catch (Exception ex)
             {

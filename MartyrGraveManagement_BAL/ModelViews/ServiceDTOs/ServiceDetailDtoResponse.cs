@@ -15,7 +15,9 @@ namespace MartyrGraveManagement_BAL.ModelViews.ServiceDTOs
         public string? Description { get; set; }
         public double Price { get; set; }
         public bool Status { get; set; }
+        
 
         public List<MaterialDtoResponse> Materials { get; set; } = new List<MaterialDtoResponse>();
+        public double wage { get; set; }
     }
 }

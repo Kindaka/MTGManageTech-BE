@@ -11,5 +11,6 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
     {
         Task<PaymentDTOResponse> CancelTransaction(PaymentDTORequest paymentRequest);
         Task<PaymentDTOResponse> CreatePayment(PaymentDTORequest paymentRequest);
+        Task<List<PaymentDTOResponseForAdmin>> GetPaymentList(DateTime startDate, DateTime endDate, int? status);
     }
 }
