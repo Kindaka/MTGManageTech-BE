@@ -10,6 +10,7 @@ namespace MartyrGraveManagement_BAL.ModelViews.TaskDTOs
     {
         public int TaskId { get; set; }
         public int AccountId { get; set; }
+        public string? Fullname { get; set; }
         public int OrderId { get; set; }
         public string NameOfWork { get; set; }
         public int TypeOfWork { get; set; }

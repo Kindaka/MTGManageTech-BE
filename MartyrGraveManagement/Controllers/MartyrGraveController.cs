@@ -18,6 +18,28 @@ namespace MartyrGraveManagement.Controllers
             _martyrGraveService = martyrGraveService;
         }
 
+
+        [HttpGet("search")]
+        public async Task<IActionResult> SearchMartyrGraves([FromQuery] MartyrGraveSearchDtoRequest searchCriteria)
+        {
+            try
+            {
+                var results = await _martyrGraveService.SearchMartyrGravesAsync(searchCriteria);
+                if (results == null || !results.Any())
+                {
+                    return NotFound("No results found.");
+                }
+
+                return Ok(results);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+
+
         /// <summary>
         /// Gets all martyr graves.
         /// </summary>

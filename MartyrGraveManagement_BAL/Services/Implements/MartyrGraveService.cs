@@ -13,6 +13,7 @@ using System.Security.Principal;
 using MartyrGraveManagement_BAL.ModelViews.MartyrGraveInformationDTOs;
 using MartyrGraveManagement_BAL.ModelViews.EmailDTOs;
 using MartyrGraveManagement_BAL.ModelViews.CustomerDTOs;
+using System.Linq.Expressions;
 
 namespace MartyrGraveManagement_BAL.Services.Implements
 {
@@ -865,5 +866,36 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 throw new Exception(ex.Message);
             }
         }
+
+
+
+        public async Task<List<MartyrGraveSearchDtoResponse>> SearchMartyrGravesAsync(MartyrGraveSearchDtoRequest searchCriteria)
+        {
+            // Tạo điều kiện tìm kiếm linh hoạt
+            Expression<Func<MartyrGraveInformation, bool>> filter = m =>
+                (string.IsNullOrEmpty(searchCriteria.Name) || m.Name.Contains(searchCriteria.Name)) &&
+                (!searchCriteria.YearOfBirth.HasValue || m.DateOfBirth.HasValue && m.DateOfBirth.Value.Year == searchCriteria.YearOfBirth.Value) &&
+                (!searchCriteria.YearOfSacrifice.HasValue || m.DateOfSacrifice.Year == searchCriteria.YearOfSacrifice.Value) &&
+                (string.IsNullOrEmpty(searchCriteria.HomeTown) || m.HomeTown.Contains(searchCriteria.HomeTown));
+
+            // Sử dụng GenericRepository để lấy danh sách MartyrGraveInformation
+            var martyrGraves = await _unitOfWork.MartyrGraveInformationRepository.GetAsync(filter, includeProperties: "MartyrGrave");
+
+            // Ánh xạ từ entity sang DTO
+            var result = martyrGraves.Select(m => new MartyrGraveSearchDtoResponse
+            {
+                MartyrId = m.MartyrId,
+                Name = m.Name,
+                NickName = m.NickName,
+                HomeTown = m.HomeTown,
+                DateOfBirth = m.DateOfBirth,
+                DateOfSacrifice = m.DateOfSacrifice,
+                MartyrCode = m.MartyrGrave?.MartyrCode
+            }).ToList();
+
+            return result;
+        }
+
+
     }
 }

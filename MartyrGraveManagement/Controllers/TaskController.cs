@@ -23,7 +23,7 @@ namespace MartyrGraveManagement.Controllers
         /// Get all tasks.
         /// </summary>
         /// <returns>Returns a list of all tasks.</returns>
-        [Authorize(Policy = "RequireManagerOrStaffRole")]
+        [Authorize(Policy = "RequireManagerRole")]
         [HttpGet("tasks")]
         public async Task<IActionResult> GetAllTasks()
         {
@@ -62,14 +62,36 @@ namespace MartyrGraveManagement.Controllers
             }
         }
 
-
+        /// <summary>
+        /// Get tasks by AccountId.
+        /// </summary>
+        /// <param name="accountId">The ID of the account.</param>
+        /// <returns>Returns a list of tasks assigned to the specified account.</returns>
+        [Authorize(Policy = "RequireManagerOrStaffRole")]
+        [HttpGet("tasks/account/{accountId}")]
+        public async Task<IActionResult> GetTasksByAccountId(int accountId)
+        {
+            try
+            {
+                var tasks = await _taskService.GetTasksByAccountIdAsync(accountId);
+                if (tasks == null || !tasks.Any())
+                {
+                    return NotFound("No tasks found for the specified account.");
+                }
+                return Ok(tasks);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
 
         /// <summary>
         /// Create a new task.
         /// </summary>
         /// <param name="taskDto">Task data to create.</param>
         /// <returns>Returns the created task.</returns>
-        [Authorize(Policy = "RequireManagerOrStaffRole")]
+        [Authorize(Policy = "RequireManagerRole")]
         [HttpPost("tasks")]
         public async Task<IActionResult> CreateTask([FromBody] TaskDtoRequest taskDto)
         {
@@ -101,6 +123,12 @@ namespace MartyrGraveManagement.Controllers
             }
         }
 
+        /// <summary>
+        /// Update task status.
+        /// </summary>
+        /// <param name="taskId">The ID of the task.</param>
+        /// <param name="request">The request containing status update.</param>
+        /// <returns>Returns the updated task with the new status.</returns>
         [Authorize(Policy = "RequireStaffRole")]
         [HttpPut("tasks/{taskId}/status")]
         public async Task<IActionResult> UpdateTaskStatus(int taskId, [FromBody] UpdateTaskStatusRequest request)
@@ -128,6 +156,77 @@ namespace MartyrGraveManagement.Controllers
             }
         }
 
+        /// <summary>
+        /// Delete a task by ID if the status is 0 (unassigned).
+        /// </summary>
+        /// <param name="taskId">The ID of the task to delete.</param>
+        /// <returns>Returns a success message or an error message if the task cannot be deleted.</returns>
+        [Authorize(Policy = "RequireManagerRole")]  // Only managers can delete tasks
+        [HttpDelete("tasks/{taskId}")]
+        public async Task<IActionResult> DeleteTask(int taskId)
+        {
+            try
+            {
+                var result = await _taskService.DeleteTaskAsync(taskId);
+                if (result)
+                {
+                    return Ok("Task deleted successfully.");
+                }
+                else
+                {
+                    return BadRequest("Task could not be deleted or does not exist.");
+                }
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
 
+        /// <summary>
+        /// Reassign a task to another staff by updating the AccountId and resetting the status to 0.
+        /// </summary>
+        /// <param name="taskId">The ID of the task to reassign.</param>
+        /// <param name="request">The reassignment request containing the new AccountId.</param>
+        /// <returns>Returns the updated task with the new assignee.</returns>
+        [Authorize(Policy = "RequireManagerRole")]  // Only managers can reassign tasks
+        [HttpPut("tasks/{taskId}/reassign")]
+        public async Task<IActionResult> ReassignTask(int taskId, [FromBody] ReassignTaskRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                var updatedTask = await _taskService.ReassignTaskAsync(taskId, request.NewAccountId);
+                return Ok(updatedTask);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Forbid(ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
     }
 }

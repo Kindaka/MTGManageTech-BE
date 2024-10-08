@@ -22,6 +22,7 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
         Task<(List<MartyrGraveGetAllDtoResponse> response, int totalPage)> GetAllMartyrGravesForManagerAsync(int page, int pageSize);
 
         Task<(bool status, string result)> UpdateMartyrGraveAsyncV2(int id, MartyrGraveUpdateDtoRequest martyrGraveDto);
+        Task<List<MartyrGraveSearchDtoResponse>> SearchMartyrGravesAsync(MartyrGraveSearchDtoRequest searchCriteria);
 
     }
 }
