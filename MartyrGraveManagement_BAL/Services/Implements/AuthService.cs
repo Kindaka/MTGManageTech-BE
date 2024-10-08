@@ -42,10 +42,16 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
                 if (account != null)
                 {
-                    response.AccountId = account.AccountId;
-                    response.RoleId = account.RoleId;
-                    response.Status = account.Status;
-                    return response;
+                    var grave = (await _unitOfWork.MartyrGraveRepository.FindAsync(g => g.CustomerCode == account.CustomerCode)).FirstOrDefault();
+                    if (grave != null)
+                    {
+                        response.AccountId = account.AccountId;
+                        response.AccountName = account.AccountName;
+                        response.MartyrId = grave.MartyrId;
+                        response.RoleId = account.RoleId;
+                        response.Status = account.Status;
+                        return response;
+                    }
                 }
                 return null;
             }
@@ -154,6 +160,8 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 var claims = new List<Claim>
                 {
                     new Claim("accountId", account.AccountId.ToString()),
+                    new Claim("accountName", account.AccountName),
+                    new Claim("martyrId", account.MartyrId.ToString()),
                     new Claim(ClaimTypes.Role, account.RoleId.ToString()),
                     new Claim(JwtRegisteredClaimNames.Sub, account.AccountId.ToString()),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
