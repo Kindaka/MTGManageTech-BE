@@ -25,6 +25,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             try
             {
                 var serviceCategory = _mapper.Map<ServiceCategory>(category);
+                serviceCategory.Status = true;
                 await _unitOfWork.ServiceCategoryRepository.AddAsync(serviceCategory);
                 await _unitOfWork.SaveAsync();
                 return true;

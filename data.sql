@@ -40,10 +40,10 @@ GO
 -- Insert data for Services (After ServiceCategories)
 INSERT INTO [dbo].[Services] (CategoryId, ServiceName, Description, Price, Status, ImagePath)
 VALUES 
-(1, 'Grave Cleaning', 'Cleaning graves', 100.00, 1, '/images/service_cleaning.png'),
-(2, 'Flower Maintenance', 'Maintaining flowers', 200.00, 1, '/images/service_maintenance.png'),
-(3, 'Gravestone Repair', 'Repairing gravestones', 300.00, 0, '/images/service_repair.png'),
-(4, 'Event Organization', 'Organizing events', 150.00, 1, '/images/service_events.png'),
-(5, 'Grave Inspection', 'Inspecting graves', 250.00, 1, '/images/service_inspection.png');
+(1, 'Grave Cleaning', 'Cleaning graves', 1000000.00, 1, '/images/service_cleaning.png'),
+(2, 'Flower Maintenance', 'Maintaining flowers', 2000000.00, 1, '/images/service_maintenance.png'),
+(3, 'Gravestone Repair', 'Repairing gravestones', 3000000.00, 0, '/images/service_repair.png'),
+(4, 'Event Organization', 'Organizing events', 150000.00, 1, '/images/service_events.png'),
+(5, 'Grave Inspection', 'Inspecting graves', 2500000.00, 1, '/images/service_inspection.png');
 
 GO

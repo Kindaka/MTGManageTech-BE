@@ -100,7 +100,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 StartDate = DateTime.Now,  // Gán StartDate là thời gian hiện tại
                 EndDate = order.EndDate,   // Lấy EndDate từ Order
                 Description = newTask.Description,
-                Status = newTask.Status
+                Status = 1
             };
 
             // Thêm Task vào cơ sở dữ liệu
@@ -113,35 +113,90 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
 
 
-        public async Task<bool> UpdateTaskAsync(int taskId, TaskDtoRequest updatedTask)
+
+        public async Task<TaskDtoResponse> UpdateTaskStatusAsync(int taskId, int accountId, int newStatus, string? urlImage = null, string? reason = null)
         {
-            // Kiểm tra xem TaskId có tồn tại không
-            var taskEntity = await _unitOfWork.TaskRepository.GetByIDAsync(taskId);
-            if (taskEntity == null)
+            // 1. Kiểm tra xem TaskId có tồn tại không
+            var task = await _unitOfWork.TaskRepository.GetByIDAsync(taskId);
+            if (task == null)
             {
-                return false;
+                throw new KeyNotFoundException("TaskId does not exist.");
             }
 
-            // Kiểm tra xem AccountId có tồn tại không
-            var account = await _unitOfWork.AccountRepository.GetByIDAsync(updatedTask.AccountId);
+            // 2. Kiểm tra xem AccountId có tồn tại không
+            var account = await _unitOfWork.AccountRepository.GetByIDAsync(accountId);
             if (account == null)
             {
                 throw new KeyNotFoundException("AccountId does not exist.");
             }
 
-            // Kiểm tra xem OrderId có tồn tại không
-            var order = await _unitOfWork.OrderRepository.GetByIDAsync(updatedTask.OrderId);
-            if (order == null)
+            // 3. Kiểm tra Role của account phải là Role 3 (Staff)
+            if (account.RoleId != 3)
             {
-                throw new KeyNotFoundException("OrderId does not exist.");
+                throw new UnauthorizedAccessException("The account is not authorized to perform this task (not a staff account).");
             }
 
-            // Cập nhật Task nếu tồn tại
-            _mapper.Map(updatedTask, taskEntity);
-            await _unitOfWork.TaskRepository.UpdateAsync(taskEntity);
+            // 4. Lấy các chi tiết đơn hàng (OrderDetails) từ đơn hàng liên kết với Task
+            var orderDetails = await _unitOfWork.OrderDetailRepository
+                .GetAsync(od => od.OrderId == task.OrderId, includeProperties: "MartyrGrave");
+
+            if (orderDetails == null || !orderDetails.Any())
+            {
+                throw new InvalidOperationException("No order details found for this task.");
+            }
+
+            // Kiểm tra nếu nhân viên chỉ được làm việc trong khu vực của họ
+            foreach (var detail in orderDetails)
+            {
+                if (detail.MartyrGrave?.AreaId != account.AreaId)
+                {
+                    throw new UnauthorizedAccessException("Staff can only work in their assigned area.");
+                }
+            }
+
+
+
+            // 5. Kiểm tra trạng thái hiện tại của Task
+            if (task.Status == 1)
+            {
+                // Cho phép chuyển từ 1 sang 2, 3, hoặc 4, nhưng chỉ được phép chuyển một lần
+                if (newStatus != 2 && newStatus != 3 && newStatus != 4)
+                {
+                    throw new InvalidOperationException("You can only change status from 1 to 2, 3, or 4.");
+                }
+            }
+            else if (task.Status == 2 || task.Status == 3 || task.Status == 4)
+            {
+                // Nếu trạng thái đã là 2, 3, hoặc 4, không cho phép thay đổi thêm
+                throw new InvalidOperationException("Task status has already been updated and cannot be changed again.");
+            }
+            else
+            {
+                throw new InvalidOperationException("Invalid status transition.");
+            }
+
+            // 6. Cập nhật trạng thái nhiệm vụ
+            task.Status = newStatus;
+
+            // 7. Nếu có hình ảnh check-in, cập nhật UrlImage
+            if (!string.IsNullOrEmpty(urlImage))
+            {
+                task.UrlImage = urlImage;
+            }
+
+            // 8. Nếu có lý do, cập nhật lý do
+            if (!string.IsNullOrEmpty(reason))
+            {
+                task.Reason = reason;
+            }
+
+            // 9. Lưu thay đổi vào cơ sở dữ liệu
+            await _unitOfWork.TaskRepository.UpdateAsync(task);
             await _unitOfWork.SaveAsync();
-            return true;
+
+            return _mapper.Map<TaskDtoResponse>(task);
         }
+
 
         public async Task<bool> DeleteTaskAsync(int taskId)
         {

@@ -12,8 +12,11 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
         Task<IEnumerable<TaskDtoResponse>> GetAllTasksAsync();
         Task<TaskDtoResponse> GetTaskByIdAsync(int taskId);
         Task<TaskDtoResponse> CreateTaskAsync(TaskDtoRequest newTask);
-        Task<bool> UpdateTaskAsync(int taskId, TaskDtoRequest updatedTask);
-        Task<bool> DeleteTaskAsync(int taskId); //status order 1
+        Task<TaskDtoResponse> UpdateTaskStatusAsync(int taskId, int accountId, int newStatus, string? urlImage = null, string? reason = null);
+
+        Task<bool> DeleteTaskAsync(int taskId); //status task 0 
 
     }
 }
+
+

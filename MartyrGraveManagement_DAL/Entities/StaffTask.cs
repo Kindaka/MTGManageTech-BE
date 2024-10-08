@@ -21,9 +21,11 @@ namespace MartyrGraveManagement_DAL.Entities
         public DateTime EndDate { get; set; }
         public string Description { get; set; }
         public int Status { get; set; }
-        public string? UrlImage { get; set; }
         public Account? Account { get; set; }
         public Order? Order { get; set; }
+        //----------------------------------
+        public string? UrlImage { get; set; }
+        public string? Reason { get; set; }
     }
 
 }

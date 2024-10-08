@@ -101,6 +101,33 @@ namespace MartyrGraveManagement.Controllers
             }
         }
 
+        [Authorize(Policy = "RequireStaffRole")]
+        [HttpPut("tasks/{taskId}/status")]
+        public async Task<IActionResult> UpdateTaskStatus(int taskId, [FromBody] UpdateTaskStatusRequest request)
+        {
+            try
+            {
+                var updatedTask = await _taskService.UpdateTaskStatusAsync(taskId, request.AccountId, request.Status, request.UrlImage, request.Reason);
+                return Ok(updatedTask);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Forbid(ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
 
     }
 }
