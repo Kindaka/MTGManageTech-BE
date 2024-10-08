@@ -42,16 +42,23 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
                 if (account != null)
                 {
-                    var grave = (await _unitOfWork.MartyrGraveRepository.FindAsync(g => g.CustomerCode == account.CustomerCode)).FirstOrDefault();
-                    if (grave != null)
+                    if (!string.IsNullOrEmpty(account.CustomerCode))
                     {
-                        response.AccountId = account.AccountId;
-                        response.AccountName = account.AccountName;
-                        response.MartyrId = grave.MartyrId;
-                        response.RoleId = account.RoleId;
-                        response.Status = account.Status;
-                        return response;
+                        var grave = (await _unitOfWork.MartyrGraveRepository
+                            .GetAsync(g => g.CustomerCode != null && g.CustomerCode == account.CustomerCode))
+                            .FirstOrDefault();
+
+                        if (grave != null)
+                        {
+                            response.MartyrId = grave.MartyrId;
+                        }
                     }
+
+                    response.AccountId = account.AccountId;
+                    response.AccountName = account.AccountName;
+                    response.RoleId = account.RoleId;
+                    response.Status = account.Status;
+                    return response;
                 }
                 return null;
             }

@@ -10,7 +10,7 @@ namespace MartyrGraveManagement_BAL.ModelViews.AccountDTOs
     {
         public int AccountId { get; set; }
         public string AccountName { get; set; }
-        public int MartyrId { get; set; }
+        public int? MartyrId { get; set; }
         public int RoleId { get; set; }
         public bool Status { get; set; }
     }
