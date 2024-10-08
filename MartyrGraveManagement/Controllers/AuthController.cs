@@ -66,7 +66,7 @@ namespace MartyrGraveManagement.Controllers
         /// <returns>
         /// Returns a success message if the account is successfully created, otherwise returns an error message.
         /// </returns>
-        [Authorize(Policy = "RequireManagerOrAdminRole")]
+        //[Authorize(Policy = "RequireManagerOrAdminRole")]
         [HttpPost("register-account-martyrGrave")]
         public async Task<IActionResult> Register([FromBody] UserRegisterDtoRequest newAccount)
         {

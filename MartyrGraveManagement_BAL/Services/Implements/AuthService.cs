@@ -100,8 +100,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 newAccount.Password = await HashPassword(newAccount.Password);
 
                 var existingRole = await _unitOfWork.RoleRepository.GetByIDAsync(newAccount.RoleId);
-                var existingArea = await _unitOfWork.AreaRepository.GetByIDAsync(newAccount.AreaId);
-                if (existingRole == null || existingArea == null)
+                if (existingRole == null)
                 {
                     return false;
                 }
