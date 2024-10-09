@@ -199,117 +199,200 @@ namespace MartyrGraveManagement_BAL.Services.Implements
         }
 
 
+        //public async Task<(bool status, string? paymentUrl, string responseContent)> CreateOrderFromCartAsync(int accountId)
+        //{
+        //    using (var transaction = await _unitOfWork.BeginTransactionAsync())
+        //    {
+        //        try
+        //        {
+        //            // Kiểm tra xem AccountID có tồn tại không
+        //            var account = await _unitOfWork.AccountRepository.GetByIDAsync(accountId);
+        //            if (account == null)
+        //            {
+        //                return (false, null, "Không tìm thấy account, kiểm tra lại");
+        //            }
+
+        //            // Kiểm tra trạng thái tài khoản
+        //            if (account.Status == false)
+        //            {
+        //                return (false, null, "Account đã bị lock");
+        //            }
+
+        //            // Lấy danh sách CartItem cho account
+        //            var cartItems = await _unitOfWork.CartItemRepository.GetAsync(c => c.AccountId == accountId && c.Status == true);
+
+        //            if (cartItems == null || !cartItems.Any())
+        //            {
+        //                return (false, null, "Không có item trong cart");
+        //            }
+
+        //            //// Kiểm tra nếu người dùng đã có đơn hàng chưa thanh toán
+        //            //var existingOrder = await _unitOfWork.OrderRepository.GetAsync(o => o.AccountId == accountId && o.Status == 0);
+        //            //if (existingOrder.Any())
+        //            //{
+        //            //    return (false, null, "Bạn có đơn hàng chưa thanh toán");
+        //            //}
+
+        //            // Tính tổng tiền dựa trên dịch vụ trong giỏ hàng
+        //            decimal totalPrice = 0;
+        //            List<OrderDetail> orderDetails = new List<OrderDetail>();
+
+        //            foreach (var cartItem in cartItems)
+        //            {
+        //                var service = await _unitOfWork.ServiceRepository.GetByIDAsync(cartItem.ServiceId);
+        //                if (service != null)
+        //                {
+        //                    // Kiểm tra trạng thái của dịch vụ
+        //                    if (service.Status == false)
+        //                    {
+        //                        return (false, null, "Dịch vụ đã bị dừng");
+        //                    }
+
+        //                    totalPrice += (decimal)service.Price;  // Sử dụng giá của dịch vụ
+        //                    var orderDetail = new OrderDetail
+        //                    {
+        //                        ServiceId = cartItem.ServiceId,
+        //                        MartyrId = cartItem.MartyrId,
+        //                        OrderPrice = service.Price,
+        //                        Status = true
+        //                    };
+        //                    orderDetails.Add(orderDetail);
+        //                }
+        //            }
+
+        //            // Tạo Order mới từ CartItem
+        //            var order = new Order
+        //            {
+        //                AccountId = accountId,
+        //                OrderDate = DateTime.Now,
+        //                StartDate = DateTime.Now,  // Hoặc dựa trên yêu cầu cụ thể
+        //                TotalPrice = totalPrice,
+        //                Status = 0,  // Status = 0 cho đơn hàng chưa thanh toán
+        //            };
+        //            order.EndDate = order.StartDate.AddDays(7);  // Ví dụ thêm 7 ngày cho thời gian hết hạn
+
+        //            // Thêm Order vào cơ sở dữ liệu
+        //            await _unitOfWork.OrderRepository.AddAsync(order);
+        //            await _unitOfWork.SaveAsync();
+
+        //            // Thêm OrderDetail
+        //            foreach (var orderDetail in orderDetails)
+        //            {
+        //                orderDetail.OrderId = order.OrderId; // Gán OrderId cho các chi tiết
+        //                orderDetail.DetailId = 0;
+        //                await _unitOfWork.OrderDetailRepository.AddAsync(orderDetail);
+        //            }
+        //            await _unitOfWork.SaveAsync();
+
+
+        //            // Xóa các mục trong giỏ hàng sau khi tạo đơn hàng
+        //            foreach (var cartItem in cartItems)
+        //            {
+        //                await _unitOfWork.CartItemRepository.DeleteAsync(cartItem);
+        //            }
+
+
+        //            // Tạo liên kết thanh toán VNPay
+        //            var paymentUrl = CreateVnpayLink(order);
+
+        //            // Commit transaction
+        //            await transaction.CommitAsync();
+
+
+
+        //            return (true, paymentUrl, "Đơn hàng đã được tạo thành công, hãy thanh toán đơn hàng với đường link đính kèm để hoàn thành thanh toán");
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            // Rollback nếu có lỗi
+        //            await transaction.RollbackAsync();
+        //            throw new Exception(ex.Message);
+        //        }
+        //    }
+        //}
+
+
         public async Task<(bool status, string? paymentUrl, string responseContent)> CreateOrderFromCartAsync(int accountId)
         {
             using (var transaction = await _unitOfWork.BeginTransactionAsync())
             {
                 try
                 {
-                    // Kiểm tra xem AccountID có tồn tại không
                     var account = await _unitOfWork.AccountRepository.GetByIDAsync(accountId);
                     if (account == null)
                     {
-                        return (false, null, "Không tìm thấy account, kiểm tra lại");
+                        return (false, null, "Không tìm thấy tài khoản.");
                     }
 
-                    // Kiểm tra trạng thái tài khoản
                     if (account.Status == false)
                     {
-                        return (false, null, "Account đã bị lock");
+                        return (false, null, "Tài khoản đã bị khóa.");
                     }
 
-                    // Lấy danh sách CartItem cho account
                     var cartItems = await _unitOfWork.CartItemRepository.GetAsync(c => c.AccountId == accountId && c.Status == true);
-
                     if (cartItems == null || !cartItems.Any())
                     {
-                        return (false, null, "Không có item trong cart");
+                        return (false, null, "Không có sản phẩm trong giỏ hàng.");
                     }
 
-                    //// Kiểm tra nếu người dùng đã có đơn hàng chưa thanh toán
-                    //var existingOrder = await _unitOfWork.OrderRepository.GetAsync(o => o.AccountId == accountId && o.Status == 0);
-                    //if (existingOrder.Any())
-                    //{
-                    //    return (false, null, "Bạn có đơn hàng chưa thanh toán");
-                    //}
-
-                    // Tính tổng tiền dựa trên dịch vụ trong giỏ hàng
+                    // Kiểm tra tất cả dịch vụ trước khi thêm vào đơn hàng
                     decimal totalPrice = 0;
                     List<OrderDetail> orderDetails = new List<OrderDetail>();
 
                     foreach (var cartItem in cartItems)
                     {
                         var service = await _unitOfWork.ServiceRepository.GetByIDAsync(cartItem.ServiceId);
-                        if (service != null)
+                        if (service == null || service.Status == false)
                         {
-                            // Kiểm tra trạng thái của dịch vụ
-                            if (service.Status == false)
-                            {
-                                return (false, null, "Dịch vụ đã bị dừng");
-                            }
-
-                            totalPrice += (decimal)service.Price;  // Sử dụng giá của dịch vụ
-                            var orderDetail = new OrderDetail
-                            {
-                                ServiceId = cartItem.ServiceId,
-                                MartyrId = cartItem.MartyrId,
-                                OrderPrice = service.Price,
-                                Status = true
-                            };
-                            orderDetails.Add(orderDetail);
+                            return (false, null, $"Dịch vụ {cartItem.ServiceId} đã ngừng cung cấp.");
                         }
+
+                        totalPrice += (decimal)service.Price;
+                        orderDetails.Add(new OrderDetail
+                        {
+                            ServiceId = cartItem.ServiceId,
+                            MartyrId = cartItem.MartyrId,
+                            OrderPrice = service.Price,
+                            Status = true
+                        });
                     }
 
-                    // Tạo Order mới từ CartItem
+                    // Tạo Order sau khi kiểm tra
                     var order = new Order
                     {
                         AccountId = accountId,
                         OrderDate = DateTime.Now,
-                        StartDate = DateTime.Now,  // Hoặc dựa trên yêu cầu cụ thể
+                        StartDate = DateTime.Now,
                         TotalPrice = totalPrice,
-                        Status = 0,  // Status = 0 cho đơn hàng chưa thanh toán
+                        Status = 0,  // Chưa thanh toán
+                        EndDate = DateTime.Now.AddDays(7)
                     };
-                    order.EndDate = order.StartDate.AddDays(7);  // Ví dụ thêm 7 ngày cho thời gian hết hạn
 
-                    // Thêm Order vào cơ sở dữ liệu
                     await _unitOfWork.OrderRepository.AddAsync(order);
                     await _unitOfWork.SaveAsync();
 
-                    // Thêm OrderDetail
+                    // Thêm các chi tiết đơn hàng
                     foreach (var orderDetail in orderDetails)
                     {
-                        orderDetail.OrderId = order.OrderId; // Gán OrderId cho các chi tiết
-                        orderDetail.DetailId = 0;
+                        orderDetail.OrderId = order.OrderId;
                         await _unitOfWork.OrderDetailRepository.AddAsync(orderDetail);
                     }
                     await _unitOfWork.SaveAsync();
 
-
-                    // Xóa các mục trong giỏ hàng sau khi tạo đơn hàng
-                    foreach (var cartItem in cartItems)
-                    {
-                        await _unitOfWork.CartItemRepository.DeleteAsync(cartItem);
-                    }
-                   
-
-                    // Tạo liên kết thanh toán VNPay
+                    // Tạo link thanh toán VNPay
                     var paymentUrl = CreateVnpayLink(order);
-
-                    // Commit transaction
                     await transaction.CommitAsync();
 
-
-
-                    return (true, paymentUrl, "Đơn hàng đã được tạo thành công, hãy thanh toán đơn hàng với đường link đính kèm để hoàn thành thanh toán");
+                    return (true, paymentUrl, "Đơn hàng đã được tạo thành công. Vui lòng thanh toán.");
                 }
                 catch (Exception ex)
                 {
-                    // Rollback nếu có lỗi
                     await transaction.RollbackAsync();
                     throw new Exception(ex.Message);
                 }
             }
         }
+
 
 
 
