@@ -70,6 +70,7 @@ namespace MartyrGraveManagement_BAL.MappingProfiles
             CreateMap<StaffTask, TaskDtoResponse>().ReverseMap();
             CreateMap<StaffTask, UpdateTaskStatusRequest>().ReverseMap();
             CreateMap<StaffTask, ReassignTaskRequest>().ReverseMap();
+            CreateMap<StaffTask, AssignTaskDTORequest>().ReverseMap();
 
             // Job Mapping
             CreateMap<StaffJob, JobDtoRequest>().ReverseMap();
@@ -87,4 +88,3 @@ namespace MartyrGraveManagement_BAL.MappingProfiles
         }
     }
 }
- 

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace MartyrGraveManagement.Controllers
@@ -95,48 +96,15 @@ namespace MartyrGraveManagement.Controllers
         [HttpPost("tasks")]
         public async Task<IActionResult> CreateTask([FromBody] TaskDtoRequest taskDto)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
             try
             {
-                var createdTask = await _taskService.CreateTaskAsync(taskDto);
+                // Lấy ManagerId từ JWT token
+                var managerId = int.Parse(User.FindFirst("accountId")?.Value);
+
+                // Tạo task với ManagerId
+                var createdTask = await _taskService.CreateTaskAsync(taskDto, managerId);
+
                 return CreatedAtAction(nameof(GetTaskById), new { taskId = createdTask.TaskId }, createdTask);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(ex.Message);  // Trả về lỗi nếu không tìm thấy Account hoặc Order
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                return Forbid(ex.Message);  // Trả về lỗi nếu nhân viên không có quyền làm việc
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(ex.Message);  // Trả về lỗi nếu có điều kiện không hợp lệ
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
-            }
-        }
-
-        /// <summary>
-        /// Update task status.
-        /// </summary>
-        /// <param name="taskId">The ID of the task.</param>
-        /// <param name="request">The request containing status update.</param>
-        /// <returns>Returns the updated task with the new status.</returns>
-        [Authorize(Policy = "RequireStaffRole")]
-        [HttpPut("tasks/{taskId}/status")]
-        public async Task<IActionResult> UpdateTaskStatus(int taskId, [FromBody] UpdateTaskStatusRequest request)
-        {
-            try
-            {
-                var updatedTask = await _taskService.UpdateTaskStatusAsync(taskId, request.AccountId, request.Status, request.UrlImage, request.Reason);
-                return Ok(updatedTask);
             }
             catch (KeyNotFoundException ex)
             {
@@ -155,6 +123,112 @@ namespace MartyrGraveManagement.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+
+        /// <summary>
+        /// Assign a task to a staff member (Manager Role).
+        /// </summary>
+        [Authorize(Policy = "RequireManagerRole")]
+        [HttpPut("tasks/{taskId}/assign")]
+        public async Task<IActionResult> AssignTask(int taskId, [FromBody] AssignTaskDTORequest assignRequest)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                // Lấy accountId từ JWT token
+                var accountIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                if (string.IsNullOrEmpty(accountIdClaim))
+                {
+                    return Forbid("Token không chứa thông tin accountId.");
+                }
+
+                var accountIdFromToken = int.Parse(accountIdClaim);
+
+                // Lấy tài khoản Manager đang thực hiện gán task
+                var result = await _taskService.AssignTaskAsync(taskId, assignRequest.StaffId);
+                return Ok(new { message = "Task assigned successfully.", result });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Forbid();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = $"Internal server error: {ex.Message}" });
+            }
+        }
+
+
+
+        /// <summary>
+        /// Update task status (Staff Role).
+        /// </summary>
+        /// <param name="taskId">The ID of the task.</param>
+        /// <param name="request">The request containing status update.</param>
+        /// <returns>Returns the updated task with the new status.</returns>
+        [Authorize(Policy = "RequireStaffRole")]
+        [HttpPut("tasks/{taskId}/status")]
+        public async Task<IActionResult> UpdateTaskStatus(int taskId, [FromBody] UpdateTaskStatusRequest request)
+        {
+            // Kiểm tra nếu dữ liệu request không hợp lệ
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                // Lấy accountId từ JWT token
+                var accountIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                if (string.IsNullOrEmpty(accountIdClaim))
+                {
+                    return Forbid("Token không chứa thông tin accountId.");
+                }
+
+                var accountIdFromToken = int.Parse(accountIdClaim);
+
+                // Kiểm tra xem accountId trong token và request có khớp không
+                if (accountIdFromToken != request.AccountId)
+                {
+                    return Forbid("Bạn không có quyền chỉnh sửa task cho account này.");
+                }
+
+                // Gọi service để cập nhật trạng thái task
+                var updatedTask = await _taskService.UpdateTaskStatusAsync(taskId, request.AccountId, request.Status, request.UrlImage, request.Reason);
+                return Ok(new { message = "Task status updated successfully.", updatedTask });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Forbid();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = $"Internal server error: {ex.Message}" });
+            }
+        }
+
+
 
         /// <summary>
         /// Delete a task by ID if the status is 0 (unassigned).
@@ -192,7 +266,7 @@ namespace MartyrGraveManagement.Controllers
         }
 
         /// <summary>
-        /// Reassign a task to another staff by updating the AccountId and resetting the status to 0.
+        /// Reassign a task to another staff by updating the AccountId and resetting the status to 1.
         /// </summary>
         /// <param name="taskId">The ID of the task to reassign.</param>
         /// <param name="request">The reassignment request containing the new AccountId.</param>
@@ -208,25 +282,38 @@ namespace MartyrGraveManagement.Controllers
 
             try
             {
+                // Lấy accountId từ JWT token
+                var accountIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                if (string.IsNullOrEmpty(accountIdClaim))
+                {
+                    return Forbid("Token không chứa thông tin accountId.");
+                }
+
+                var accountIdFromToken = int.Parse(accountIdClaim);
+
+                // Gọi service để thực hiện gán lại task
                 var updatedTask = await _taskService.ReassignTaskAsync(taskId, request.NewAccountId);
-                return Ok(updatedTask);
+                return Ok(new { message = "Task reassigned successfully.", updatedTask });
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(ex.Message);
+                return NotFound(new { message = ex.Message });
             }
-            catch (UnauthorizedAccessException ex)
+            catch (UnauthorizedAccessException)
             {
-                return Forbid(ex.Message);
+                return Forbid();
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new { message = ex.Message });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                return StatusCode(500, new { message = $"Internal server error: {ex.Message}" });
             }
         }
+
+
     }
 }

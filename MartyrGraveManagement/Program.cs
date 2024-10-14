@@ -10,6 +10,10 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.OpenApi.Models;
+using Hangfire;
+using Hangfire.SqlServer;
+using MartyrGraveManagement.BackgroundServices.Implements;
+using MartyrGraveManagement.BackgroundServices.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -85,6 +89,23 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("RequireManagerOrAdminRole", policy => policy.RequireClaim(ClaimTypes.Role, "1", "2"));
 });
 
+// Cấu hình Hangfire để sử dụng SQL Server
+builder.Services.AddHangfire(configuration => configuration
+    .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
+    .UseSimpleAssemblyNameTypeSerializer()
+    .UseDefaultTypeSerializer()
+    .UseSqlServerStorage(builder.Configuration.GetConnectionString("DefaultConnection"), new SqlServerStorageOptions
+    {
+        CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
+        SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
+        QueuePollInterval = TimeSpan.Zero,
+        UseRecommendedIsolationLevel = true,
+        DisableGlobalLocks = true
+    }));
+
+// Add Hangfire server
+builder.Services.AddHangfireServer();
+
 // Đăng ký AutoMapper với cấu hình ánh xạ
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
@@ -99,6 +120,10 @@ builder.Services.AddCors(options =>
                    .AllowAnyHeader();
         });
 });
+
+
+// Đăng ký TaskBackgroundService
+builder.Services.AddScoped<ITaskBackgroundService, TaskBackgroundService>();
 
 
 // Đăng ký các dịch vụ của bạn
@@ -133,5 +158,15 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseCors("AllowAll");
 app.UseAuthorization();
+app.UseHangfireDashboard("/hangfire");
+
+
+// Schedule the recurring job (Hangfire)
+RecurringJob.AddOrUpdate<ITaskBackgroundService>(
+    "check-expired-tasks",
+    service => service.CheckExpiredTasks(),
+    Cron.MinuteInterval(1)
+);
+
 app.MapControllers();
 app.Run();
