@@ -100,56 +100,40 @@ namespace MartyrGraveManagement_BAL.Services.Implements
         }
 
 
-        public async Task<List<MartyrGraveDtoResponse>> GetAllMartyrGravesAsync()
+        public async Task<(List<MartyrGraveGetAllDtoResponse> matyrGraveList, int totalPage)> GetAllMartyrGravesAsync(int page, int pageSize)
         {
             //var graves = await _unitOfWork.MartyrGraveRepository.GetAllAsync();
             //return _mapper.Map<IEnumerable<MartyrGraveDtoResponse>>(graves);
             try
             {
-                List<MartyrGraveDtoResponse> graveList = new List<MartyrGraveDtoResponse>();
-                var graves = await _unitOfWork.MartyrGraveRepository.GetAllAsync();
+                var totalMatyrGrave = await _unitOfWork.MartyrGraveRepository.CountAsync();
+                var totalPage = (int)Math.Ceiling(totalMatyrGrave / (double)pageSize);
+                List<MartyrGraveGetAllDtoResponse> graveList = new List<MartyrGraveGetAllDtoResponse>();
+                var graves = await _unitOfWork.MartyrGraveRepository.GetAllAsync(includeProperties: "MartyrGraveInformations", pageIndex: page, pageSize: pageSize);
                 if (graves.Any())
                 {
                     foreach (var grave in graves) {
-                        var graveView = _mapper.Map<MartyrGraveDtoResponse>(grave);
+                        var graveView = _mapper.Map<MartyrGraveGetAllDtoResponse>(grave);
                         var graveInformations = await _unitOfWork.MartyrGraveInformationRepository.GetAsync(g => g.MartyrId == grave.MartyrId);
                         if (graveInformations.Any())
                         {
                             foreach (var information in graveInformations)
                             {
-                                var informationView = new MartyrGraveInformationDtoResponse
-                                {
-                                    InformationId = information.InformationId,
-                                    MartyrId = information.MartyrId,
-                                    Name = information.Name,
-                                    NickName = information.NickName,
-                                    Position = information.Position,
-                                    Medal = information.Medal,
-                                    HomeTown = information.HomeTown,
-                                    DateOfBirth = information.DateOfBirth,
-                                    DateOfSacrifice = information.DateOfSacrifice
-                                };
-                                graveView.MatyrGraveInformations.Add(informationView);
+                                string martyrName = information.Name;
+                                graveView.Name.Add(martyrName);
                             }
                         }
 
-                        var graveImages = await _unitOfWork.GraveImageRepository.GetAsync(g => g.MartyrId == grave.MartyrId);
-                        if (graveImages.Any())
+                        var graveImage = (await _unitOfWork.GraveImageRepository.GetAsync(g => g.MartyrId == grave.MartyrId)).FirstOrDefault();
+                        if (graveImage != null)
                         {
-                            foreach (var image in graveImages)
-                            {
-                                var imageView = new GraveImageDtoRequest
-                                {
-                                    UrlPath = image.UrlPath
-                                };
-                                graveView.Images.Add(imageView);
-                            }
+                            graveView.image = graveImage.UrlPath;
                         }
                         graveList.Add(graveView);
                     }
                 }
                 
-                return graveList;
+                return (graveList, totalPage);
             }
             catch (Exception ex) { 
                 throw new Exception(ex.Message);
@@ -213,7 +197,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
         }
 
-        public async Task<bool> UpdateStatusMartyrGraveAsync(int id)
+        public async Task<bool> UpdateStatusMartyrGraveAsync(int id, int status)
         {
             try
             {
@@ -222,20 +206,15 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 {
                     return false;
                 }
-                if (martyrGrave.Status == true)
-                {
-                    martyrGrave.Status = false;
-                    await _unitOfWork.MartyrGraveRepository.UpdateAsync(martyrGrave);
-                    await _unitOfWork.SaveAsync();
-                    return true;
+                if (status < 1 || status > 3) {
+                    return false;
                 }
-                else
-                {
-                    martyrGrave.Status = true;
-                    await _unitOfWork.MartyrGraveRepository.UpdateAsync(martyrGrave);
-                    await _unitOfWork.SaveAsync();
-                    return true;
-                }
+                martyrGrave.Status = status;
+                await _unitOfWork.MartyrGraveRepository.UpdateAsync(martyrGrave);
+                await _unitOfWork.SaveAsync();
+                return true;
+
+
             }
             catch(Exception ex)
             {
@@ -245,7 +224,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
         }
 
 
-        public async Task<(List<MartyrGraveGetAllDtoResponse> response, int totalPage)> GetAllMartyrGravesForManagerAsync(int page, int pageSize)
+        public async Task<(List<MartyrGraveGetAllForAdminDtoResponse> response, int totalPage)> GetAllMartyrGravesForManagerAsync(int page, int pageSize)
         {
             try
             {
@@ -263,7 +242,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 );
 
                 // Khởi tạo danh sách kết quả
-                List<MartyrGraveGetAllDtoResponse> martyrGraveList = new List<MartyrGraveGetAllDtoResponse>();
+                List<MartyrGraveGetAllForAdminDtoResponse> martyrGraveList = new List<MartyrGraveGetAllForAdminDtoResponse>();
 
                 // Duyệt qua tất cả các MartyrGrave đã lấy
                 foreach (var m in martyrGraves)
@@ -274,7 +253,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     // Nếu tìm thấy Account thì thêm vào danh sách kết quả
                     if (customer != null)
                     {
-                        var mapping = new MartyrGraveGetAllDtoResponse
+                        var mapping = new MartyrGraveGetAllForAdminDtoResponse
                         {
                             Code = m.MartyrCode,
                             Name = m.MartyrGraveInformations.FirstOrDefault()?.Name, // Lấy tên từ MartyrGraveInformation
@@ -330,7 +309,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         // Gọi hàm GenerateMartyrCode để tạo mã MartyrCode
                         martyrGrave.MartyrCode = martyrCode;
                         martyrGrave.CustomerCode = customerCode;
-                        martyrGrave.Status = true;
+                        martyrGrave.Status = 1; //Trạng thái 1 là mộ trạng thái đang tốt, 2 là khá, 3 là xuống cấp
 
                         // Thêm MartyrGrave vào cơ sở dữ liệu
                         await _unitOfWork.MartyrGraveRepository.AddAsync(martyrGrave);
@@ -423,7 +402,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         // Gọi hàm GenerateMartyrCode để tạo mã MartyrCode
                         martyrGrave.MartyrCode = martyrCode;
                         martyrGrave.CustomerCode = insertedAccount.CustomerCode;
-                        martyrGrave.Status = true;
+                        martyrGrave.Status = 1;
 
                         // Thêm MartyrGrave vào cơ sở dữ liệu
                         await _unitOfWork.MartyrGraveRepository.AddAsync(martyrGrave);
@@ -505,7 +484,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
                     // Gọi hàm GenerateMartyrCode để tạo mã MartyrCode
                     martyrGrave.MartyrCode = martyrCode;
-                    martyrGrave.Status = true;
+                    martyrGrave.Status = 1; //Trạng thái 1 là mộ trạng thái đang tốt, 2 là khá, 3 là xuống cấp
 
                     // Thêm MartyrGrave vào cơ sở dữ liệu
                     await _unitOfWork.MartyrGraveRepository.AddAsync(martyrGrave);

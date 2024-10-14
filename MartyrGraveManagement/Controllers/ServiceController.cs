@@ -27,12 +27,27 @@ namespace MartyrGraveManagement.Controllers
         /// <response code="500">If there is any server error</response>
         [AllowAnonymous]
         [HttpGet("services")]
-        public async Task<IActionResult> GetAllServices(int categoryId)
+        public async Task<IActionResult> GetAllServices(int? categoryId)
         {
             try
             {
                 var services = await _service.GetAllServices(categoryId);
                 return Ok(services);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpGet("admin/services")]
+        public async Task<IActionResult> GetServicesAdmin(int? categoryId, int page = 1, int pageSize = 5)
+        {
+            try
+            {
+                var services = await _service.GetServicesForAdmin(categoryId, page, pageSize);
+                return Ok(new { services = services.serviceList, totalPage = services.totalPage });
             }
             catch (Exception ex)
             {

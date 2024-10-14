@@ -19,7 +19,7 @@ namespace MartyrGraveManagement_DAL.Entities
         public int RowNumber { get; set; }
         public int MartyrNumber { get; set; }
         public int AreaNumber { get; set; }
-        public bool Status { get; set; }
+        public int Status { get; set; }
 
         public Area? Area { get; set; }
         public IEnumerable<GraveImage>? GraveImages { get; set; }

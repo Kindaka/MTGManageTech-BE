@@ -42,6 +42,7 @@ namespace MartyrGraveManagement_BAL.MappingProfiles
             CreateMap<MartyrGrave, MartyrGraveUpdateDtoRequest>().ReverseMap();
             CreateMap<MartyrGrave, MartyrGraveSearchDtoResponse>().ReverseMap();
             CreateMap<MartyrGrave, MartyrGraveSearchDtoRequest>().ReverseMap();
+            CreateMap<MartyrGrave, MartyrGraveGetAllDtoResponse>().ReverseMap();
 
             // MartyrGraveInformation mappings
             CreateMap<MartyrGraveInformation, MartyrGraveInformationDtoRequest>().ReverseMap();

@@ -45,10 +45,17 @@ namespace MartyrGraveManagement.Controllers
         /// </summary>
         /// <returns>Returns a list of all graves.</returns>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<MartyrGraveDtoResponse>>> GetMartyrGraves()
+        public async Task<ActionResult<IEnumerable<MartyrGraveDtoResponse>>> GetMartyrGraves([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            var graves = await _martyrGraveService.GetAllMartyrGravesAsync();
-            return Ok(graves);
+            try
+            {
+                var graves = await _martyrGraveService.GetAllMartyrGravesAsync(page, pageSize);
+                return Ok(new { graveList = graves.matyrGraveList, totalPage = graves.totalPage });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
 
         /// <summary>
@@ -183,9 +190,9 @@ namespace MartyrGraveManagement.Controllers
         /// <param name="id">The ID of the martyr grave to update status.</param>
         /// <returns>Returns no content if the deletion is successful.</returns>
         [HttpPut("updateStatus/{id}")]
-        public async Task<IActionResult> UpdateMartyrGraveStatus(int id)
+        public async Task<IActionResult> UpdateMartyrGraveStatus(int id, int status)
         {
-            var deleted = await _martyrGraveService.UpdateStatusMartyrGraveAsync(id);
+            var deleted = await _martyrGraveService.UpdateStatusMartyrGraveAsync(id, status);
             if (!deleted)
             {
                 return NotFound();

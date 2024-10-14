@@ -113,12 +113,20 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
         }
 
-        public async Task<List<ServiceDtoResponse>> GetAllServices(int categoryId)
+        public async Task<List<ServiceDtoResponse>> GetAllServices(int? categoryId)
         {
             try
             {
                 List<ServiceDtoResponse> serviceList = new List<ServiceDtoResponse>();
-                var services = await _unitOfWork.ServiceRepository.GetAsync(s => s.CategoryId == categoryId);
+                List<Service> services = new List<Service>();
+                if (categoryId == null) {
+                   services = (await _unitOfWork.ServiceRepository.GetAsync(s => s.Status == true)).ToList();
+                }
+                else 
+                {
+                   services = (await _unitOfWork.ServiceRepository.GetAsync(s => s.CategoryId == categoryId && s.Status == true)).ToList();
+                }
+                
                 if (services != null)
                 {
                     foreach (var service in services)
@@ -175,6 +183,41 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 throw new Exception(ex.Message);
             }
 
+        }
+
+        public async Task<(List<ServiceDtoResponse> serviceList, int totalPage)> GetServicesForAdmin(int? categoryId, int page, int pageSize)
+        {
+            try
+            {
+                var totalService = await _unitOfWork.ServiceRepository.CountAsync();
+                var totalPage = (int)Math.Ceiling(totalService / (double)pageSize);
+                List<ServiceDtoResponse> serviceList = new List<ServiceDtoResponse>();
+                List<Service> services = new List<Service>();
+                if (categoryId == null)
+                {
+                    services = (await _unitOfWork.ServiceRepository.GetAsync(pageIndex: page, pageSize: pageSize)).ToList();
+                }
+                else
+                {
+                    services = (await _unitOfWork.ServiceRepository.GetAsync(s => s.CategoryId == categoryId, pageIndex: page, pageSize: pageSize)).ToList();
+                }
+
+                if (services != null)
+                {
+                    foreach (var service in services)
+                    {
+                        var mapper = _mapper.Map<ServiceDtoResponse>(service);
+                        serviceList.Add(mapper);
+                    }
+
+                }
+                return (serviceList, totalPage);
+
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
 
         public async Task<(bool status, string result)> UpdateService(ServiceDtoRequest service, int serviceId)

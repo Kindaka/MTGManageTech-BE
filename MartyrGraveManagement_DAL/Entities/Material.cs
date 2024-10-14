@@ -16,6 +16,7 @@ namespace MartyrGraveManagement_DAL.Entities
         public int ServiceId { get; set; }
         public string MaterialName { get; set; }
         public string? Description { get; set; }
+        public string? ImagePath { get; set; }
         public double Price { get; set; }
 
         public Service? Service { get; set; }

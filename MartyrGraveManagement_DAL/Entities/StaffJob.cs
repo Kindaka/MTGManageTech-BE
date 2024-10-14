@@ -19,6 +19,7 @@ namespace MartyrGraveManagement_DAL.Entities
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         public string Description { get; set; }
+        public string? ImagePath { get; set; }
         public int Status { get; set; }
         public Account? Account { get; set; }
     }

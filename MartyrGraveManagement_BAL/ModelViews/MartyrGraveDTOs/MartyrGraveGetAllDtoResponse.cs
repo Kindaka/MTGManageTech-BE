@@ -8,11 +8,10 @@ namespace MartyrGraveManagement_BAL.ModelViews.MartyrGraveDTOs
 {
     public class MartyrGraveGetAllDtoResponse
     {
-        public string Code { get; set; } // MartyrCode
-        public string Name { get; set; } // Name from MartyrGraveInformation
-        public string Location { get; set; } // AreaNumber + RowNumber + MartyrNumber
-        public string RelativeName { get; set; } // FullName from Account
-        public string RelativePhone { get; set; } // PhoneNumber from Account
-        public bool Status { get; set; } // Status from MartyrGrave
+        public int MartyrId { get; set; }
+        public int AreaId { get; set; }
+        public string MartyrCode { get; set; }
+        public List<string>? Name { get; set; } = new List<string>();
+        public string? image { get; set; } = null;
     }
 }

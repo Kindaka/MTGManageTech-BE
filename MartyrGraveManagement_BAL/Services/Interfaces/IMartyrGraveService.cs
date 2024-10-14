@@ -11,15 +11,15 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
 {
     public interface IMartyrGraveService
     {
-        Task<List<MartyrGraveDtoResponse>> GetAllMartyrGravesAsync();
+        Task<(List<MartyrGraveGetAllDtoResponse> matyrGraveList, int totalPage)> GetAllMartyrGravesAsync(int page, int pageSize);
         Task<MartyrGraveDtoResponse> GetMartyrGraveByIdAsync(int id);
         Task<List<MartyrGraveDtoResponse>> GetMartyrGraveByCustomerCode(string customerCode);
         Task<MartyrGraveDtoResponse> CreateMartyrGraveAsync(MartyrGraveDtoRequest martyrGraveDto);
         Task<(bool status, string result, string? accountName, string? password)> CreateMartyrGraveAsyncV2(MartyrGraveDtoRequest martyrGraveDto);
         Task<(bool status, string result, string? accountName, string? password)> CreateRelativeGraveAsync(int martyrGraveId,CustomerDtoRequest customer);
         Task<MartyrGraveDtoResponse> UpdateMartyrGraveAsync(int id, MartyrGraveDtoRequest martyrGraveDto);
-        Task<bool> UpdateStatusMartyrGraveAsync(int id);
-        Task<(List<MartyrGraveGetAllDtoResponse> response, int totalPage)> GetAllMartyrGravesForManagerAsync(int page, int pageSize);
+        Task<bool> UpdateStatusMartyrGraveAsync(int id, int status);
+        Task<(List<MartyrGraveGetAllForAdminDtoResponse> response, int totalPage)> GetAllMartyrGravesForManagerAsync(int page, int pageSize);
 
         Task<(bool status, string result)> UpdateMartyrGraveAsyncV2(int id, MartyrGraveUpdateDtoRequest martyrGraveDto);
         Task<List<MartyrGraveSearchDtoResponse>> SearchMartyrGravesAsync(MartyrGraveSearchDtoRequest searchCriteria);

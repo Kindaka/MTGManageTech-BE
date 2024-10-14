@@ -24,6 +24,7 @@ namespace MartyrGraveManagement_DAL.Entities
         public string? PhoneNumber { get; set; }
         public string? Address { get; set; }
         public string? AvatarPath { get; set; }
+        public DateTime CreateAt { get; set; }
         public bool Status { get; set; }
 
         public Role? Role { get; set; }
