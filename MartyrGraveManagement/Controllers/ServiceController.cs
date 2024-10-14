@@ -40,7 +40,7 @@ namespace MartyrGraveManagement.Controllers
             }
         }
 
-        [AllowAnonymous]
+        [Authorize(Policy = "RequireAdminRole")]
         [HttpGet("admin/services")]
         public async Task<IActionResult> GetServicesAdmin(int? categoryId, int page = 1, int pageSize = 5)
         {

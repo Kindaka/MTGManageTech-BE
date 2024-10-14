@@ -122,6 +122,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 {
                     var account = _mapper.Map<Account>(newAccount);
                     account.Status = true;
+                    account.CreateAt = DateTime.Now;
 
                     // Lưu tài khoản vào cơ sở dữ liệu
                     await _unitOfWork.AccountRepository.AddAsync(account);
@@ -134,6 +135,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     var account = _mapper.Map<Account>(newAccount);
                     account.Status = true;
                     account.AreaId = null;
+                    account.CreateAt = DateTime.Now;
 
                     // Lưu tài khoản vào cơ sở dữ liệu
                     await _unitOfWork.AccountRepository.AddAsync(account);

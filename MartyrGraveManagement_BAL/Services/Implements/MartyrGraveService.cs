@@ -375,7 +375,8 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         RoleId = 4,
                         Status = true,
                         CustomerCode = customerCode,
-                        AccountName = $"{getLastName(martyrGraveDto.Customer.UserName)}{martyrGraveDto.Customer.Dob.Year}-{martyrGraveDto.Customer.Phone}"
+                        AccountName = $"{getLastName(martyrGraveDto.Customer.UserName)}{martyrGraveDto.Customer.Dob.Year}-{martyrGraveDto.Customer.Phone}",
+                        CreateAt = DateTime.Now
                     };
 
                     string randomPassword = CreateRandomPassword(8);
@@ -730,7 +731,8 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                                     RoleId = 4,
                                     Status = true,
                                     CustomerCode = customerCode,
-                                    AccountName = $"{getLastName(customer.UserName)}{customer.Dob.Year}-{customer.Phone}"
+                                    AccountName = $"{getLastName(customer.UserName)}{customer.Dob.Year}-{customer.Phone}",
+                                    CreateAt = DateTime.Now
                                 };
 
                                 string randomPassword = CreateRandomPassword(8);

@@ -117,6 +117,41 @@ namespace MartyrGraveManagement.Controllers
                 return StatusCode(500, new { message = "An unexpected error occurred.", details = ex.Message });
             }
         }
+
+        [Authorize(Policy = "RequireCustomerRole")]
+        [HttpGet("checkout/{customerId}")]
+        public async Task<ActionResult<List<CartItemGetByCustomerDTOResponse>>> GetCheckoutByAccountId(int customerId)
+        {
+            try
+            {
+                var accountId = User.FindFirst("AccountId")?.Value;
+                if (accountId == null)
+                {
+                    return Forbid();
+                }
+                var checkMatchedId = await _authorizeService.CheckAuthorizeByCustomerId(customerId, int.Parse(accountId));
+                if (!checkMatchedId.isMatchedCustomer)
+                {
+                    return Forbid();
+                }
+                // Gọi service để lấy giỏ hàng của accountId
+                var cartItems = await _cartItemsService.GetCheckoutByAccountId(customerId);
+
+                // Kiểm tra nếu không có giỏ hàng nào được tìm thấy
+                if (cartItems.cartitemList == null || !cartItems.cartitemList.Any())
+                {
+                    return NotFound(new { message = "No cart items found for this account." });
+                }
+
+                // Trả về danh sách các mục trong giỏ hàng
+                return Ok(new { cartItemList = cartItems.cartitemList, totalPrice = cartItems.totalPriceInCart });
+            }
+            catch (Exception ex)
+            {
+                // Quản lý lỗi nếu có ngoại lệ xảy ra
+                return StatusCode(500, new { message = "An unexpected error occurred.", details = ex.Message });
+            }
+        }
         [Authorize(Policy = "RequireCustomerRole")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteItemInCart(int id)
@@ -146,6 +181,38 @@ namespace MartyrGraveManagement.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, $"Internal Server Error: {ex.Message}");
+            }
+        }
+
+        [Authorize(Policy = "RequireCustomerRole")]
+        [HttpPut("/updateItemStatus/{cartItemId}")]
+        public async Task<IActionResult> UpdateCartItemStatus(int cartItemId)
+        {
+            try
+            {
+                var customerId = User.FindFirst("AccountId")?.Value;
+                if (customerId == null)
+                {
+                    return Forbid();
+                }
+                var checkMatchedId = await _authorizeService.CheckAuthorizeByCartId(cartItemId, int.Parse(customerId));
+                if (!checkMatchedId)
+                {
+                    return Forbid();
+                }
+                var check = await _cartItemsService.UpdateCartItemStatusByAccountId(cartItemId);
+                if (check)
+                {
+                    return Ok("Thay đổi trạng thái Cart Item thành công");
+                }
+                else
+                {
+                    return BadRequest("Không tìm thấy Item");
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
 

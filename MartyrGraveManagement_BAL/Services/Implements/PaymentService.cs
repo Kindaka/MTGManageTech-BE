@@ -205,7 +205,10 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                             var cartItems = await _unitOfWork.CartItemRepository.GetAsync(c => c.AccountId == existedOrder.AccountId && c.Status == true);
                             foreach (var cartItem in cartItems)
                             {
-                                await _unitOfWork.CartItemRepository.DeleteAsync(cartItem);
+                                if (cartItem.Status == true)
+                                {
+                                    await _unitOfWork.CartItemRepository.DeleteAsync(cartItem);
+                                }
                             }
 
                             await _unitOfWork.SaveAsync();

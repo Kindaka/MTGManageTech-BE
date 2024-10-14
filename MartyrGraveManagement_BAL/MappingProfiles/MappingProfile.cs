@@ -30,7 +30,8 @@ namespace MartyrGraveManagement_BAL.MappingProfiles
                .ForMember(dest => dest.AccountName, opt => opt.MapFrom(src => src.AccountName))
                .ForMember(dest => dest.HashedPassword, opt => opt.MapFrom(src => src.Password));
 
-            CreateMap<UserAuthenticatingDtoResponse, Account>();
+            CreateMap<UserAuthenticatingDtoResponse, Account>().ReverseMap();
+            CreateMap<Account, AccountDtoResponse>().ReverseMap();
 
             // Area mappings
             CreateMap<Area, AreaDTOResponse>().ReverseMap();

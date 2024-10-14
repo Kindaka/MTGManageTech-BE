@@ -5,6 +5,7 @@ using MartyrGraveManagement_BAL.ModelViews.ServiceDTOs;
 using MartyrGraveManagement_BAL.Services.Interfaces;
 using MartyrGraveManagement_DAL.Entities;
 using MartyrGraveManagement_DAL.UnitOfWorks.Interfaces;
+using Microsoft.Identity.Client;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -168,6 +169,88 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
         }
 
+        public async Task<bool> UpdateCartItemStatusByAccountId(int cartItemId)
+        {
+            try
+            {
+                var cartItem = await _unitOfWork.CartItemRepository.GetByIDAsync(cartItemId);
+                if (cartItem == null)
+                {
+                    return false;
+                }
+                if (cartItem.Status == true)
+                {
+                    cartItem.Status = false;
+                    await _unitOfWork.CartItemRepository.UpdateAsync(cartItem);
+                    await _unitOfWork.SaveAsync();
+                    return true;
+                }
+                else
+                {
+                    cartItem.Status = true;
+                    await _unitOfWork.CartItemRepository.UpdateAsync(cartItem);
+                    await _unitOfWork.SaveAsync();
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
 
+        public async Task<(List<CartItemGetByCustomerDTOResponse> cartitemList, double totalPriceInCart)> GetCheckoutByAccountId(int accountId)
+        {
+            try
+            {
+                // Lấy danh sách CartItem dựa trên AccountId
+                var cartItems = await _unitOfWork.CartItemRepository.GetAsync(c => c.AccountId == accountId && c.Status == true, includeProperties: "Service");
+
+                // Kiểm tra xem có mặt hàng nào trong giỏ hàng không
+                if (cartItems == null || !cartItems.Any())
+                {
+                    return (new List<CartItemGetByCustomerDTOResponse>(), 0);  // Trả về danh sách rỗng nếu không có giỏ hàng
+                }
+
+                // Tạo danh sách CartItemGetByCustomerDTOResponse để chứa kết quả
+                var cartItemResponses = new List<CartItemGetByCustomerDTOResponse>();
+                double totalPriceInCart = 0;
+                foreach (var cartItem in cartItems)
+                {
+                    var grave = (await _unitOfWork.MartyrGraveRepository.FindAsync(m => m.MartyrId == cartItem.MartyrId)).FirstOrDefault();
+                    if (grave != null)
+                    {
+                        // Tạo DTO response cho từng CartItem
+                        var cartItemResponse = new CartItemGetByCustomerDTOResponse
+                        {
+                            CartId = cartItem.CartId,
+                            AccountId = cartItem.AccountId,
+                            ServiceId = cartItem.ServiceId,
+                            MartyrCode = grave.MartyrCode,
+                            Status = cartItem.Status
+                        };
+
+                        // Lấy thông tin chi tiết của dịch vụ (Service) và ánh xạ sang DTO
+                        if (cartItem.Service != null)
+                        {
+                            cartItemResponse.ServiceView = _mapper.Map<ServiceDtoResponse>(cartItem.Service);
+                            totalPriceInCart += cartItemResponse.ServiceView.Price;
+                        }
+
+                        // Thêm đối tượng vào danh sách kết quả
+                        cartItemResponses.Add(cartItemResponse);
+                    }
+                    else
+                    {
+                        throw new KeyNotFoundException("Grave not found.");
+                    }
+                }
+                return (cartItemResponses, totalPriceInCart);  // Trả về danh sách giỏ hàng
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);  // Quản lý lỗi nếu có bất kỳ ngoại lệ nào
+            }
+        }
     }
 }
