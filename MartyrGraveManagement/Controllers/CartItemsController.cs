@@ -185,8 +185,8 @@ namespace MartyrGraveManagement.Controllers
         }
 
         [Authorize(Policy = "RequireCustomerRole")]
-        [HttpPut("/updateItemStatus/{cartItemId}")]
-        public async Task<IActionResult> UpdateCartItemStatus(int cartItemId)
+        [HttpPut("/updateItemStatus/{cartItemId}/{status}")]
+        public async Task<IActionResult> UpdateCartItemStatus(int cartItemId, bool status)
         {
             try
             {
@@ -200,7 +200,7 @@ namespace MartyrGraveManagement.Controllers
                 {
                     return Forbid();
                 }
-                var check = await _cartItemsService.UpdateCartItemStatusByAccountId(cartItemId);
+                var check = await _cartItemsService.UpdateCartItemStatusByAccountId(cartItemId, status);
                 if (check)
                 {
                     return Ok("Thay đổi trạng thái Cart Item thành công");

@@ -67,7 +67,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     // Tạo thực thể CartItem từ DTO và đặt Status = 1
                     var cart = _mapper.Map<CartItem>(cartItemsDTO);
                     cart.MartyrId = martyrGrave.MartyrId;
-                    cart.Status = true;  // Đặt Status là 1 (true)
+                    cart.Status = true;  // Đặt Status là (true)
 
                     // Thêm CartItem vào cơ sở dữ liệu
                     await _unitOfWork.CartItemRepository.AddAsync(cart);
@@ -169,7 +169,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
         }
 
-        public async Task<bool> UpdateCartItemStatusByAccountId(int cartItemId)
+        public async Task<bool> UpdateCartItemStatusByAccountId(int cartItemId, bool status)
         {
             try
             {
@@ -178,20 +178,10 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 {
                     return false;
                 }
-                if (cartItem.Status == true)
-                {
-                    cartItem.Status = false;
-                    await _unitOfWork.CartItemRepository.UpdateAsync(cartItem);
-                    await _unitOfWork.SaveAsync();
-                    return true;
-                }
-                else
-                {
-                    cartItem.Status = true;
-                    await _unitOfWork.CartItemRepository.UpdateAsync(cartItem);
-                    await _unitOfWork.SaveAsync();
-                    return true;
-                }
+                cartItem.Status = status;
+                await _unitOfWork.CartItemRepository.UpdateAsync(cartItem);
+                await _unitOfWork.SaveAsync();
+                return true;
             }
             catch (Exception ex)
             {

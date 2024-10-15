@@ -17,7 +17,7 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
 
         Task<(List<CartItemGetByCustomerDTOResponse> cartitemList, double totalPriceInCart)> GetCartItemsByAccountId(int accountId);
         Task<(List<CartItemGetByCustomerDTOResponse> cartitemList, double totalPriceInCart)> GetCheckoutByAccountId(int accountId);
-        Task<bool> UpdateCartItemStatusByAccountId(int cartItemId);
+        Task<bool> UpdateCartItemStatusByAccountId(int cartItemId, bool status);
 
     }
 }
