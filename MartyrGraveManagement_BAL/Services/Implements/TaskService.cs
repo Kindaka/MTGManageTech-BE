@@ -195,45 +195,71 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 throw new UnauthorizedAccessException("The account is not authorized to create this task (not a manager account).");
             }
 
-            // 3. Kiểm tra xem OrderId có tồn tại không
+            // 3. Kiểm tra xem AccountId của staff có tồn tại không
+            var staffAccount = await _unitOfWork.AccountRepository.GetByIDAsync(newTask.AccountId);
+            if (staffAccount == null)
+            {
+                throw new KeyNotFoundException("Staff AccountId does not exist.");
+            }
+
+            // 4. Kiểm tra Role của account phải là Role 3 (Staff)
+            if (staffAccount.RoleId != 3)
+            {
+                throw new UnauthorizedAccessException("The specified account is not a staff account.");
+            }
+
+            // 5. Kiểm tra xem OrderId có tồn tại không
             var order = await _unitOfWork.OrderRepository.GetByIDAsync(newTask.OrderId);
             if (order == null)
             {
                 throw new KeyNotFoundException("OrderId does not exist.");
             }
 
-            // 4. Kiểm tra trạng thái của Order phải là 1 (đã thanh toán)
+            // 6. Kiểm tra trạng thái của Order phải là 1 (đã thanh toán)
             if (order.Status != 1)
             {
                 throw new InvalidOperationException("Order has not been paid (status must be 1).");
             }
 
-            // 5. Kiểm tra nếu StartDate của nhiệm vụ (thời điểm hiện tại) lớn hơn EndDate của Order
+            // 7. Kiểm tra nếu StartDate của nhiệm vụ (thời điểm hiện tại) lớn hơn EndDate của Order
             if (DateTime.Now > order.EndDate)
             {
                 throw new InvalidOperationException("Cannot create a task because the start date is after the order's end date.");
             }
 
-            // 6. Kiểm tra xem OrderDetail có tồn tại không
+            // 8. Kiểm tra xem OrderDetail có tồn tại không
             var orderDetail = await _unitOfWork.OrderDetailRepository.GetByIDAsync(newTask.DetailId);
             if (orderDetail == null)
             {
                 throw new KeyNotFoundException("OrderDetailId does not exist.");
             }
 
-            // 7. Kiểm tra nếu OrderDetail có liên quan đến OrderId được truyền vào
+            // 9. Kiểm tra nếu OrderDetail có liên quan đến OrderId được truyền vào
             if (orderDetail.OrderId != newTask.OrderId)
             {
                 throw new InvalidOperationException("The specified OrderDetail does not belong to the given Order.");
             }
 
-            // 8. Kiểm tra xem Task đã tồn tại với OrderDetail này chưa
+            // 10. Lấy thông tin MartyrGrave từ MartyrId
+            var martyrGrave = await _unitOfWork.MartyrGraveRepository.GetByIDAsync(orderDetail.MartyrId);
+            if (martyrGrave == null)
+            {
+                throw new KeyNotFoundException("MartyrGrave does not exist.");
+            }
+
+            // 11. Kiểm tra khu vực làm việc của Staff
+            if (martyrGrave.AreaId != staffAccount.AreaId)
+            {
+                throw new UnauthorizedAccessException("Staff can only be assigned tasks in their assigned area.");
+            }
+
+            // 12. Kiểm tra xem Task đã tồn tại với OrderDetail này chưa
             if (orderDetail.StaffTask != null)
             {
                 throw new InvalidOperationException("A task has already been created for this OrderDetail.");
             }
 
-            // 9. Tự động điều chỉnh EndDate của Task không được vượt quá EndDate của Order
+            // 13. Tự động điều chỉnh EndDate của Task không được vượt quá EndDate của Order
             DateTime taskEndDate = order.EndDate;  // Mặc định lấy EndDate của Order
 
             // Nếu có EndDate từ phía request và nhỏ hơn hoặc bằng EndDate của Order thì sử dụng
@@ -242,86 +268,36 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 taskEndDate = newTask.EndDate;
             }
 
-            // 10. Nếu tất cả điều kiện hợp lệ, tạo Task mới với ManagerId được gán tạm cho AccountId
+            // 14. Nếu tất cả điều kiện hợp lệ, tạo Task mới với AccountId của Staff
             var taskEntity = new StaffTask
             {
-                AccountId = managerId,  // Gán ManagerId vào AccountId (tạm thời trước khi chỉ định Staff)
+                AccountId = newTask.AccountId,  // Gán AccountId của staff từ request
                 OrderId = newTask.OrderId,
                 DetailId = newTask.DetailId,  // Gán OrderDetailId
                 Description = newTask.Description,
                 StartDate = DateTime.Now,  // Gán StartDate là thời gian hiện tại
                 EndDate = taskEndDate,   // EndDate là giá trị đã điều chỉnh
-                Status = 0,  // Status ban đầu là 0 (chờ)
+                Status = 1,  // Status ban đầu là 1 (đã bàn giao)
                 ImagePath1 = newTask.ImagePath1,
                 ImagePath2 = newTask.ImagePath2,
                 ImagePath3 = newTask.ImagePath3
             };
 
-            // 11. Liên kết Task với OrderDetail
+            // 15. Liên kết Task với OrderDetail
             orderDetail.StaffTask = taskEntity;
 
-            // 12. Thêm Task vào cơ sở dữ liệu
+            // 16. Thêm Task vào cơ sở dữ liệu
             await _unitOfWork.TaskRepository.AddAsync(taskEntity);
             await _unitOfWork.SaveAsync();
 
-            // 13. Trả về DTO của Task đã tạo
+            // 17. Trả về DTO của Task đã tạo
             return _mapper.Map<TaskDtoResponse>(taskEntity);
         }
 
 
 
 
-        public async Task<TaskDtoResponse> AssignTaskAsync(int taskId, int staffId)
-        {
-            // 1. Lấy Task cần gán từ cơ sở dữ liệu
-            var task = await _unitOfWork.TaskRepository.GetByIDAsync(taskId);
-            if (task == null)
-            {
-                throw new KeyNotFoundException("TaskId does not exist.");
-            }
 
-            // 2. Kiểm tra trạng thái của Task phải là 0 (chưa gán)
-            if (task.Status != 0)
-            {
-                throw new InvalidOperationException("Task has already been assigned or is in progress.");
-            }
-
-            // 3. Lấy thông tin nhân viên (Staff) để gán Task
-            var staffAccount = await _unitOfWork.AccountRepository.GetByIDAsync(staffId);
-            if (staffAccount == null)
-            {
-                throw new KeyNotFoundException("StaffId does not exist.");
-            }
-
-            // 4. Kiểm tra Role của account phải là Role 3 (Staff)
-            if (staffAccount.RoleId != 3)
-            {
-                throw new UnauthorizedAccessException("The account is not a staff account.");
-            }
-
-            // 5. Lấy OrderDetail của Task và kiểm tra xem OrderDetail có thuộc khu vực của Staff hay không
-            var orderDetail = await _unitOfWork.OrderDetailRepository.GetByIDAsync(task.DetailId);
-            if (orderDetail == null)
-            {
-                throw new KeyNotFoundException("OrderDetailId does not exist.");
-            }
-
-            // 6. Kiểm tra khu vực của MartyrGrave (nếu có)
-            if (orderDetail.MartyrGrave == null || orderDetail.MartyrGrave.AreaId != staffAccount.AreaId)
-            {
-                throw new UnauthorizedAccessException("Staff can only be assigned to work in their area.");
-            }
-
-            // 7. Gán Task cho Staff và cập nhật trạng thái sang 1 (đã nhận)
-            task.AccountId = staffId;
-            task.Status = 1; // Cập nhật trạng thái sang 1 khi Staff nhận task
-
-            // 8. Lưu thay đổi
-            await _unitOfWork.TaskRepository.UpdateAsync(task);
-            await _unitOfWork.SaveAsync();
-
-            return _mapper.Map<TaskDtoResponse>(task);
-        }
 
 
 
@@ -477,8 +453,12 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     }
 
                     // 4. Kiểm tra khu vực làm việc của Staff
-                    var orderDetail = await _unitOfWork.OrderDetailRepository.GetByIDAsync(task.DetailId);
-                    if (orderDetail == null || orderDetail.MartyrGrave?.AreaId != account.AreaId)
+                    var orderDetail = await _unitOfWork.OrderDetailRepository.GetAsync(
+                    od => od.DetailId == task.DetailId,
+                    includeProperties: "MartyrGrave"
+                    );
+                    var detailEntity = orderDetail.FirstOrDefault();
+                    if (detailEntity == null || detailEntity.MartyrGrave?.AreaId != account.AreaId)
                     {
                         throw new UnauthorizedAccessException("Staff can only work in their assigned area.");
                     }
@@ -602,15 +582,19 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         throw new UnauthorizedAccessException("The new account is not authorized to perform this task (not a staff account).");
                     }
 
-                    // 5. Kiểm tra `OrderDetail` liên quan đến Task
-                    var orderDetail = await _unitOfWork.OrderDetailRepository.GetByIDAsync(task.DetailId);
-                    if (orderDetail == null)
+                    // 5. Kiểm tra `OrderDetail` liên quan đến Task và nạp cả MartyrGrave
+                    var orderDetail = await _unitOfWork.OrderDetailRepository.GetAsync(
+                        od => od.DetailId == task.DetailId,
+                        includeProperties: "MartyrGrave"
+                    );
+                    var detailEntity = orderDetail.FirstOrDefault();
+                    if (detailEntity == null)
                     {
                         throw new InvalidOperationException("No order detail found for this task.");
                     }
 
                     // 6. Kiểm tra nếu nhân viên chỉ được làm việc trong khu vực của họ
-                    if (orderDetail.MartyrGrave?.AreaId != newAccount.AreaId)
+                    if (detailEntity.MartyrGrave?.AreaId != newAccount.AreaId)
                     {
                         throw new UnauthorizedAccessException("Staff can only work in their assigned area.");
                     }
@@ -636,6 +620,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 }
             }
         }
+
 
 
 

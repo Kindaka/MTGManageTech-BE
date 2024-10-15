@@ -14,7 +14,6 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
         Task<TaskDtoResponse> GetTaskByIdAsync(int taskId);
         //Task<TaskDtoResponse> CreateTaskAsync(TaskDtoRequest newTask);
         Task<TaskDtoResponse> CreateTaskAsync(TaskDtoRequest newTask, int managerId);
-        Task<TaskDtoResponse> AssignTaskAsync(int taskId, int staffId);
         
         Task<TaskDtoResponse> UpdateTaskStatusAsync(int taskId, int accountId, int newStatus, List<string>? urlImages = null, string? reason = null);
         Task<bool> DeleteTaskAsync(int taskId); //status task 0 

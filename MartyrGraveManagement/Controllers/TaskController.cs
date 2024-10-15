@@ -119,53 +119,6 @@ namespace MartyrGraveManagement.Controllers
             }
         }
 
-        /// <summary>
-        /// Assign a task to a staff member (Manager Role).
-        /// </summary>
-        [Authorize(Policy = "RequireManagerRole")]
-        [HttpPut("tasks/{taskId}/assign")]
-        public async Task<IActionResult> AssignTask(int taskId, [FromBody] AssignTaskDTORequest assignRequest)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            try
-            {
-                // Lấy accountId từ JWT token
-                var accountIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-                if (string.IsNullOrEmpty(accountIdClaim))
-                {
-                    return Forbid("Token không chứa thông tin accountId.");
-                }
-
-                var accountIdFromToken = int.Parse(accountIdClaim);
-
-                // Thực hiện việc gán task
-                var result = await _taskService.AssignTaskAsync(taskId, assignRequest.StaffId);
-
-                return Ok(new { message = "Task assigned successfully.", result });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (UnauthorizedAccessException)
-            {
-                return Forbid();
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = $"Internal server error: {ex.Message}" });
-            }
-        }
-
 
 
 
