@@ -185,7 +185,7 @@ namespace MartyrGraveManagement.Controllers
         }
 
         [Authorize(Policy = "RequireCustomerRole")]
-        [HttpPut("/updateItemStatus/{cartItemId}/{status}")]
+        [HttpPut("/api/updateItemStatus/{cartItemId}/{status}")]
         public async Task<IActionResult> UpdateCartItemStatus(int cartItemId, bool status)
         {
             try

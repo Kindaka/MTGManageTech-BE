@@ -22,7 +22,7 @@ namespace MartyrGraveManagement.Controllers
         /// </summary>
         /// <returns>Returns a list of all Staff Account.</returns>
         [Authorize(Policy = "RequireManagerRole")]
-        [HttpGet("/staffs")]
+        [HttpGet("/api/staffs")]
         public async Task<ActionResult<IEnumerable<AccountDtoResponse>>> GetStaffs([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             try
@@ -41,7 +41,7 @@ namespace MartyrGraveManagement.Controllers
         /// </summary>
         /// <returns>Returns a list of all Manager Account.</returns>
         [Authorize(Policy = "RequireManagerRole")]
-        [HttpGet("/managers")]
+        [HttpGet("/api/managers")]
         public async Task<ActionResult<IEnumerable<AccountDtoResponse>>> GetManagers([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             try
@@ -61,7 +61,7 @@ namespace MartyrGraveManagement.Controllers
         /// </summary>
         /// <returns>Returns a list of all Manager Account.</returns>
         [Authorize(Policy = "RequireManagerRole")]
-        [HttpPut("/updateStatus/{accountId}")]
+        [HttpPut("/api/updateStatus/{accountId}")]
         public async Task<IActionResult> UpdateStatus(int accountId)
         {
             try
