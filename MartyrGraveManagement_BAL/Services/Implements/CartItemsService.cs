@@ -67,7 +67,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     // Tạo thực thể CartItem từ DTO và đặt Status = 1
                     var cart = _mapper.Map<CartItem>(cartItemsDTO);
                     cart.MartyrId = martyrGrave.MartyrId;
-                    cart.Status = true;  // Đặt Status là (true)
+                    cart.Status = false;  // Đặt Status là (false)
 
                     // Thêm CartItem vào cơ sở dữ liệu
                     await _unitOfWork.CartItemRepository.AddAsync(cart);
