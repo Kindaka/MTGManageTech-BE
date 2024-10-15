@@ -13,8 +13,8 @@ namespace MartyrGraveManagement_DAL.Entities
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int TaskId { get; set; }
-        public int AccountId { get; set; } // check role 3, staff khu nào làm khu đó
-        public int OrderId { get; set; } // Check exisst, check status 1
+        public int AccountId { get; set; } 
+        public int OrderId { get; set; } 
         public int  DetailId { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
@@ -27,7 +27,6 @@ namespace MartyrGraveManagement_DAL.Entities
         public Account? Account { get; set; }
         public Order? Order { get; set; }
         public OrderDetail? OrderDetail { get; set; }
-        //----------------------------------
         
 
     }

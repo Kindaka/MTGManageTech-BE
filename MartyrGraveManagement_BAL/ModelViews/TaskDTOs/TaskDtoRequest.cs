@@ -15,12 +15,12 @@ namespace MartyrGraveManagement_BAL.ModelViews.TaskDTOs
         [Required(ErrorMessage = "OrderId is required.")]
         public int OrderId { get; set; }
 
-        [Required(ErrorMessage = "Name of the work is required.")]
-        [StringLength(100, ErrorMessage = "Name of the work can't be longer than 100 characters.")]
-        public string NameOfWork { get; set; }
+        [Required(ErrorMessage = "OrderDetailId is required.")]
+        public int DetailId { get; set; }
 
-        [Required(ErrorMessage = "TypeOfWork is required.")]
-        public int TypeOfWork { get; set; }
+        [Required]
+        public DateTime EndDate { get; set; }
+
 
         [StringLength(500, ErrorMessage = "Description can't be longer than 500 characters.")]
         public string Description { get; set; }
@@ -28,6 +28,8 @@ namespace MartyrGraveManagement_BAL.ModelViews.TaskDTOs
         [Required(ErrorMessage = "Status is required.")]
         public int Status { get; set; }
 
-        public string? UrlImage { get; set; }
+        public string? ImagePath1 { get; set; }
+        public string? ImagePath2 { get; set; }
+        public string? ImagePath3 { get; set; }
     }
 }

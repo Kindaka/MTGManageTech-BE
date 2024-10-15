@@ -9,17 +9,17 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
 {
     public interface ITaskService
     {
-        //Task<IEnumerable<TaskDtoResponse>> GetAllTasksAsync();
-        //Task<IEnumerable<TaskDtoResponse>> GetTasksByAccountIdAsync(int accountId);
-        //Task<TaskDtoResponse> GetTaskByIdAsync(int taskId);
-        ////Task<TaskDtoResponse> CreateTaskAsync(TaskDtoRequest newTask);
-        //Task<TaskDtoResponse> CreateTaskAsync(TaskDtoRequest newTask, int managerId);
-        //Task<TaskDtoResponse> AssignTaskAsync(int taskId, int staffId);
-        //Task<TaskDtoResponse> UpdateTaskStatusAsync(int taskId, int accountId, int newStatus, string? urlImage = null, string? reason = null);
+        Task<IEnumerable<TaskDtoResponse>> GetAllTasksAsync();
+        Task<IEnumerable<TaskDtoResponse>> GetTasksByAccountIdAsync(int accountId);
+        Task<TaskDtoResponse> GetTaskByIdAsync(int taskId);
+        //Task<TaskDtoResponse> CreateTaskAsync(TaskDtoRequest newTask);
+        Task<TaskDtoResponse> CreateTaskAsync(TaskDtoRequest newTask, int managerId);
+        Task<TaskDtoResponse> AssignTaskAsync(int taskId, int staffId);
+        
+        Task<TaskDtoResponse> UpdateTaskStatusAsync(int taskId, int accountId, int newStatus, List<string>? urlImages = null, string? reason = null);
+        Task<bool> DeleteTaskAsync(int taskId); //status task 0 
 
-        //Task<bool> DeleteTaskAsync(int taskId); //status task 0 
-
-        //Task<TaskDtoResponse> ReassignTaskAsync(int taskId, int newAccountId);
+        Task<TaskDtoResponse> ReassignTaskAsync(int taskId, int newAccountId);
 
     }
 }

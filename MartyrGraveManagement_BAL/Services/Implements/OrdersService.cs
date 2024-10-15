@@ -423,6 +423,65 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
         }
 
+        public async Task<List<OrdersGetAllDTOResponse>> GetOrderByAreaId(int areaId)
+        {
+            try
+            {
+                // Lấy các đơn hàng theo AreaId, bao gồm các chi tiết liên quan
+                var orders = await _unitOfWork.OrderRepository.GetAsync(
+                    filter: o => o.OrderDetails.Any(od => od.MartyrGrave.AreaId == areaId),
+                    includeProperties: "OrderDetails,OrderDetails.Service,OrderDetails.MartyrGrave.MartyrGraveInformations"
+                );
+
+                // Kiểm tra nếu không có đơn hàng cho AreaId này
+                if (orders == null || !orders.Any())
+                {
+                    return new List<OrdersGetAllDTOResponse>(); // Trả về danh sách rỗng nếu không có đơn hàng
+                }
+
+                // Ánh xạ từng đơn hàng và chi tiết đơn hàng sang DTO
+                var orderDtoList = new List<OrdersGetAllDTOResponse>();
+
+                foreach (var order in orders)
+                {
+                    var orderDto = new OrdersGetAllDTOResponse
+                    {
+                        OrderId = order.OrderId,
+                        AccountId = order.AccountId,
+                        OrderDate = order.OrderDate,
+                        StartDate = order.StartDate,
+                        EndDate = order.EndDate,
+                        TotalPrice = order.TotalPrice,
+                        Status = order.Status
+                    };
+
+                    // Ánh xạ chi tiết đơn hàng
+                    foreach (var orderDetail in order.OrderDetails)
+                    {
+                        var martyrGraveInfo = orderDetail.MartyrGrave?.MartyrGraveInformations?.FirstOrDefault();
+
+                        var orderDetailDto = new OrderDetailDtoResponse
+                        {
+                            ServiceName = orderDetail.Service?.ServiceName,
+                            MartyrName = martyrGraveInfo?.Name, // Lấy thông tin liệt sĩ từ MartyrGraveInformation
+                            OrderPrice = orderDetail.OrderPrice
+                        };
+
+                        orderDto.OrderDetails.Add(orderDetailDto);
+                    }
+
+                    // Thêm DTO của đơn hàng vào danh sách kết quả
+                    orderDtoList.Add(orderDto);
+                }
+
+                return orderDtoList;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
 
 
 

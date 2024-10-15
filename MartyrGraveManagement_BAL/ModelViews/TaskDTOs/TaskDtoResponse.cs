@@ -12,13 +12,14 @@ namespace MartyrGraveManagement_BAL.ModelViews.TaskDTOs
         public int AccountId { get; set; }
         public string? Fullname { get; set; }
         public int OrderId { get; set; }
-        public string NameOfWork { get; set; }
-        public int TypeOfWork { get; set; }
+        public int DetailId { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         public string Description { get; set; }
         public int Status { get; set; }
-        public string? UrlImage { get; set; }
+        public string? ImagePath1 { get; set; }
+        public string? ImagePath2 { get; set; }
+        public string? ImagePath3 { get; set; }
         public string? Reason { get; set; }
     }
 }

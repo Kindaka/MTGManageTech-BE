@@ -16,7 +16,9 @@ namespace MartyrGraveManagement_BAL.ModelViews.TaskDTOs
         [Range(2, 4, ErrorMessage = "Status must be between 2 and 4.")]
         public int Status { get; set; }
 
-        public string? UrlImage { get; set; }
+        public string? UrlImage1 { get; set; }  // Thêm UrlImage1
+        public string? UrlImage2 { get; set; }  // Thêm UrlImage2
+        public string? UrlImage3 { get; set; }  // Thêm UrlImage3
         public string? Reason { get; set; }
     }
 

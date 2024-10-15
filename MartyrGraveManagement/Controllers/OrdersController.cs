@@ -27,6 +27,10 @@ namespace MartyrGraveManagement.Controllers
             _authorizeService = authorizeService;
         }
 
+
+        /// <summary>
+        /// Gets all martyr graves.
+        /// </summary>
         [Authorize(Policy = "RequireManagerRole")]
         [HttpGet]
         public async Task<ActionResult<List<OrdersGetAllDTOResponse>>> GetAllOrders()
@@ -102,6 +106,33 @@ namespace MartyrGraveManagement.Controllers
                 return StatusCode(500, new { message = "An unexpected error occurred.", details = ex.Message });
             }
         }
+
+
+
+        /// <summary>
+        /// Get orders by area ID (Manager or Staff Role).
+        /// </summary>
+        [Authorize(Policy = "RequireManagerOrStaffRole")]
+        [HttpGet("orders/area/{areaId}")]
+        public async Task<IActionResult> GetOrdersByAreaId(int areaId)
+        {
+            try
+            {
+                var orders = await _odersService.GetOrderByAreaId(areaId);
+                if (orders == null || !orders.Any())
+                {
+                    return NotFound(new { message = "No orders found for the given area." });
+                }
+
+                return Ok(orders);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = $"Internal server error: {ex.Message}" });
+            }
+        }
+
+
 
         [Authorize(Policy = "RequireCustomerRole")]
         [HttpPost]
