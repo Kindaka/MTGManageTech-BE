@@ -26,7 +26,7 @@ namespace MartyrGraveManagement_DAL.Entities
         public IEnumerable<OrderDetail>? OrderDetails { get; set; }
         public Payment? Payment { get; set; }
         public Feedback? Feedback { get; set; }
-        public StaffTask? Task { get; set; }
+        public IEnumerable<StaffTask>? Task { get; set; }
     }
 
 }

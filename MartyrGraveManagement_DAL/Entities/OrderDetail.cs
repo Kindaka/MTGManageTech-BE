@@ -23,6 +23,7 @@ namespace MartyrGraveManagement_DAL.Entities
         public Order? Order { get; set; }
         public Service? Service { get; set; }
         public MartyrGrave? MartyrGrave { get; set; }
+        public StaffTask? StaffTask { get; set; }
     }
 
 }

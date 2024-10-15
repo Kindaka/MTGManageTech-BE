@@ -181,8 +181,13 @@ namespace MartyrGraveManagement_DAL.Entities
                 .OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<StaffTask>()
                 .HasOne(t => t.Order)
-                .WithOne(o => o.Task)
-                .HasForeignKey<StaffTask>(t => t.OrderId)
+                .WithMany(o => o.Task)
+                .HasForeignKey(t => t.OrderId)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<StaffTask>()
+                .HasOne(t => t.OrderDetail)
+                .WithOne(o => o.StaffTask)
+                .HasForeignKey<StaffTask>(t => t.DetailId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // WorkPerformance Configuration
