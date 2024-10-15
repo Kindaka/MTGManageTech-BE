@@ -60,7 +60,7 @@ namespace MartyrGraveManagement.Controllers
 
 
         /// <summary>
-        /// Register account(Customer cannot created and in the DB must INSERT role data first).
+        /// Register account for Manager / Staff / Admin
         /// </summary>
         /// <param name="newAccount">The new account information including email, password, and confirmation password.</param>
         /// <returns>

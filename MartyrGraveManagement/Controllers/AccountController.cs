@@ -2,6 +2,7 @@
 using MartyrGraveManagement_BAL.ModelViews.MartyrGraveDTOs;
 using MartyrGraveManagement_BAL.Services.Implements;
 using MartyrGraveManagement_BAL.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,7 +17,11 @@ namespace MartyrGraveManagement.Controllers
         {
             _accountService = accountService;
         }
-
+        /// <summary>
+        /// Get all Staff Account (Manager Role)
+        /// </summary>
+        /// <returns>Returns a list of all Staff Account.</returns>
+        [Authorize(Policy = "RequireManagerRole")]
         [HttpGet("/staffs")]
         public async Task<ActionResult<IEnumerable<AccountDtoResponse>>> GetStaffs([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
@@ -31,6 +36,11 @@ namespace MartyrGraveManagement.Controllers
             }
         }
 
+        /// <summary>
+        /// Get all Manager Account (Admin role)
+        /// </summary>
+        /// <returns>Returns a list of all Manager Account.</returns>
+        [Authorize(Policy = "RequireManagerRole")]
         [HttpGet("/managers")]
         public async Task<ActionResult<IEnumerable<AccountDtoResponse>>> GetManagers([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
@@ -45,6 +55,12 @@ namespace MartyrGraveManagement.Controllers
             }
         }
 
+
+        /// <summary>
+        /// Update account status (Admin and Manager Role)
+        /// </summary>
+        /// <returns>Returns a list of all Manager Account.</returns>
+        [Authorize(Policy = "RequireManagerRole")]
         [HttpPut("/updateStatus/{accountId}")]
         public async Task<IActionResult> UpdateStatus(int accountId)
         {

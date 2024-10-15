@@ -17,7 +17,7 @@ namespace MartyrGraveManagement.Controllers
         }
 
         /// <summary>
-        /// Create a new Area.
+        /// Create a new Area (Admin or Manager ROle)
         /// </summary>
         [Authorize(Policy = "RequireManagerOrAdminRole")]
         [HttpPost("create-area")]
@@ -47,7 +47,7 @@ namespace MartyrGraveManagement.Controllers
         }
 
         /// <summary>
-        /// Get a list of Areas.
+        /// Get a list of active Areas (Anonymous) - Only shows active areas with Status = true
         /// </summary>
         [AllowAnonymous]
         [HttpGet("areas")]
@@ -65,7 +65,25 @@ namespace MartyrGraveManagement.Controllers
         }
 
         /// <summary>
-        /// Get an Area by ID.
+        /// Get all Areas for Staff or Manager (RequireManagerOrStaffRole) - Show both active and inactive areas
+        /// </summary>
+        [Authorize(Policy = "RequireManagerOrStaffRole")]
+        [HttpGet("all-areas")]
+        public async Task<IActionResult> GetAllAreasForStaffOrManager()
+        {
+            try
+            {
+                var areas = await _areaService.GetAllAreasForStaffOrManager();
+                return areas == null ? BadRequest("No areas found.") : Ok(areas);
+            }
+            catch (System.Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Get an Area by ID (Anonymous)
         /// </summary>
         /// <param name="id">Area ID</param>
         /// <returns>Returns the specified area.</returns>
@@ -85,7 +103,7 @@ namespace MartyrGraveManagement.Controllers
         }
 
         /// <summary>
-        /// Update an Area.
+        /// Update an Area (Admin or Manager Role)
         /// </summary>
         /// <param name="id">Area ID</param>
         /// <param name="updateArea">Updated area data</param>
@@ -112,7 +130,28 @@ namespace MartyrGraveManagement.Controllers
         }
 
         /// <summary>
-        /// Delete an Area.
+        /// Update the status of an Area (Admin or Manager Role).
+        /// </summary>
+        /// <param name="id">The ID of the area to toggle status.</param>
+        /// <returns>Returns success message.</returns>
+        [Authorize(Policy = "RequireManagerOrAdminRole")]
+        [HttpPut("{id}/toggle-status")]
+        public async Task<IActionResult> ToggleStatusArea(int id)
+        {
+            try
+            {
+                bool success = await _areaService.ToggleStatusArea(id);
+                return success ? Ok("Area status toggled successfully.") : NotFound("Area not found.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+
+        /// <summary>
+        /// Delete an Area (Admin or Manager Role)
         /// </summary>
         /// <param name="id">Area ID</param>
         /// <returns>Returns success message.</returns>

@@ -136,7 +136,6 @@ builder.Services.AddScoped<IServiceCategory_Service, ServiceCategory_Service>();
 builder.Services.AddScoped<IGraveService_Service, GraveService_Service>();
 builder.Services.AddScoped<ICartService, CartItemsService>();
 builder.Services.AddScoped<ITaskService, TaskService>();
-builder.Services.AddScoped<IJobService, JobService>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<IOrdersService, OrdersService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();

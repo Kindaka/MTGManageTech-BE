@@ -14,6 +14,8 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
         Task<List<AreaDTOResponse>> GetAreas();
         Task<AreaDTOResponse> GetAreaById(int id);
         Task<bool> UpdateArea(int id, AreaDtoRequest updateArea);
+        Task<bool> ToggleStatusArea(int id);
         Task<bool> DeleteArea(int id);
+        Task<List<AreaDTOResponse>> GetAllAreasForStaffOrManager();
     }
 }

@@ -34,7 +34,6 @@ namespace MartyrGraveManagement_DAL.Entities
         public IEnumerable<StaffTask>? Tasks { get; set; }
         public IEnumerable<CartItem>? CartItems { get; set; }
         public IEnumerable<FeedbackResponse>? FeedbackResponses { get; set; }
-        public IEnumerable<StaffJob>? Jobs { get; set; }
 
 
     }

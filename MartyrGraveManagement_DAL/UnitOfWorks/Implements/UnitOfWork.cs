@@ -29,7 +29,6 @@ namespace MartyrGraveManagement_DAL.UnitOfWorks.Implements
         private GenericRepository<Payment> _paymentRepository;
 
         private GenericRepository<StaffTask> _taskRepository;
-        private GenericRepository<StaffJob> _jobRepository;
         private GenericRepository<Material> _materialRepository;
         private GenericRepository<Feedback> _feedbackRepository;
 
@@ -50,7 +49,6 @@ namespace MartyrGraveManagement_DAL.UnitOfWorks.Implements
         public IGenericRepository<Feedback> FeedbackRepository => _feedbackRepository ??= new GenericRepository<Feedback>(_context);
         public IGenericRepository<CartItem> CartItemRepository => _cartItemRepository ??= new GenericRepository<CartItem>(_context);
         public IGenericRepository<StaffTask> TaskRepository => _taskRepository ??= new GenericRepository<StaffTask>(_context);
-        public IGenericRepository<StaffJob> JobRepository => _jobRepository ??= new GenericRepository<StaffJob>(_context);
         public IGenericRepository<Material> MaterialRepository => _materialRepository ??= new GenericRepository<Material>(_context);
 
         public IGenericRepository<Order> OrderRepository => _orderRepository ??= new GenericRepository<Order>(_context);

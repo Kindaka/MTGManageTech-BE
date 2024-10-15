@@ -16,5 +16,8 @@ namespace MartyrGraveManagement_BAL.ModelViews.FeedbackDTOs
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         public bool Status { get; set; }
+
+        public string FullName { get; set; }  
+        public string CustomerCode { get; set; }  
     }
 }

@@ -13,5 +13,7 @@ namespace MartyrGraveManagement_BAL.ModelViews.AreaDTOs
         public int AreaId { get; set; }
         public string AreaName { get; set; }
         public string Description { get; set; }
+        public bool Status { get; set; }
+
     }
 }

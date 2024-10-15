@@ -44,6 +44,21 @@ namespace MartyrGraveManagement_BAL.Services.Implements
         {
             try
             {
+                // Lấy tất cả khu vực có trạng thái true
+                var areas = await _unitOfWork.AreaRepository.GetAsync(area => area.Status == true);
+                return _mapper.Map<List<AreaDTOResponse>>(areas);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        public async Task<List<AreaDTOResponse>> GetAllAreasForStaffOrManager()
+        {
+            try
+            {
+                // Lấy tất cả khu vực bất kể trạng thái
                 var areas = await _unitOfWork.AreaRepository.GetAllAsync();
                 return _mapper.Map<List<AreaDTOResponse>>(areas);
             }
@@ -87,6 +102,34 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 throw new Exception(ex.Message);
             }
         }
+
+        public async Task<bool> ToggleStatusArea(int id)
+        {
+            try
+            {
+                // Lấy thông tin Area theo ID
+                var area = await _unitOfWork.AreaRepository.GetByIDAsync(id);
+                if (area == null)
+                {
+                    return false;  // Trả về false nếu không tìm thấy Area
+                }
+
+                // Đảo ngược trạng thái hiện tại: nếu là true thì chuyển thành false và ngược lại
+                area.Status = !area.Status;
+
+                // Cập nhật lại vào database
+                await _unitOfWork.AreaRepository.UpdateAsync(area);
+                await _unitOfWork.SaveAsync();
+
+                return true;  // Cập nhật thành công
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+
 
         public async Task<bool> DeleteArea(int id)
         {
