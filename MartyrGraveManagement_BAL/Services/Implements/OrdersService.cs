@@ -2,6 +2,7 @@
 using MartyrGraveManagement_BAL.ModelViews.CartItemsDTOs;
 using MartyrGraveManagement_BAL.ModelViews.OrdersDetailDTOs;
 using MartyrGraveManagement_BAL.ModelViews.OrdersDTOs;
+using MartyrGraveManagement_BAL.ModelViews.StaffDTOs;
 using MartyrGraveManagement_BAL.Services.Interfaces;
 using MartyrGraveManagement_BAL.VNPay;
 using MartyrGraveManagement_DAL.Entities;
@@ -153,7 +154,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 // Lấy đơn hàng dựa trên OrderId và bao gồm các chi tiết liên quan
                 var order = await _unitOfWork.OrderRepository.GetAsync(
                     filter: o => o.OrderId == orderId,
-                    includeProperties: "OrderDetails,OrderDetails.Service,OrderDetails.MartyrGrave.MartyrGraveInformations"
+                    includeProperties: "OrderDetails,OrderDetails.Service,OrderDetails.MartyrGrave.MartyrGraveInformations,OrderDetails.MartyrGrave"
                 );
 
                 // Kiểm tra nếu đơn hàng không tồn tại
@@ -182,11 +183,25 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
                     var orderDetailDto = new OrderDetailDtoResponse
                     {
+                        DetailId = orderDetail.DetailId,
                         ServiceName = orderDetail.Service?.ServiceName,
                         MartyrName = martyrGraveInfo?.Name,
                         OrderPrice = orderDetail.OrderPrice
                     };
 
+                    
+
+                    var accountStaffs = await _unitOfWork.AccountRepository.GetAsync(s => s.AreaId == orderDetail.MartyrGrave.AreaId);
+                    if (accountStaffs != null) {
+                        foreach (var accountStaff in accountStaffs) {
+                            var staffDto = new StaffDtoResponse
+                            {
+                                AccountId = accountStaff.AccountId,
+                                StaffFullName = accountStaff.FullName
+                            };
+                            orderDetailDto.Staffs?.Add(staffDto);
+                        }
+                    }
                     orderDto.OrderDetails.Add(orderDetailDto);
                 }
 
