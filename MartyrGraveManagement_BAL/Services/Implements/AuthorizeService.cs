@@ -181,5 +181,56 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 throw new Exception(ex.Message);
             }
         }
+
+        public async Task<bool> CheckAuthorizeStaffByAreaId(int taskId, int accountId, int areaId)
+        {
+            try
+            {
+                // Lấy thông tin Task dựa trên taskId
+                var task = await _unitOfWork.TaskRepository.GetByIDAsync(taskId);
+                if (task == null)
+                {
+                    throw new KeyNotFoundException("TaskId does not exist.");
+                }
+
+                // Lấy thông tin Account (nhân viên) dựa trên accountId
+                var staffAccount = await _unitOfWork.AccountRepository.GetByIDAsync(accountId);
+                if (staffAccount == null || staffAccount.RoleId != 3)
+                {
+                    throw new UnauthorizedAccessException("The account is not a valid staff account.");
+                }
+
+                // Lấy thông tin OrderDetail liên quan đến task
+                var orderDetail = await _unitOfWork.OrderDetailRepository.GetByIDAsync(task.DetailId);
+                if (orderDetail == null)
+                {
+                    throw new KeyNotFoundException("OrderDetail does not exist for this task.");
+                }
+
+                // Lấy thông tin MartyrGrave từ OrderDetail
+                var martyrGrave = await _unitOfWork.MartyrGraveRepository.GetByIDAsync(orderDetail.MartyrId);
+                if (martyrGrave == null)
+                {
+                    throw new KeyNotFoundException("MartyrGrave does not exist.");
+                }
+
+                // Kiểm tra xem nhân viên có thuộc AreaId của MartyrGrave không và task này có thuộc về nhân viên này không
+                if (martyrGrave.AreaId != areaId || task.AccountId != accountId)
+                {
+                    return false; // Nhân viên không thuộc khu vực này hoặc không phải là nhân viên phụ trách task này
+                }
+
+                // Nhân viên thuộc khu vực và có quyền làm việc với task này
+                return true;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Authorization check failed: {ex.Message}");
+            }
+        }
+
+
+
+
     }
 }

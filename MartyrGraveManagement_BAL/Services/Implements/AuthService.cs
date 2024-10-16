@@ -56,6 +56,12 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
                     response.RoleId = account.RoleId;
                     response.Status = account.Status;
+
+                    if (account.RoleId == 3)
+                    {
+                        response.AreaId = account.AreaId;
+                    }
+
                     return response;
                 }
                 return null;
@@ -172,6 +178,11 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     new Claim(JwtRegisteredClaimNames.Sub, account.AccountId.ToString()),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
                 };
+
+                if (account.RoleId == 3 && account.AreaId.HasValue)
+                {
+                    claims.Add(new Claim("areaId", account.AreaId.Value.ToString()));
+                }
 
                 var token = new JwtSecurityToken(
                     _configuration["Jwt:Issuer"],

@@ -70,6 +70,9 @@ namespace MartyrGraveManagement_BAL.MappingProfiles
             CreateMap<StaffTask, UpdateTaskStatusRequest>().ReverseMap();
             CreateMap<StaffTask, ReassignTaskRequest>().ReverseMap();
             CreateMap<StaffTask, AssignTaskDTORequest>().ReverseMap();
+            CreateMap<StaffTask, TaskImageUpdateDTO>().ReverseMap();
+            CreateMap<StaffTask, TaskBatchCreateRequest>().ReverseMap();
+            CreateMap<StaffTask, TaskDetailRequest>().ReverseMap();
 
 
             //Payment mapping

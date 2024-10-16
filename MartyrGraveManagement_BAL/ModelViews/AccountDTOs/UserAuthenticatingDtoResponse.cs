@@ -13,5 +13,6 @@ namespace MartyrGraveManagement_BAL.ModelViews.AccountDTOs
         public string? customerCode { get; set; }
         public int RoleId { get; set; }
         public bool Status { get; set; }
+        public int? AreaId { get; set; }
     }
 }

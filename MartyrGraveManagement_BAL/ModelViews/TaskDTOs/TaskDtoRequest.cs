@@ -21,15 +21,5 @@ namespace MartyrGraveManagement_BAL.ModelViews.TaskDTOs
         [Required]
         public DateTime EndDate { get; set; }
 
-
-        [StringLength(500, ErrorMessage = "Description can't be longer than 500 characters.")]
-        public string Description { get; set; }
-
-        [Required(ErrorMessage = "Status is required.")]
-        public int Status { get; set; }
-
-        public string? ImagePath1 { get; set; }
-        public string? ImagePath2 { get; set; }
-        public string? ImagePath3 { get; set; }
     }
 }

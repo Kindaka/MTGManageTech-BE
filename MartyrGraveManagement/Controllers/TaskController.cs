@@ -1,7 +1,9 @@
 ﻿using MartyrGraveManagement_BAL.ModelViews.TaskDTOs;
+using MartyrGraveManagement_BAL.Services.Implements;
 using MartyrGraveManagement_BAL.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Security.Claims;
@@ -14,10 +16,11 @@ namespace MartyrGraveManagement.Controllers
     public class TaskController : ControllerBase
     {
         private readonly ITaskService _taskService;
-
-        public TaskController(ITaskService taskService)
+        private readonly IAuthorizeService _authorizeService;
+        public TaskController(ITaskService taskService, IAuthorizeService authorizeService)
         {
             _taskService = taskService;
+            _authorizeService = authorizeService;
         }
 
         /// <summary>
@@ -85,82 +88,26 @@ namespace MartyrGraveManagement.Controllers
         }
 
         /// <summary>
-        /// Create a new task.
+        /// Create a list of tasks.
         /// </summary>
         [Authorize(Policy = "RequireManagerRole")]
         [HttpPost("tasks")]
-        public async Task<IActionResult> CreateTask([FromBody] TaskDtoRequest taskDto)
+        public async Task<IActionResult> CreateTask([FromBody] List<TaskDtoRequest> taskDtos)
         {
             try
             {
-                // Lấy ManagerId từ JWT token
-                var managerId = int.Parse(User.FindFirst("accountId")?.Value);
+                // Gọi service để tạo task từ danh sách
+                var createdTasks = await _taskService.CreateTasksAsync(taskDtos);
 
-                // Tạo task với ManagerId
-                var createdTask = await _taskService.CreateTaskAsync(taskDto, managerId);
-
-                return CreatedAtAction(nameof(GetTaskById), new { taskId = createdTask.TaskId }, createdTask);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(ex.Message);
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                return Forbid(ex.Message);
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
-            }
-        }
-
-
-
-
-        /// <summary>
-        /// Update task status (Staff Role).
-        /// </summary>
-        [Authorize(Policy = "RequireStaffRole")]
-        [HttpPut("tasks/{taskId}/status")]
-        public async Task<IActionResult> UpdateTaskStatus(int taskId, [FromBody] UpdateTaskStatusRequest request)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            try
-            {
-                var accountIdFromToken = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
-
-                // Kiểm tra xem accountId trong token và request có khớp không
-                if (accountIdFromToken != request.AccountId)
-                {
-                    return Forbid("Bạn không có quyền chỉnh sửa task cho account này.");
-                }
-
-                // Tạo danh sách các URL hình ảnh
-                var urlImages = new List<string>();
-                if (!string.IsNullOrEmpty(request.UrlImage1)) urlImages.Add(request.UrlImage1);
-                if (!string.IsNullOrEmpty(request.UrlImage2)) urlImages.Add(request.UrlImage2);
-                if (!string.IsNullOrEmpty(request.UrlImage3)) urlImages.Add(request.UrlImage3);
-
-                // Gọi service để cập nhật trạng thái task
-                var updatedTask = await _taskService.UpdateTaskStatusAsync(taskId, request.AccountId, request.Status, urlImages, request.Reason);
-                return Ok(new { message = "Task status updated successfully.", updatedTask });
+                return Ok(new { message = "Tasks created successfully.", createdTasks });
             }
             catch (KeyNotFoundException ex)
             {
                 return NotFound(new { message = ex.Message });
             }
-            catch (UnauthorizedAccessException)
+            catch (UnauthorizedAccessException ex)
             {
-                return Forbid();
+                return StatusCode(403, new { message = ex.Message });
             }
             catch (InvalidOperationException ex)
             {
@@ -171,6 +118,108 @@ namespace MartyrGraveManagement.Controllers
                 return StatusCode(500, new { message = $"Internal server error: {ex.Message}" });
             }
         }
+
+
+
+
+        /// <summary>
+        /// Update task status (Staff Role).
+        /// </summary>
+        [Authorize(Policy = "RequireStaffRole")]
+        [HttpPut("tasks/{taskId}/status/{newStatus}")]
+        public async Task<IActionResult> UpdateTaskStatus(int taskId, int newStatus)
+        {
+            try
+            {
+                // Lấy AccountId và AreaId của người dùng từ JWT token
+                var accountIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var areaIdClaim = User.FindFirst("areaId")?.Value;
+
+                if (string.IsNullOrEmpty(accountIdClaim) || string.IsNullOrEmpty(areaIdClaim))
+                {
+                    return Forbid("Token does not contain necessary account information.");
+                }
+
+                var accountIdFromToken = int.Parse(accountIdClaim);
+                var areaIdFromToken = int.Parse(areaIdClaim);
+
+                // Kiểm tra xem nhân viên có được phép làm việc trong khu vực của task và có phải là người sở hữu task không
+                var isAuthorized = await _authorizeService.CheckAuthorizeStaffByAreaId(taskId, accountIdFromToken, areaIdFromToken);
+                if (!isAuthorized)
+                {
+                    return Forbid("Staff is not authorized to update the status of this task.");
+                }
+
+                // Gọi service để cập nhật trạng thái của task
+                var updatedTask = await _taskService.UpdateTaskStatusAsync(taskId, newStatus);
+
+                return Ok(new { message = "Task status updated successfully.", updatedTask });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An unexpected error occurred.", details = ex.Message });
+            }
+        }
+
+
+
+        /// <summary>
+        /// Add Image task when status = 4 Completed (Staff Role).
+        /// </summary>
+        [Authorize(Policy = "RequireStaffRole")]
+        [HttpPut("tasks/{taskId}/images")]
+        public async Task<IActionResult> UpdateTaskImages(int taskId, [FromBody] TaskImageUpdateDTO imageUpdateDto)
+        {
+            try
+            {
+                // Lấy AccountId và AreaId của người dùng từ JWT token
+                var accountIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var areaIdClaim = User.FindFirst("areaId")?.Value;
+
+                if (string.IsNullOrEmpty(accountIdClaim) || string.IsNullOrEmpty(areaIdClaim))
+                {
+                    return Forbid("Token does not contain necessary account information.");
+                }
+
+                var accountIdFromToken = int.Parse(accountIdClaim);
+                var areaIdFromToken = int.Parse(areaIdClaim);
+
+                // Kiểm tra xem nhân viên có được phép làm việc trong khu vực của task không
+                var isAuthorized = await _authorizeService.CheckAuthorizeStaffByAreaId(taskId, accountIdFromToken, areaIdFromToken);
+                if (!isAuthorized)
+                {
+                    return Forbid("Staff is not authorized to update images for this task in this area.");
+                }
+
+                // Gọi service để cập nhật hình ảnh của task
+                var updatedTask = await _taskService.UpdateTaskImagesAsync(taskId, imageUpdateDto);
+
+                return Ok(new { message = "Task images updated successfully.", updatedTask });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An unexpected error occurred.", details = ex.Message });
+            }
+        }
+
+
+
 
 
 
@@ -220,17 +269,12 @@ namespace MartyrGraveManagement.Controllers
         /// Reassign a task to another staff by updating the AccountId and resetting the status to 1.
         /// </summary>
         /// <param name="taskId">The ID of the task to reassign.</param>
-        /// <param name="request">The reassignment request containing the new AccountId.</param>
+        /// <param name="newAccountId">The new AccountId of the staff to assign the task to.</param>
         /// <returns>Returns the updated task with the new assignee.</returns>
         [Authorize(Policy = "RequireManagerRole")]  // Chỉ Manager mới được phép bàn giao task
-        [HttpPut("tasks/{taskId}/reassign")]
-        public async Task<IActionResult> ReassignTask(int taskId, [FromBody] ReassignTaskRequest request)
+        [HttpPut("tasks/{taskId}/reassign/{newAccountId}")]
+        public async Task<IActionResult> ReassignTask(int taskId, int newAccountId)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
             try
             {
                 // Lấy accountId từ JWT token
@@ -243,8 +287,7 @@ namespace MartyrGraveManagement.Controllers
 
                 var accountIdFromToken = int.Parse(accountIdClaim);
 
-                // Gọi service để thực hiện gán lại task
-                var updatedTask = await _taskService.ReassignTaskAsync(taskId, request.NewAccountId);
+                var updatedTask = await _taskService.ReassignTaskAsync(taskId, newAccountId);
                 return Ok(new { message = "Task reassigned successfully.", updatedTask });
             }
             catch (KeyNotFoundException ex)
@@ -268,6 +311,7 @@ namespace MartyrGraveManagement.Controllers
                 return StatusCode(500, new { message = $"Internal server error: {ex.Message}" });
             }
         }
+
 
 
 

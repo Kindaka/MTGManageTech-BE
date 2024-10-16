@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace MartyrGraveManagement_BAL.Services.Interfaces
+﻿namespace MartyrGraveManagement_BAL.Services.Interfaces
 {
     public interface IAuthorizeService
     {
@@ -14,5 +8,7 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
         Task<bool> CheckAuthorizeByCartId(int cartId, int customerId);
         //Task<bool> CheckAuthorizeByFeedbackId(int feedbackId, int customerId);
         Task<(bool isMatchedCustomer, bool isAuthorizedAccount)> CheckAuthorizeByOrderId(int orderId, int accountId);
+
+        Task<bool> CheckAuthorizeStaffByAreaId(int taskId, int accountId, int areaId);
     }
 }
