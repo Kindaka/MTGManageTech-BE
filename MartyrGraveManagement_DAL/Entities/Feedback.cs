@@ -15,13 +15,14 @@ namespace MartyrGraveManagement_DAL.Entities
         public int FeedbackId { get; set; }
         public int AccountId { get; set; }
         public int OrderId { get; set; }
+        public int? StaffId { get; set; }
         public string Content { get; set; }
+        public string? ResponseContent { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         public bool Status { get; set; }
 
         public Account? Account { get; set; }
-        public FeedbackResponse? Response { get; set; }
         public Order? Order { get; set; }
     }
 

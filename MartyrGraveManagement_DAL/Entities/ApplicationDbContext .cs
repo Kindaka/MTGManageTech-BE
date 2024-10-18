@@ -23,7 +23,6 @@ namespace MartyrGraveManagement_DAL.Entities
         public DbSet<Payment> Payments { get; set; }
         public DbSet<CartItem> CartItems { get; set; }
         public DbSet<Feedback> Feedbacks { get; set; }
-        public DbSet<FeedbackResponse> FeedbackResponses { get; set; }
         public DbSet<MartyrGrave> MartyrGraves { get; set; }
         public DbSet<MartyrGraveInformation> MartyrGraveInformations { get; set; }
         public DbSet<WeeklyReportGrave> WeeklyReportGraves { get; set; }
@@ -130,14 +129,6 @@ namespace MartyrGraveManagement_DAL.Entities
                 .HasForeignKey<Feedback>(f => f.OrderId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // FeedbackResponse Configuration
-            modelBuilder.Entity<FeedbackResponse>()
-                .HasKey(fr => fr.Id);
-            modelBuilder.Entity<FeedbackResponse>()
-                .HasOne(fr => fr.Account)
-                .WithMany(a => a.FeedbackResponses)
-                .HasForeignKey(fr => fr.AccountId)
-                .OnDelete(DeleteBehavior.Restrict);
 
             // MartyrGrave Configuration
             modelBuilder.Entity<MartyrGrave>()

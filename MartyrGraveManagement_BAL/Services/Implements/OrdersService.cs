@@ -189,17 +189,24 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         OrderPrice = orderDetail.OrderPrice
                     };
 
-                    
+                    var taskStatus = (await _unitOfWork.TaskRepository.GetAsync(t => t.DetailId == orderDetail.DetailId)).FirstOrDefault();
+                    if (taskStatus != null)
+                    {
+                        orderDetailDto.StatusTask = taskStatus.Status;
+                    }
 
                     var accountStaffs = await _unitOfWork.AccountRepository.GetAsync(s => s.AreaId == orderDetail.MartyrGrave.AreaId);
                     if (accountStaffs != null) {
                         foreach (var accountStaff in accountStaffs) {
-                            var staffDto = new StaffDtoResponse
+                            if (accountStaff.Status == true)
                             {
-                                AccountId = accountStaff.AccountId,
-                                StaffFullName = accountStaff.FullName
-                            };
-                            orderDetailDto.Staffs?.Add(staffDto);
+                                var staffDto = new StaffDtoResponse
+                                {
+                                    AccountId = accountStaff.AccountId,
+                                    StaffFullName = accountStaff.FullName
+                                };
+                                orderDetailDto.Staffs?.Add(staffDto);
+                            }
                         }
                     }
                     orderDto.OrderDetails.Add(orderDetailDto);
