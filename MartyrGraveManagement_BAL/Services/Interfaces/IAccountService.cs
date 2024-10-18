@@ -10,7 +10,7 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
 {
     public interface IAccountService
     {
-        Task<(List<AccountDtoResponse> staffList, int totalPage)> GetStaffList(int page, int pageSize);
+        Task<(List<AccountDtoResponse> staffList, int totalPage)> GetStaffList(int page, int pageSize, int? areaId = null);
         Task<(List<AccountDtoResponse> managerList, int totalPage)> GetManagerList(int page, int pageSize);
         Task<bool> ChangeStatusUser(int accountId);
     }

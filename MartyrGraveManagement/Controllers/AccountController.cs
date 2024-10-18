@@ -18,16 +18,16 @@ namespace MartyrGraveManagement.Controllers
             _accountService = accountService;
         }
         /// <summary>
-        /// Get all Staff Account (Manager Role)
+        /// Get all Staff Account By Area (Manager Role)
         /// </summary>
         /// <returns>Returns a list of all Staff Account.</returns>
         [Authorize(Policy = "RequireManagerRole")]
         [HttpGet("/api/staffs")]
-        public async Task<ActionResult<IEnumerable<AccountDtoResponse>>> GetStaffs([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        public async Task<ActionResult<IEnumerable<AccountDtoResponse>>> GetStaffs([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] int? areaId = null)
         {
             try
             {
-                var staffs = await _accountService.GetStaffList(page, pageSize);
+                var staffs = await _accountService.GetStaffList(page, pageSize, areaId);
                 return Ok(new { staffList = staffs.staffList, totalPage = staffs.totalPage });
             }
             catch (Exception ex)

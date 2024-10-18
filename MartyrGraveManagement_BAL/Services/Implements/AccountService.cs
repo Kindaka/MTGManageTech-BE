@@ -78,31 +78,31 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
         }
 
-        public async Task<(List<AccountDtoResponse> staffList, int totalPage)> GetStaffList(int page, int pageSize)
+        public async Task<(List<AccountDtoResponse> staffList, int totalPage)> GetStaffList(int page, int pageSize, int? areaId = null)
         {
             try
             {
-                var totalStaff = (await _unitOfWork.AccountRepository.GetAsync(s => s.RoleId == 3)).Count();
+                // Lấy danh sách nhân viên
+                var staffs = await _unitOfWork.AccountRepository.GetAllAsync(
+                    filter: a => a.RoleId == 3 && (!areaId.HasValue || a.AreaId == areaId.Value),
+                    pageIndex: page,
+                    pageSize: pageSize
+                );
+
+                // Lấy tổng số nhân viên thỏa mãn điều kiện
+                var totalStaff = await _unitOfWork.AccountRepository.CountAsync(a => a.RoleId == 3 && (!areaId.HasValue || a.AreaId == areaId.Value));
                 var totalPage = (int)Math.Ceiling(totalStaff / (double)pageSize);
-                List<AccountDtoResponse> staffList = new List<AccountDtoResponse>();
-                var staffs = await _unitOfWork.AccountRepository.GetAsync(s => s.RoleId == 3, pageIndex: page, pageSize: pageSize);
 
-                if (staffs.Any())
-                {
-                    foreach (var staff in staffs)
-                    {
-                        var mapper = _mapper.Map<AccountDtoResponse>(staff);
-                        staffList.Add(mapper);
-                    }
+                // Chuyển đổi sang DTO
+                var staffList = staffs.Select(staff => _mapper.Map<AccountDtoResponse>(staff)).ToList();
 
-                }
                 return (staffList, totalPage);
-
             }
             catch (Exception ex)
             {
                 throw new Exception(ex.Message);
             }
         }
+
     }
 }
