@@ -22,7 +22,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
         public async Task<IEnumerable<TaskDtoResponse>> GetAllTasksAsync()
         {
-            var tasks = await _unitOfWork.TaskRepository.GetAllAsync();
+            var tasks = await _unitOfWork.TaskRepository.GetAsync(includeProperties: "OrderDetail.Service,OrderDetail.MartyrGrave");
 
             if (!tasks.Any())
             {
@@ -33,14 +33,30 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             var taskResponses = new List<TaskDtoResponse>();
             foreach (var task in tasks)
             {
+                // Lấy thông tin Account để ánh xạ Fullname
                 var account = await _unitOfWork.AccountRepository.GetByIDAsync(task.AccountId);
+
+                // Ánh xạ task sang TaskDtoResponse
                 var taskDto = _mapper.Map<TaskDtoResponse>(task);
                 taskDto.Fullname = account?.FullName;  // Ánh xạ FullName từ Account
+
+                // Lấy thông tin từ OrderDetail, Service, và MartyrGrave
+                taskDto.ServiceName = task.OrderDetail?.Service?.ServiceName;
+                taskDto.ServiceDescription = task.OrderDetail?.Service?.Description;
+
+                // Ghép vị trí mộ từ AreaNumber, RowNumber, và MartyrNumber
+                var martyrGrave = task.OrderDetail?.MartyrGrave;
+                if (martyrGrave != null)
+                {
+                    taskDto.GraveLocation = $"K{martyrGrave.AreaNumber}-R{martyrGrave.RowNumber}-{martyrGrave.MartyrNumber}";
+                }
+
                 taskResponses.Add(taskDto);
             }
 
             return taskResponses;
         }
+
 
 
 
@@ -55,20 +71,32 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 throw new KeyNotFoundException("Account not found.");
             }
 
-            // Lấy danh sách các Task thuộc về account
-            var tasks = await _unitOfWork.TaskRepository.GetAsync(t => t.AccountId == accountId);
+            // Lấy danh sách các Task thuộc về account, bao gồm các bảng liên quan
+            var tasks = await _unitOfWork.TaskRepository.GetAsync(t => t.AccountId == accountId, includeProperties: "OrderDetail.Service,OrderDetail.MartyrGrave");
 
             if (!tasks.Any())
             {
                 throw new InvalidOperationException("This account does not have any tasks.");
             }
 
-            // Ánh xạ FullName từ Account
+            // Ánh xạ FullName từ Account và các thông tin khác
             var taskResponses = new List<TaskDtoResponse>();
             foreach (var task in tasks)
             {
                 var taskDto = _mapper.Map<TaskDtoResponse>(task);
                 taskDto.Fullname = account?.FullName;  // Ánh xạ FullName từ Account
+
+                // Lấy thông tin từ OrderDetail, Service, và MartyrGrave
+                taskDto.ServiceName = task.OrderDetail?.Service?.ServiceName;
+                taskDto.ServiceDescription = task.OrderDetail?.Service?.Description;
+
+                // Ghép vị trí mộ từ AreaNumber, RowNumber, và MartyrNumber
+                var martyrGrave = task.OrderDetail?.MartyrGrave;
+                if (martyrGrave != null)
+                {
+                    taskDto.GraveLocation = $"K{martyrGrave.AreaNumber}-R{martyrGrave.RowNumber}-{martyrGrave.MartyrNumber}";
+                }
+
                 taskResponses.Add(taskDto);
             }
 
@@ -79,23 +107,41 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
 
 
+
         public async Task<TaskDtoResponse> GetTaskByIdAsync(int taskId)
         {
-            // Lấy thông tin Task theo taskId
-            var task = await _unitOfWork.TaskRepository.GetByIDAsync(taskId);
+            // Lấy thông tin Task theo taskId, bao gồm các bảng liên quan
+            var task = await _unitOfWork.TaskRepository.GetAsync(t => t.TaskId == taskId, includeProperties: "OrderDetail.Service,OrderDetail.MartyrGrave");
 
-            if (task == null)
+            // Đảm bảo task trả về là một thực thể duy nhất
+            var singleTask = task.FirstOrDefault(); // Lấy task đầu tiên (hoặc null nếu không có task nào)
+
+            if (singleTask == null)
             {
                 throw new KeyNotFoundException("Task not found.");
             }
 
-            // Lấy thông tin FullName từ Account và ánh xạ vào TaskDtoResponse
-            var account = await _unitOfWork.AccountRepository.GetByIDAsync(task.AccountId);
-            var taskDto = _mapper.Map<TaskDtoResponse>(task);
+            // Lấy thông tin Account để ánh xạ Fullname
+            var account = await _unitOfWork.AccountRepository.GetByIDAsync(singleTask.AccountId);
+
+            // Ánh xạ task sang TaskDtoResponse
+            var taskDto = _mapper.Map<TaskDtoResponse>(singleTask);
             taskDto.Fullname = account?.FullName;  // Ánh xạ FullName từ Account
+
+            // Lấy thông tin từ OrderDetail, Service, và MartyrGrave
+            taskDto.ServiceName = singleTask.OrderDetail?.Service?.ServiceName;
+            taskDto.ServiceDescription = singleTask.OrderDetail?.Service?.Description;
+
+            // Ghép vị trí mộ từ AreaNumber, RowNumber, và MartyrNumber
+            var martyrGrave = singleTask.OrderDetail?.MartyrGrave;
+            if (martyrGrave != null)
+            {
+                taskDto.GraveLocation = $"K{martyrGrave.AreaNumber}-R{martyrGrave.RowNumber}-{martyrGrave.MartyrNumber}";
+            }
 
             return taskDto;
         }
+
 
 
 

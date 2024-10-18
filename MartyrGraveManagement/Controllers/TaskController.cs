@@ -51,10 +51,12 @@ namespace MartyrGraveManagement.Controllers
             try
             {
                 var task = await _taskService.GetTaskByIdAsync(taskId);
+
                 if (task == null)
                 {
                     return NotFound("Task not found.");
                 }
+
                 return Ok(task);
             }
             catch (Exception ex)
@@ -66,19 +68,27 @@ namespace MartyrGraveManagement.Controllers
         /// <summary>
         /// Get tasks by AccountId.
         /// </summary>
-        /// <param name="accountId">The ID of the account.</param>
-        /// <returns>Returns a list of tasks assigned to the specified account.</returns>
-        [Authorize(Policy = "RequireManagerOrStaffRole")]
+        [Authorize(Policy = "RequireStaffRole")]
         [HttpGet("tasks/account/{accountId}")]
         public async Task<IActionResult> GetTasksByAccountId(int accountId)
         {
             try
             {
+                var userId = int.Parse(User.FindFirst("AccountId")?.Value); // Giả sử bạn lưu userId trong token
+
+                // Kiểm tra quyền truy cập bằng authorizeService
+                var (isMatchedCustomer, isAuthorizedAccount) = await _authorizeService.CheckAuthorizeByAccountId(userId, accountId);
+                if (!isAuthorizedAccount && !isMatchedCustomer)
+                {
+                    return Forbid("You do not have permission to access tasks for this account.");
+                }
+
                 var tasks = await _taskService.GetTasksByAccountIdAsync(accountId);
                 if (tasks == null || !tasks.Any())
                 {
                     return NotFound("No tasks found for the specified account.");
                 }
+
                 return Ok(tasks);
             }
             catch (Exception ex)

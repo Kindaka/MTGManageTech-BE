@@ -21,5 +21,11 @@ namespace MartyrGraveManagement_BAL.ModelViews.TaskDTOs
         public string? ImagePath2 { get; set; }
         public string? ImagePath3 { get; set; }
         public string? Reason { get; set; }
+
+
+        // Các thuộc tính mới
+        public string? ServiceName { get; set; }
+        public string? ServiceDescription { get; set; }
+        public string? GraveLocation { get; set; }
     }
 }
