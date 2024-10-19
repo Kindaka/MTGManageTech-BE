@@ -38,7 +38,10 @@ namespace MartyrGraveManagement_BAL.BackgroundServices.Implements
                     // Lưu thay đổi vào cơ sở dữ liệu
                     await _unitOfWork.SaveAsync();
                 }
+                await Task.Delay(10000);
             }
         }
+
+
     }
 }

@@ -16,9 +16,9 @@ namespace MartyrGraveManagement.BackgroundServices.Implements
         {
             while (true)  // Vòng lặp liên tục để kiểm tra task hết hạn
             {
-                // Lấy các task có trạng thái "đang thực hiện" (status 3) và hết hạn
+                // Lấy các task có trạng thái "đang thực hiện" (status 0123) và hết hạn
                 var expiredTasks = await _unitOfWork.TaskRepository.GetAsync(task =>
-                    task.Status == 3 && task.EndDate <= DateTime.Now);
+                           task.Status < 4 && task.Status >= 0 && task.EndDate <= DateTime.Now);
 
                 if (expiredTasks.Any())
                 {

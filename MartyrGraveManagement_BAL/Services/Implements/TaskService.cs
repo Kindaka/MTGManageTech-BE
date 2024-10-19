@@ -663,12 +663,18 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         {
                             task.Status = 3;  // Nhận task
 
-                            // Cập nhật trạng thái của Order sang "đang thực hiện" (nếu chưa phải là 3)
-                            var order = await _unitOfWork.OrderRepository.GetByIDAsync(task.OrderId);
-                            if (order != null && order.Status != 3)
+                            // Kiểm tra nếu tất cả các Task của Order đều ở trạng thái "đang thực hiện"
+                            var allTasksForOrder = await _unitOfWork.TaskRepository.GetAsync(t => t.OrderId == task.OrderId);
+
+                            if (allTasksForOrder.All(t => t.Status == 3)) // Kiểm tra tất cả task có status là 3
                             {
-                                order.Status = 3;  // Order chuyển sang trạng thái "đang thực hiện"
-                                await _unitOfWork.OrderRepository.UpdateAsync(order);
+                                // Cập nhật trạng thái của Order sang "đang thực hiện" nếu tất cả các Task đang thực hiện
+                                var order = await _unitOfWork.OrderRepository.GetByIDAsync(task.OrderId);
+                                if (order != null)
+                                {
+                                    order.Status = 3;  // Order chuyển sang trạng thái "đang thực hiện"
+                                    await _unitOfWork.OrderRepository.UpdateAsync(order);
+                                }
                             }
                         }
                         else
