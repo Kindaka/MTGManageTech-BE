@@ -14,6 +14,8 @@ using Hangfire;
 using Hangfire.SqlServer;
 using MartyrGraveManagement.BackgroundServices.Implements;
 using MartyrGraveManagement.BackgroundServices.Interfaces;
+using MartyrGraveManagement_BAL.BackgroundServices.Interfaces;
+using MartyrGraveManagement_BAL.BackgroundServices.Implements;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -124,6 +126,7 @@ builder.Services.AddCors(options =>
 
 // Đăng ký TaskBackgroundService
 builder.Services.AddScoped<ITaskBackgroundService, TaskBackgroundService>();
+builder.Services.AddScoped<IOrderBackgroundService, OrderBackgroundService>();
 
 
 // Đăng ký các dịch vụ của bạn
@@ -164,6 +167,12 @@ app.UseHangfireDashboard("/hangfire");
 RecurringJob.AddOrUpdate<ITaskBackgroundService>(
     "check-expired-tasks",
     service => service.CheckExpiredTasks(),
+    Cron.MinuteInterval(1)
+);
+
+RecurringJob.AddOrUpdate<IOrderBackgroundService>(
+    "check-expired-orders-payment",
+    service => service.CheckExpiredOrderPayment(),
     Cron.MinuteInterval(1)
 );
 

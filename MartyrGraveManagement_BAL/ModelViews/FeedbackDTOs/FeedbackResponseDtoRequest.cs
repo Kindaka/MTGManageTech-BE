@@ -7,15 +7,15 @@ using System.Threading.Tasks;
 
 namespace MartyrGraveManagement_BAL.ModelViews.FeedbackDTOs
 {
-    public class FeedbackDtoRequest
+    public class FeedbackResponseDtoRequest
     {
+        [Required(ErrorMessage = "FeedbackId is required.")]
+        public int FeedbackId { get; set; }
+
         [Required(ErrorMessage = "AccountId is required.")]
         public int AccountId { get; set; }
 
-        [Required(ErrorMessage = "OrderId is required.")]
-        public int OrderId { get; set; }
-
         [Required(ErrorMessage = "Content is required.")]
-        public string Content { get; set; }
+        public string ResponseContent { get; set; }
     }
 }

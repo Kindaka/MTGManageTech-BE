@@ -54,6 +54,42 @@ namespace MartyrGraveManagement.Controllers
         }
 
         /// <summary>
+        /// Create Feedback after Order Completed (Customer Role)
+        /// </summary>
+        [Authorize(Policy = "RequireStaffRole")]
+        [HttpPost("Create-Feedback-Response")]
+        public async Task<IActionResult> CreateFeedbackResponse([FromBody] FeedbackResponseDtoRequest feedbackDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            // Lấy accountId từ token
+            var accountIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(accountIdClaim))
+            {
+                return Forbid("Token does not contain accountId.");
+            }
+
+            int accountIdFromToken = int.Parse(accountIdClaim);
+
+            // Kiểm tra accountId từ token có khớp với accountId từ request không
+            if (accountIdFromToken != feedbackDto.AccountId)
+            {
+                return Forbid("You can only create feedback for your own orders.");
+            }
+
+            var result = await _feedbackService.CreateFeedbackResponseAsync(feedbackDto);
+            if (!result.success)
+            {
+                return BadRequest(result.message);
+            }
+
+            return Ok($"{result.message}");
+        }
+
+        /// <summary>
         /// get feedback by Id
         /// </summary>
         [HttpGet("{id}")]

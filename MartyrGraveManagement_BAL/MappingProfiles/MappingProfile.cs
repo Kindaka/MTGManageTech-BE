@@ -80,9 +80,10 @@ namespace MartyrGraveManagement_BAL.MappingProfiles
             CreateMap<Payment, PaymentDTOResponse>().ReverseMap();
 
             //Feeback mapping
-            CreateMap<FeedbackDtoRequest, Feedback>();
-            CreateMap<Feedback, FeedbackDtoResponse>();
-            CreateMap<Feedback, FeedbackContentDtoRequest>();
+            CreateMap<FeedbackDtoRequest, Feedback>().ReverseMap();
+            CreateMap<Feedback, FeedbackDtoResponse>().ReverseMap();
+            CreateMap<Feedback, FeedbackContentDtoRequest>().ReverseMap();
+            CreateMap<Feedback, FeedbackResponseDtoRequest>().ReverseMap();
 
 
         }

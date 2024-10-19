@@ -171,11 +171,6 @@ namespace MartyrGraveManagement_DAL.Entities
                 .HasForeignKey(t => t.AccountId)
                 .OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<StaffTask>()
-                .HasOne(t => t.Order)
-                .WithMany(o => o.Task)
-                .HasForeignKey(t => t.OrderId)
-                .OnDelete(DeleteBehavior.Restrict);
-            modelBuilder.Entity<StaffTask>()
                 .HasOne(t => t.OrderDetail)
                 .WithOne(o => o.StaffTask)
                 .HasForeignKey<StaffTask>(t => t.DetailId)

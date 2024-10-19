@@ -15,5 +15,7 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
         Task<(bool success, string message)> UpdateFeedbackAsync(int id, FeedbackContentDtoRequest feedbackDto);
         Task<(bool success, string message)> ChangeStatusFeedbackAsync(int id);
         Task<(bool success, string message)> DeleteFeedbackAsync(int id);
+        Task<(bool success, string message)> CreateFeedbackResponseAsync(FeedbackResponseDtoRequest feedbackDto);
+
     }
 }

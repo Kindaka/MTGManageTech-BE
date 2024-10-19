@@ -203,5 +203,32 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 return (false, $"Error occurred: {ex.Message}");
             }
         }
+
+        public async Task<(bool success, string message)> CreateFeedbackResponseAsync(FeedbackResponseDtoRequest feedbackDto)
+        {
+            try
+            {
+                // Validate Account existence
+                var account = await _unitOfWork.AccountRepository.GetByIDAsync(feedbackDto.AccountId);
+                if (account == null)
+                {
+                    return (false, "Tài khoản không tìm thấy.");
+                }
+
+                var feedback = await _unitOfWork.FeedbackRepository.GetByIDAsync(feedbackDto.FeedbackId);
+                if (feedback != null)
+                {
+                    feedback.ResponseContent = feedbackDto.ResponseContent;
+                    await _unitOfWork.FeedbackRepository.UpdateAsync(feedback);
+                    await _unitOfWork.SaveAsync();
+                    return (true, "Tạo thành công");
+                }
+                return (false, "Phản hồi được tạo thành công.");
+            }
+            catch (Exception ex)
+            {
+                return (false, $"Error occurred: {ex.Message}");
+            }
+        }
     }
 }
