@@ -150,7 +150,7 @@ builder.Services.AddScoped<IAccountService, AccountService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+//if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
@@ -162,7 +162,11 @@ app.UseCors("AllowAll");
 app.UseAuthorization();
 app.UseHangfireDashboard("/hangfire");
 
-
+// Map Dèault Url
+app.Map("/", () =>
+{
+    return "MartyrGraveManagement Server đã Chạy";
+});
 // Schedule the recurring job (Hangfire)
 RecurringJob.AddOrUpdate<ITaskBackgroundService>(
     "check-expired-tasks",
