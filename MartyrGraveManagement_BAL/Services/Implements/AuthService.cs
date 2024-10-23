@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using MartyrGraveManagement_BAL.ModelViews.AccountDTOs;
+using MartyrGraveManagement_BAL.ModelViews.CustomerDTOs;
 using MartyrGraveManagement_BAL.Services.Interfaces;
 using MartyrGraveManagement_DAL.Entities;
 using MartyrGraveManagement_DAL.UnitOfWorks.Interfaces;
@@ -226,24 +227,28 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
         }
 
-        public async Task<bool> CreateAccountGuest(string phone)
+        public async Task<bool> CreateAccountCustomer(CustomerRegisterDtoRequest newCustomer)
         {
             try
             {
                 // Kiểm tra xem phone đã tồn tại chưa
                 var existingAccount = await _unitOfWork.AccountRepository
-                    .FindAsync(a => a.PhoneNumber == phone);
+                    .FindAsync(a => a.PhoneNumber == newCustomer.PhoneNumber);
                 if (existingAccount.Any())
                 {
                     throw new Exception("SĐT đã tồn tại.");
                 }
+                // Hash mật khẩu
+                var hashedPassword = await HashPassword(newCustomer.Password);
                 var account = new Account
                 {
-                    RoleId = 4,
-                    PhoneNumber = phone,
+                    PhoneNumber = newCustomer.PhoneNumber,
+                    HashedPassword = hashedPassword,
+                    Status = true,
                     CreateAt = DateTime.Now,
-                    Status = true
+                    RoleId = 4
                 };
+                
 
                 // Lưu tài khoản vào cơ sở dữ liệu
                 await _unitOfWork.AccountRepository.AddAsync(account);

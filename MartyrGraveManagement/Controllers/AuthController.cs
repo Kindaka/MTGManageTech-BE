@@ -1,4 +1,5 @@
 ﻿using MartyrGraveManagement_BAL.ModelViews.AccountDTOs;
+using MartyrGraveManagement_BAL.ModelViews.CustomerDTOs;
 using MartyrGraveManagement_BAL.Services.Interfaces;
 using MartyrGraveManagement_DAL.Entities;
 using Microsoft.AspNetCore.Authorization;
@@ -6,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Win32;
+using System.Security.Principal;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace MartyrGraveManagement.Controllers
@@ -109,26 +111,30 @@ namespace MartyrGraveManagement.Controllers
         }
 
         [AllowAnonymous]
-        [HttpPost("register-account-guest/{phone}")]
-        public async Task<IActionResult> RegisterGuestWithPhone(string phone)
+        [HttpPost("register-account-guest")]
+        public async Task<IActionResult> RegisterGuestWithPhone([FromBody] CustomerRegisterDtoRequest newCustomer)
         {
             try
             {
-                if (phone.Length != 10)
+                if (newCustomer.PhoneNumber.Length != 10)
                 {
                     return BadRequest("Số điện thoại phải có 10 kí tự.");
                 }
-                var isGuest = await _authService.GetAccountByPhoneNumber(phone);
+                if (!newCustomer.Password.Equals(newCustomer.ConfirmPassword))
+                {
+                    return BadRequest("Mật khẩu không khớp");
+                }
+                var isGuest = await _authService.GetAccountByPhoneNumber(newCustomer.PhoneNumber);
                 if (!isGuest.status)
                 {
-                    bool checkRegister = await _authService.CreateAccountGuest(phone);
+                    bool checkRegister = await _authService.CreateAccountCustomer(newCustomer);
                     if (checkRegister)
                     {
-                        return Ok("Create success");
+                        return Ok("Tạo tài khoản thành công");
                     }
                     else
                     {
-                        return BadRequest("Cannot create account");
+                        return BadRequest("Tạo tài khoản thất bại");
                     }
                 }
                 else
@@ -147,34 +153,34 @@ namespace MartyrGraveManagement.Controllers
 
         }
 
-        [AllowAnonymous]
-        [HttpGet("auth-guest/{phone}")]
-        public async Task<IActionResult> LoginForGuest(string phone)
-        {
-            try
-            {
-                IActionResult response = Unauthorized();
-                var isGuest = await _authService.GetAccountByPhoneNumber(phone);
-                if (isGuest.status && isGuest.guest != null)
-                {
-                    if (isGuest.guest.Status == false)
-                    {
-                        return BadRequest("Your account is locked by administrator");
-                    }
-                    var accessToken = await _authService.GenerateAccessToken(isGuest.guest);
-                    if (accessToken.IsNullOrEmpty())
-                    {
-                        return BadRequest("Something went wrong");
-                    }
-                    response = Ok(new { accessToken = accessToken });
-                    return response;
-                }
-                return NotFound("Sai SĐT hoặc bàn không có quyền truy cập");
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal Server Error: {ex.Message}");
-            }
-        }
+        //[AllowAnonymous]
+        //[HttpGet("auth-guest/{phone}")]
+        //public async Task<IActionResult> LoginForGuest(string phone)
+        //{
+        //    try
+        //    {
+        //        IActionResult response = Unauthorized();
+        //        var isGuest = await _authService.GetAccountByPhoneNumber(phone);
+        //        if (isGuest.status && isGuest.guest != null)
+        //        {
+        //            if (isGuest.guest.Status == false)
+        //            {
+        //                return BadRequest("Your account is locked by administrator");
+        //            }
+        //            var accessToken = await _authService.GenerateAccessToken(isGuest.guest);
+        //            if (accessToken.IsNullOrEmpty())
+        //            {
+        //                return BadRequest("Something went wrong");
+        //            }
+        //            response = Ok(new { accessToken = accessToken });
+        //            return response;
+        //        }
+        //        return NotFound("Sai SĐT hoặc bàn không có quyền truy cập");
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, $"Internal Server Error: {ex.Message}");
+        //    }
+        //}
     }
 }

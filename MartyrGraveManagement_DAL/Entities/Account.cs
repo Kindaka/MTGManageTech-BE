@@ -17,7 +17,7 @@ namespace MartyrGraveManagement_DAL.Entities
         public int RoleId { get; set; }
         public int? AreaId { get; set; }
         //public string AccountName { get; set; } // để login
-        public string? HashedPassword { get; set; }
+        public string HashedPassword { get; set; }
         public string? EmailAddress { get; set; } // để gửi WeeklyReport qua mail không dùng đề login
         [Column(TypeName = "nvarchar(255)")]
         public string? FullName { get; set; }

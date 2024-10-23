@@ -2,6 +2,7 @@
 using MartyrGraveManagement_BAL.ModelViews.AccountDTOs;
 using MartyrGraveManagement_BAL.ModelViews.AreaDTOs;
 using MartyrGraveManagement_BAL.ModelViews.CartItemsDTOs;
+using MartyrGraveManagement_BAL.ModelViews.CustomerDTOs;
 using MartyrGraveManagement_BAL.ModelViews.FeedbackDTOs;
 using MartyrGraveManagement_BAL.ModelViews.MartyrGraveDTOs;
 using MartyrGraveManagement_BAL.ModelViews.MartyrGraveInformationDTOs;
@@ -31,6 +32,7 @@ namespace MartyrGraveManagement_BAL.MappingProfiles
 
             CreateMap<UserAuthenticatingDtoResponse, Account>().ReverseMap();
             CreateMap<Account, AccountDtoResponse>().ReverseMap();
+            CreateMap<Account, CustomerRegisterDtoRequest>().ReverseMap();
 
             // Area mappings
             CreateMap<Area, AreaDTOResponse>().ReverseMap();
