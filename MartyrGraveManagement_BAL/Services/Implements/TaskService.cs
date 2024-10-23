@@ -682,42 +682,16 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                             throw new InvalidOperationException("You can only update status to 2 (reject) or 3 (in progress) from status 1.");
                         }
                     }
-                    else if (task.Status == 3)
-                    {
-                        // Task đang ở trạng thái "đang thực hiện", có thể hoàn thành (lên 4)
-                        if (newStatus == 4)
-                        {
-                            task.Status = 4;  // Hoàn thành task
-
-                            // 3. Kiểm tra nếu tất cả các Task của Order đều đã hoàn thành
-                            var allTasksForOrder = await _unitOfWork.TaskRepository.GetAsync(t => t.OrderId == task.OrderId);
-
-                            if (allTasksForOrder.All(t => t.Status == 4)) // Kiểm tra tất cả task có status là 4
-                            {
-                                // Cập nhật trạng thái của Order sang "hoàn thành" nếu tất cả các Task đã hoàn thành
-                                var order = await _unitOfWork.OrderRepository.GetByIDAsync(task.OrderId);
-                                if (order != null)
-                                {
-                                    order.Status = 4;  // Order chuyển sang trạng thái "hoàn thành"
-                                    await _unitOfWork.OrderRepository.UpdateAsync(order);
-                                }
-                            }
-                        }
-                        else
-                        {
-                            throw new InvalidOperationException("You can only update status to 4 (completed) from status 3.");
-                        }
-                    }
                     else
                     {
                         throw new InvalidOperationException("Invalid status transition.");
                     }
 
-                    // 4. Lưu thay đổi vào cơ sở dữ liệu
+                    // 3. Lưu thay đổi vào cơ sở dữ liệu
                     await _unitOfWork.TaskRepository.UpdateAsync(task);
                     await _unitOfWork.SaveAsync();
 
-                    // 5. Commit transaction nếu không có lỗi
+                    // 4. Commit transaction nếu không có lỗi
                     await transaction.CommitAsync();
 
                     return _mapper.Map<TaskDtoResponse>(task);
@@ -730,6 +704,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 }
             }
         }
+
 
 
 
@@ -747,10 +722,10 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         throw new KeyNotFoundException("TaskId does not exist.");
                     }
 
-                    // 2. Kiểm tra nếu task có thể cập nhật hình ảnh (task phải ở trạng thái hoàn thành)
+                    // 2. Kiểm tra nếu task có thể cập nhật hình ảnh (task phải ở trạng thái "đang thực hiện")
                     if (task.Status != 3)
                     {
-                        throw new InvalidOperationException("Task is not in a completed state. Only completed tasks can have images updated.");
+                        throw new InvalidOperationException("Task is not in a state that allows image updates.");
                     }
 
                     // 3. Cập nhật hình ảnh
@@ -758,11 +733,27 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     task.ImagePath2 = imageUpdateDto.UrlImages.ElementAtOrDefault(1);  // Ảnh 2 (nếu có)
                     task.ImagePath3 = imageUpdateDto.UrlImages.ElementAtOrDefault(2);  // Ảnh 3 (nếu có)
 
-                    // 4. Lưu thay đổi
+                    // 4. Cập nhật trạng thái task lên 4
+                    task.Status = 4;  // Task hoàn thành
                     await _unitOfWork.TaskRepository.UpdateAsync(task);
+
+                    // 5. Kiểm tra nếu tất cả các task của Order này đều đã hoàn thành
+                    var allTasksForOrder = await _unitOfWork.TaskRepository.GetAsync(t => t.OrderId == task.OrderId);
+                    if (allTasksForOrder.All(t => t.Status == 4)) // Kiểm tra tất cả task có status là 4
+                    {
+                        var order = await _unitOfWork.OrderRepository.GetByIDAsync(task.OrderId);
+                        if (order != null)
+                        {
+                            // Cập nhật trạng thái của Order sang 4 nếu tất cả các Task đã hoàn thành
+                            order.Status = 4;  // Order hoàn thành
+                            await _unitOfWork.OrderRepository.UpdateAsync(order);
+                        }
+                    }
+
+                    // 6. Lưu thay đổi
                     await _unitOfWork.SaveAsync();
 
-                    // 5. Commit transaction nếu không có lỗi
+                    // 7. Commit transaction nếu không có lỗi
                     await transaction.CommitAsync();
 
                     return _mapper.Map<TaskDtoResponse>(task);
@@ -775,6 +766,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 }
             }
         }
+
 
 
 

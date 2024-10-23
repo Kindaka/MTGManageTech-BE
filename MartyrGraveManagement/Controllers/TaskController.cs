@@ -133,7 +133,7 @@ namespace MartyrGraveManagement.Controllers
 
 
         /// <summary>
-        /// Update task status (Staff Role).
+        /// Update task status (Staff Role). (Status 2 3)
         /// </summary>
         [Authorize(Policy = "RequireStaffRole")]
         [HttpPut("tasks/{taskId}/status/{newStatus}")]
@@ -182,7 +182,7 @@ namespace MartyrGraveManagement.Controllers
 
 
         /// <summary>
-        /// Add Image task when status = 4 Completed (Staff Role).
+        /// Add Image task when status = 3 Processing (Staff Role) If Order have 2 Task => 2 Tasks must have status 4 and from there Order Status also up to 4
         /// </summary>
         [Authorize(Policy = "RequireStaffRole")]
         [HttpPut("tasks/{taskId}/images")]
