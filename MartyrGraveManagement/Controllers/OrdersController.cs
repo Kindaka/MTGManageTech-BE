@@ -52,7 +52,7 @@ namespace MartyrGraveManagement.Controllers
             }
         }
 
-        [Authorize(Policy = "RequireManagerRole")]
+        [Authorize]
         [HttpGet("{id}")]
         public async Task<ActionResult<OrdersGetAllDTOResponse>> GetOrderById(int id)
         {
@@ -77,7 +77,7 @@ namespace MartyrGraveManagement.Controllers
 
 
         [Authorize(Policy = "RequireCustomerRole")]
-        [HttpGet("account/{accountId}")]
+        [HttpGet("account/{customerId}")]
         public async Task<ActionResult<List<OrdersGetAllDTOResponse>>> GetOrderByAccountId(int customerId)
         {
             try
