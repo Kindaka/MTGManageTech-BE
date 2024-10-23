@@ -21,7 +21,7 @@ namespace MartyrGraveManagement_DAL.Entities
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderDetail> OrderDetails { get; set; }
         public DbSet<Payment> Payments { get; set; }
-        public DbSet<CartItem> CartItems { get; set; }
+        public DbSet<CartItemCustomer> CartItems { get; set; }
         public DbSet<Feedback> Feedbacks { get; set; }
         public DbSet<MartyrGrave> MartyrGraves { get; set; }
         public DbSet<MartyrGraveInformation> MartyrGraveInformations { get; set; }
@@ -97,19 +97,19 @@ namespace MartyrGraveManagement_DAL.Entities
                 .OnDelete(DeleteBehavior.Restrict);
 
             // CartItem Configuration
-            modelBuilder.Entity<CartItem>()
+            modelBuilder.Entity<CartItemCustomer>()
                 .HasKey(ci => ci.CartId);
-            modelBuilder.Entity<CartItem>()
+            modelBuilder.Entity<CartItemCustomer>()
                 .HasOne(ci => ci.Account)
                 .WithMany(a => a.CartItems)
                 .HasForeignKey(ci => ci.AccountId)
                 .OnDelete(DeleteBehavior.Restrict);
-            modelBuilder.Entity<CartItem>()
+            modelBuilder.Entity<CartItemCustomer>()
                 .HasOne(ci => ci.Service)
                 .WithMany(s => s.CartItems)
                 .HasForeignKey(ci => ci.ServiceId)
                 .OnDelete(DeleteBehavior.Restrict);
-            modelBuilder.Entity<CartItem>()
+            modelBuilder.Entity<CartItemCustomer>()
                 .HasOne(ci => ci.MartyrGrave)
                 .WithMany(mg => mg.CartItems)
                 .HasForeignKey(ci => ci.MartyrId)

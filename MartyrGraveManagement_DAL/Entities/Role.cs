@@ -13,7 +13,9 @@ namespace MartyrGraveManagement_DAL.Entities
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int RoleId { get; set; }
+        [Column(TypeName = "nvarchar(255)")]
         public string RoleName { get; set; }
+        [Column(TypeName = "nvarchar(500)")]
         public string? Description { get; set; }
         public bool Status { get; set; }
 

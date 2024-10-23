@@ -10,8 +10,7 @@ namespace MartyrGraveManagement_BAL.ModelViews.CustomerDTOs
     public class ChangePasswordCustomerRequest
     {
         [Required]
-        [StringLength(64, ErrorMessage = "AccountName must be between 0 and 64 characters.")]
-        public string AccountName { get; set; } = null!;
+        public string PhoneNumber { get; set; } = null!;
         [Required]
         public string OldPassword { get; set; } = null!;
         [Required]

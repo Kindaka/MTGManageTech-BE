@@ -18,10 +18,12 @@ namespace MartyrGraveManagement_DAL.Entities
         public int  DetailId { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
+        [Column(TypeName = "nvarchar(255)")]
         public string? Description { get; set; }
         public string? ImagePath1 { get; set; }
         public string? ImagePath2 { get; set; }
         public string? ImagePath3 { get; set; }
+        [Column(TypeName = "nvarchar(500)")]
         public string? Reason { get; set; }
         public int Status { get; set; }
         public Account? Account { get; set; }

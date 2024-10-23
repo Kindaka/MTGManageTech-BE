@@ -26,7 +26,7 @@ namespace MartyrGraveManagement_BAL.MappingProfiles
         {
             // Account mappings
             CreateMap<UserRegisterDtoRequest, Account>()
-               .ForMember(dest => dest.AccountName, opt => opt.MapFrom(src => src.AccountName))
+               .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber))
                .ForMember(dest => dest.HashedPassword, opt => opt.MapFrom(src => src.Password));
 
             CreateMap<UserAuthenticatingDtoResponse, Account>().ReverseMap();
@@ -56,9 +56,9 @@ namespace MartyrGraveManagement_BAL.MappingProfiles
             CreateMap<Service, ServiceDtoResponse>().ReverseMap();
             CreateMap<Service, ServiceDetailDtoResponse>().ReverseMap();
             //Cart mappings
-            CreateMap<CartItem, CartItemsDTORequest>().ReverseMap();
-            CreateMap<CartItem, CartItemsDTOResponse>().ReverseMap();
-            CreateMap<CartItem, CartItemGetByCustomerDTOResponse>().ReverseMap();
+            CreateMap<CartItemCustomer, CartItemsDTORequest>().ReverseMap();
+            CreateMap<CartItemCustomer, CartItemsDTOResponse>().ReverseMap();
+            CreateMap<CartItemCustomer, CartItemGetByCustomerDTOResponse>().ReverseMap();
 
             //Order mappings
             CreateMap<Order, OrdersDTORequest>().ReverseMap();

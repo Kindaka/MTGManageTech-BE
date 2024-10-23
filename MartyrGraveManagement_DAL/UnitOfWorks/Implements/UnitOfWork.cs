@@ -22,7 +22,7 @@ namespace MartyrGraveManagement_DAL.UnitOfWorks.Implements
         private GenericRepository<MartyrGraveInformation> _martyrGraveInformationRepository;
         private GenericRepository<ServiceCategory> _serviceCategoryRepository;
         private GenericRepository<Service> _serviceRepository;
-        private GenericRepository<CartItem> _cartItemRepository;
+        private GenericRepository<CartItemCustomer> _cartItemRepository;
 
         private GenericRepository<Order> _orderRepository;
         private GenericRepository<OrderDetail> _orderDetailRepository;
@@ -47,7 +47,7 @@ namespace MartyrGraveManagement_DAL.UnitOfWorks.Implements
         public IGenericRepository<ServiceCategory> ServiceCategoryRepository => _serviceCategoryRepository ??= new GenericRepository<ServiceCategory>(_context);
         public IGenericRepository<Service> ServiceRepository => _serviceRepository ??= new GenericRepository<Service>(_context);
         public IGenericRepository<Feedback> FeedbackRepository => _feedbackRepository ??= new GenericRepository<Feedback>(_context);
-        public IGenericRepository<CartItem> CartItemRepository => _cartItemRepository ??= new GenericRepository<CartItem>(_context);
+        public IGenericRepository<CartItemCustomer> CartItemRepository => _cartItemRepository ??= new GenericRepository<CartItemCustomer>(_context);
         public IGenericRepository<StaffTask> TaskRepository => _taskRepository ??= new GenericRepository<StaffTask>(_context);
         public IGenericRepository<Material> MaterialRepository => _materialRepository ??= new GenericRepository<Material>(_context);
 

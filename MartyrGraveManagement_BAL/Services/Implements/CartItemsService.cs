@@ -52,7 +52,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 throw new KeyNotFoundException("ServiceID does not exist.");
             }
 
-            var existingCartItem = await _unitOfWork.CartItemRepository.FindAsync(c => c.AccountId == cartItemsDTO.AccountId && c.ServiceId == cartItemsDTO.ServiceId && c.MartyrId == cartItemsDTO.MartyrId && c.Status == true);
+            var existingCartItem = await _unitOfWork.CartItemRepository.FindAsync(c => c.AccountId == cartItemsDTO.AccountId && c.ServiceId == cartItemsDTO.ServiceId && c.MartyrId == cartItemsDTO.MartyrId);
             if (existingCartItem.Any())
             {
                 throw new InvalidOperationException("This service is already in the cart.");
@@ -62,29 +62,25 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             var martyrGrave = (await _unitOfWork.MartyrGraveRepository.FindAsync(m => m.MartyrId == cartItemsDTO.MartyrId)).FirstOrDefault();
             if (martyrGrave != null)
             {
-                if (martyrGrave.CustomerCode == account.CustomerCode)
-                {
-                    // Tạo thực thể CartItem từ DTO và đặt Status = 1
-                    var cart = _mapper.Map<CartItem>(cartItemsDTO);
-                    cart.MartyrId = martyrGrave.MartyrId;
-                    cart.Status = false;  // Đặt Status là (false)
 
-                    // Thêm CartItem vào cơ sở dữ liệu
-                    await _unitOfWork.CartItemRepository.AddAsync(cart);
-                    await _unitOfWork.SaveAsync();
+                // Tạo thực thể CartItem từ DTO và đặt Status = 1
+                var cart = _mapper.Map<CartItemCustomer>(cartItemsDTO);
+                cart.MartyrId = martyrGrave.MartyrId;
+                cart.Status = false;  // Đặt Status là (false)
 
-                    // Trả về DTO response
-                    return _mapper.Map<CartItemsDTOResponse>(cart);
-                }
-                else
-                {
-                    throw new KeyNotFoundException("Bạn không phải thân nhân của mộ này. Không thể đặt dịch vụ.");
-                }
+                // Thêm CartItem vào cơ sở dữ liệu
+                await _unitOfWork.CartItemRepository.AddAsync(cart);
+                await _unitOfWork.SaveAsync();
+
+                // Trả về DTO response
+                return _mapper.Map<CartItemsDTOResponse>(cart);
+
+
 
             }
             else
             {
-                throw new KeyNotFoundException("MartyrGrave  does not exist.");
+                throw new KeyNotFoundException("MartyrGrave does not exist.");
             }
         }
 

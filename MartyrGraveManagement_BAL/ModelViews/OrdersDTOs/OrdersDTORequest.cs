@@ -10,6 +10,6 @@ namespace MartyrGraveManagement_BAL.ModelViews.OrdersDTOs
 {
     public class OrdersDTORequest
     {
-        List<CartItem>? CartItems { get; set; } = new List<CartItem>();
+        List<CartItemCustomer>? CartItems { get; set; } = new List<CartItemCustomer>();
     }
 }

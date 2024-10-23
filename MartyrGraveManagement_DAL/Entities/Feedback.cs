@@ -16,7 +16,9 @@ namespace MartyrGraveManagement_DAL.Entities
         public int AccountId { get; set; }
         public int OrderId { get; set; }
         public int? StaffId { get; set; }
+        [Column(TypeName = "nvarchar(255)")]
         public string Content { get; set; }
+        [Column(TypeName = "nvarchar(500)")]
         public string? ResponseContent { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }

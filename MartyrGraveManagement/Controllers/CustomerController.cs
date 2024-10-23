@@ -39,7 +39,7 @@ namespace MartyrGraveManagement.Controllers
                 {
                     return BadRequest("Not matching password");
                 }
-                if (await _authService.GetAccountByAccountName(account.AccountName))
+                if ((await _authService.GetAccountByPhoneNumber(account.PhoneNumber)).status)
                 {
                     var checkRegister = await _customerService.ChangePasswordCustomer(account);
                     if (checkRegister.status)

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace MartyrGraveManagement_DAL.Entities
 {
-    public class CartItem
+    public class CartItemCustomer
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]

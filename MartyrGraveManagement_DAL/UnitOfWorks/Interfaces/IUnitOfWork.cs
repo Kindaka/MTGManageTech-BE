@@ -14,7 +14,7 @@ namespace MartyrGraveManagement_DAL.UnitOfWorks.Interfaces
         public IGenericRepository<Account> AccountRepository { get; }
         public IGenericRepository<Role> RoleRepository { get; }
         public IGenericRepository<Area> AreaRepository { get; }
-        public IGenericRepository<CartItem> CartItemRepository { get; }
+        public IGenericRepository<CartItemCustomer> CartItemRepository { get; }
         public IGenericRepository<Order> OrderRepository { get; }
         public IGenericRepository<OrderDetail> OrderDetailRepository { get; }
         public IGenericRepository<Payment> PaymentRepository { get; }

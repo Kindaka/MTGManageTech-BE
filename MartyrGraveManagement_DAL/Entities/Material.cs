@@ -14,7 +14,9 @@ namespace MartyrGraveManagement_DAL.Entities
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int MaterialId { get; set; }
         public int ServiceId { get; set; }
+        [Column(TypeName = "nvarchar(100)")]
         public string MaterialName { get; set; }
+        [Column(TypeName = "nvarchar(255)")]
         public string? Description { get; set; }
         public string? ImagePath { get; set; }
         public double Price { get; set; }

@@ -15,7 +15,9 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
 
         Task<bool> CreateAccount(UserRegisterDtoRequest newAccount);
 
-        Task<bool> GetAccountByAccountName(string accountName);
+        Task<bool> CreateAccountGuest(string phone);
+
+        Task<(bool status, UserAuthenticatingDtoResponse? guest)> GetAccountByPhoneNumber(string phone);
 
     }
 }

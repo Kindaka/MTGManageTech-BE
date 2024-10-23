@@ -10,9 +10,8 @@ namespace MartyrGraveManagement_BAL.ModelViews.AccountDTOs
     public class UserAuthenticatingDtoRequest
     {
         [Required]
-        [StringLength(64, ErrorMessage = "AccountName must be between 0 and 64 characters.")]
-        public string? AccountName { get; set; }
+        public string PhoneNumber { get; set; }
         [Required]
-        public string? Password { get; set; }
+        public string Password { get; set; }
     }
 }

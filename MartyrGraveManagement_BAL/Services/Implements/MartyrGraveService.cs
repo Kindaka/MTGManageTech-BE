@@ -375,7 +375,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         RoleId = 4,
                         Status = true,
                         CustomerCode = customerCode,
-                        AccountName = $"{getLastName(martyrGraveDto.Customer.UserName)}{martyrGraveDto.Customer.Dob.Year}-{martyrGraveDto.Customer.Phone}",
+                        //AccountName = $"{getLastName(martyrGraveDto.Customer.UserName)}{martyrGraveDto.Customer.Dob.Year}-{martyrGraveDto.Customer.Phone}",
                         CreateAt = DateTime.Now
                     };
 
@@ -465,7 +465,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         }
 
                         // Trả về DTO response với thông tin tài khoản
-                        return (true, "Mộ đã được tạo thành công, trả về tài khoản đăng nhập customer", accountMapping.AccountName, randomPassword);
+                        return (true, "Mộ đã được tạo thành công, trả về tài khoản đăng nhập customer", accountMapping.PhoneNumber, randomPassword);
                     }
 
                     return (false, "Không tìm thấy account đã tạo", null, null);
@@ -731,7 +731,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                                     RoleId = 4,
                                     Status = true,
                                     CustomerCode = customerCode,
-                                    AccountName = $"{getLastName(customer.UserName)}{customer.Dob.Year}-{customer.Phone}",
+                                    //AccountName = $"{getLastName(customer.UserName)}{customer.Dob.Year}-{customer.Phone}",
                                     CreateAt = DateTime.Now
                                 };
 
@@ -758,7 +758,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                                         await _sendEmailService.SendEmailMartyrGraveAccount(email);
                                     }
                                     await transaction.CommitAsync();
-                                    return (true, "Đã cập nhật thân nhân mộ thành công", accountMapping.AccountName, randomPassword);
+                                    return (true, "Đã cập nhật thân nhân mộ thành công", accountMapping.PhoneNumber, randomPassword);
                                 }
                                 else
                                 {

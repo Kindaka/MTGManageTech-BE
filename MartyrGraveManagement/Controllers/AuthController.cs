@@ -66,7 +66,7 @@ namespace MartyrGraveManagement.Controllers
         /// <returns>
         /// Returns a success message if the account is successfully created, otherwise returns an error message.
         /// </returns>
-        //[Authorize(Policy = "RequireManagerOrAdminRole")]
+        [Authorize(Policy = "RequireManagerOrAdminRole")]
         [HttpPost("register-account-martyrGrave")]
         public async Task<IActionResult> Register([FromBody] UserRegisterDtoRequest newAccount)
         {
@@ -80,7 +80,7 @@ namespace MartyrGraveManagement.Controllers
                 {
                     return BadRequest("Not matching password");
                 }
-                if (!await _authService.GetAccountByAccountName(newAccount.AccountName))
+                if (!(await _authService.GetAccountByPhoneNumber(newAccount.PhoneNumber)).status)
                 {
                     bool checkRegister = await _authService.CreateAccount(newAccount);
                     if (checkRegister)
@@ -94,7 +94,7 @@ namespace MartyrGraveManagement.Controllers
                 }
                 else
                 {
-                    return BadRequest("Existed accountName");
+                    return BadRequest("Existed phonenumber");
                 }
             }
             catch (Exception ex)
@@ -106,6 +106,75 @@ namespace MartyrGraveManagement.Controllers
                 return StatusCode(500, $"Internal Server Error: {ex.Message}");
             }
 
+        }
+
+        [AllowAnonymous]
+        [HttpPost("register-account-guest/{phone}")]
+        public async Task<IActionResult> RegisterGuestWithPhone(string phone)
+        {
+            try
+            {
+                if (phone.Length != 10)
+                {
+                    return BadRequest("Số điện thoại phải có 10 kí tự.");
+                }
+                var isGuest = await _authService.GetAccountByPhoneNumber(phone);
+                if (!isGuest.status)
+                {
+                    bool checkRegister = await _authService.CreateAccountGuest(phone);
+                    if (checkRegister)
+                    {
+                        return Ok("Create success");
+                    }
+                    else
+                    {
+                        return BadRequest("Cannot create account");
+                    }
+                }
+                else
+                {
+                    return BadRequest("Số điện thoại đã tồn tại");
+                }
+            }
+            catch (Exception ex)
+            {
+                if (ex.InnerException != null)
+                {
+                    return StatusCode(500, $"Internal Server Error: {ex.InnerException.Message}");
+                }
+                return StatusCode(500, $"Internal Server Error: {ex.Message}");
+            }
+
+        }
+
+        [AllowAnonymous]
+        [HttpGet("auth-guest/{phone}")]
+        public async Task<IActionResult> LoginForGuest(string phone)
+        {
+            try
+            {
+                IActionResult response = Unauthorized();
+                var isGuest = await _authService.GetAccountByPhoneNumber(phone);
+                if (isGuest.status && isGuest.guest != null)
+                {
+                    if (isGuest.guest.Status == false)
+                    {
+                        return BadRequest("Your account is locked by administrator");
+                    }
+                    var accessToken = await _authService.GenerateAccessToken(isGuest.guest);
+                    if (accessToken.IsNullOrEmpty())
+                    {
+                        return BadRequest("Something went wrong");
+                    }
+                    response = Ok(new { accessToken = accessToken });
+                    return response;
+                }
+                return NotFound("Sai SĐT hoặc bàn không có quyền truy cập");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal Server Error: {ex.Message}");
+            }
         }
     }
 }

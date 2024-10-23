@@ -19,8 +19,10 @@ namespace MartyrGraveManagement_DAL.Entities
         public DateTime EndDate { get; set; }
         public decimal TotalPrice { get; set; }
         public int Status { get; set; }
+        [Column(TypeName = "nvarchar(500)")]
         public string? Note { get; set; }
         public string? ImagePath { get; set; }
+        [Column(TypeName = "nvarchar(500)")]
         public string? ResponseContent { get; set; }
         public Account? Account { get; set; }
         public IEnumerable<OrderDetail>? OrderDetails { get; set; }

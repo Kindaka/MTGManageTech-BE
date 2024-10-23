@@ -47,7 +47,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             try
             {
                 string hashedPassword = await HashPassword(request.OldPassword);
-                var existedAccount = (await _unitOfWork.AccountRepository.FindAsync(a => a.AccountName == request.AccountName && a.HashedPassword == hashedPassword)).FirstOrDefault();
+                var existedAccount = (await _unitOfWork.AccountRepository.FindAsync(a => a.PhoneNumber == request.PhoneNumber && a.HashedPassword == hashedPassword)).FirstOrDefault();
                 if (existedAccount != null)
                 {
 

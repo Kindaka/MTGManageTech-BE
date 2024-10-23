@@ -17,6 +17,7 @@ namespace MartyrGraveManagement_DAL.Entities
         public int QualityMaintenancePoint { get; set; }
         public int TimeCompletePoint { get; set; }
         public int InteractionPoint { get; set; }
+        [Column(TypeName = "nvarchar(255)")]
         public string Description { get; set; }
         public DateTime UploadTime { get; set; }
         public bool Status { get; set; }
