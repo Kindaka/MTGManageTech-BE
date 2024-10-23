@@ -219,6 +219,8 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 if (feedback != null)
                 {
                     feedback.ResponseContent = feedbackDto.ResponseContent;
+                    feedback.StaffId = feedbackDto.AccountId;
+                    feedback.UpdatedAt = DateTime.Now;
                     await _unitOfWork.FeedbackRepository.UpdateAsync(feedback);
                     await _unitOfWork.SaveAsync();
                     return (true, "Tạo thành công");

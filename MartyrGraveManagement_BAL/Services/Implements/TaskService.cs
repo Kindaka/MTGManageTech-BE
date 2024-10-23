@@ -748,7 +748,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     }
 
                     // 2. Kiểm tra nếu task có thể cập nhật hình ảnh (task phải ở trạng thái hoàn thành)
-                    if (task.Status != 4)
+                    if (task.Status != 3)
                     {
                         throw new InvalidOperationException("Task is not in a completed state. Only completed tasks can have images updated.");
                     }

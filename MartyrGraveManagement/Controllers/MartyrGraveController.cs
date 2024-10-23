@@ -1,6 +1,7 @@
 ﻿using MartyrGraveManagement_BAL.ModelViews.CustomerDTOs;
 using MartyrGraveManagement_BAL.ModelViews.MartyrGraveDTOs;
 using MartyrGraveManagement_BAL.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -18,7 +19,7 @@ namespace MartyrGraveManagement.Controllers
             _martyrGraveService = martyrGraveService;
         }
 
-
+        [AllowAnonymous]
         [HttpGet("search")]
         public async Task<IActionResult> SearchMartyrGraves([FromQuery] MartyrGraveSearchDtoRequest searchCriteria)
         {
@@ -44,6 +45,7 @@ namespace MartyrGraveManagement.Controllers
         /// Gets all martyr graves.
         /// </summary>
         /// <returns>Returns a list of all graves.</returns>
+        [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<MartyrGraveDtoResponse>>> GetMartyrGraves([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
@@ -63,6 +65,7 @@ namespace MartyrGraveManagement.Controllers
         /// </summary>
         /// <param name="id">The ID of the martyr grave.</param>
         /// <returns>Returns the martyr grave with the specified ID.</returns>
+        [AllowAnonymous]
         [HttpGet("{id}")]
         public async Task<ActionResult<MartyrGraveDtoResponse>> GetMartyrGrave(int id)
         {
@@ -79,6 +82,7 @@ namespace MartyrGraveManagement.Controllers
         /// </summary>
         /// <param name="id">The customerCode of the martyr grave.</param>
         /// <returns>Returns the martyr grave with the specified customerCode.</returns>
+        [Authorize(Policy = "RequireCustomerRole")]
         [HttpGet("getMartyrGraveByCustomerCode/{customerCode}")]
         public async Task<ActionResult<IEnumerable<MartyrGraveDtoResponse>>> GetMartyrGraveByMartyrCode(string customerCode)
         {
@@ -95,25 +99,26 @@ namespace MartyrGraveManagement.Controllers
         /// </summary>
         /// <param name="martyrGraveDto">The details of the martyr grave to create.</param>
         /// <returns>Returns the created martyr grave.</returns>
-        [HttpPost]
-        public async Task<ActionResult<MartyrGraveDtoResponse>> CreateMartyrGrave(MartyrGraveDtoRequest martyrGraveDto)
-        {
-            try
-            {
-                var createdGrave = await _martyrGraveService.CreateMartyrGraveAsync(martyrGraveDto);
-                return CreatedAtAction(nameof(GetMartyrGrave), new { id = createdGrave.MartyrId }, createdGrave);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-        }
+        //[HttpPost]
+        //public async Task<ActionResult<MartyrGraveDtoResponse>> CreateMartyrGrave(MartyrGraveDtoRequest martyrGraveDto)
+        //{
+        //    try
+        //    {
+        //        var createdGrave = await _martyrGraveService.CreateMartyrGraveAsync(martyrGraveDto);
+        //        return CreatedAtAction(nameof(GetMartyrGrave), new { id = createdGrave.MartyrId }, createdGrave);
+        //    }
+        //    catch (KeyNotFoundException ex)
+        //    {
+        //        return NotFound(new { message = ex.Message });
+        //    }
+        //}
 
         /// <summary>
         /// Creates a new martyr grave version 2.
         /// </summary>
         /// <param name="martyrGraveDto">The details of the martyr grave to create.</param>
         /// <returns>Returns no content if the create is successful.</returns>
+        [Authorize(Policy = "RequireManagerRole")]
         [HttpPost("create-grave-v2")]
         public async Task<ActionResult<MartyrGraveDtoResponse>> CreateMartyrGraveV2([FromBody] MartyrGraveDtoRequest martyrGraveDto)
         {
@@ -135,6 +140,7 @@ namespace MartyrGraveManagement.Controllers
             }
         }
 
+        [Authorize(Policy = "RequireManagerRole")]
         [HttpPost("create-relative-grave-v2")]
         public async Task<IActionResult> CreateRelativeGrave([FromBody] CustomerDtoRequest customerDtoRequest, int graveId)
         {
@@ -166,6 +172,7 @@ namespace MartyrGraveManagement.Controllers
         /// <param name="id">The ID of the martyr grave to update.</param>
         /// <param name="martyrGraveDto">The updated details of the martyr grave.</param>
         /// <returns>Returns no content if the update is successful.</returns>
+        [Authorize(Policy = "RequireManagerRole")]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateMartyrGrave(int id, MartyrGraveDtoRequest martyrGraveDto)
         {
@@ -189,6 +196,7 @@ namespace MartyrGraveManagement.Controllers
         /// </summary>
         /// <param name="id">The ID of the martyr grave to update status.</param>
         /// <returns>Returns no content if the deletion is successful.</returns>
+        [Authorize(Policy = "RequireManagerRole")]
         [HttpPut("updateStatus/{id}")]
         public async Task<IActionResult> UpdateMartyrGraveStatus(int id, int status)
         {
@@ -210,6 +218,7 @@ namespace MartyrGraveManagement.Controllers
         /// <returns>A list of martyr graves with additional information like name, location, etc.</returns>
         /// <response code="200">Returns a list of martyr graves with total pages for paging</response>
         /// <response code="500">If there was an internal server error</response>
+        [Authorize(Policy = "RequireManagerRole")]
         [HttpGet("GetAllForManager")]
         public async Task<IActionResult> GetAllMartyrGraves([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
@@ -240,6 +249,7 @@ namespace MartyrGraveManagement.Controllers
         /// <param name="id">The ID of the martyr grave to update.</param>
         /// <param name="martyrGraveDto">The updated details of the martyr grave.</param>
         /// <returns>Returns no content if the update is successful.</returns>
+        [Authorize(Policy = "RequireManagerRole")]
         [HttpPut("update-grave-v2/{id}")]
         public async Task<IActionResult> UpdateMartyrGraveV2(int id, MartyrGraveUpdateDtoRequest martyrGraveDto)
         {
