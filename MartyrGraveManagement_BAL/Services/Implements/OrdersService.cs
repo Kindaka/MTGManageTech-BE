@@ -369,12 +369,22 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                             return (false, null, $"Dịch vụ {cartItem.ServiceId} đã ngừng cung cấp.");
                         }
 
-                        totalPrice += (decimal)service.Price;
+                        // Kiểm tra nếu CustomerCode của Account và MartyrGrave trùng nhau thì áp dụng giảm giá
+                        var grave = await _unitOfWork.MartyrGraveRepository.GetByIDAsync(cartItem.MartyrId);
+                        decimal priceToApply = (decimal)service.Price;
+
+                        if (grave != null && !string.IsNullOrEmpty(grave.CustomerCode) && grave.CustomerCode == account.CustomerCode)
+                        {
+                            // Giảm giá 5% nếu điều kiện CustomerCode trùng khớp
+                            priceToApply *= 0.95m;
+                        }
+
+                        totalPrice += priceToApply;
                         orderDetails.Add(new OrderDetail
                         {
                             ServiceId = cartItem.ServiceId,
                             MartyrId = cartItem.MartyrId,
-                            OrderPrice = service.Price,
+                            OrderPrice = (double)priceToApply,
                             Status = true
                         });
                     }
@@ -414,6 +424,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 }
             }
         }
+
 
 
 

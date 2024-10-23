@@ -111,6 +111,61 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
 
 
+        //public async Task<(List<CartItemGetByCustomerDTOResponse> cartitemList, double totalPriceInCart)> GetCartItemsByAccountId(int accountId)
+        //{
+        //    try
+        //    {
+        //        // Lấy danh sách CartItem dựa trên AccountId
+        //        var cartItems = await _unitOfWork.CartItemRepository.GetAsync(c => c.AccountId == accountId, includeProperties: "Service");
+
+        //        // Kiểm tra xem có mặt hàng nào trong giỏ hàng không
+        //        if (cartItems == null || !cartItems.Any())
+        //        {
+        //            return (new List<CartItemGetByCustomerDTOResponse>(), 0);  // Trả về danh sách rỗng nếu không có giỏ hàng
+        //        }
+
+        //        // Tạo danh sách CartItemGetByCustomerDTOResponse để chứa kết quả
+        //        var cartItemResponses = new List<CartItemGetByCustomerDTOResponse>();
+        //        double totalPriceInCart = 0;
+        //        foreach (var cartItem in cartItems)
+        //        {
+        //            var grave = (await _unitOfWork.MartyrGraveRepository.FindAsync(m => m.MartyrId == cartItem.MartyrId)).FirstOrDefault();
+        //            if (grave != null)
+        //            {
+        //                // Tạo DTO response cho từng CartItem
+        //                var cartItemResponse = new CartItemGetByCustomerDTOResponse
+        //                {
+        //                    CartId = cartItem.CartId,
+        //                    AccountId = cartItem.AccountId,
+        //                    ServiceId = cartItem.ServiceId,
+        //                    MartyrCode = grave.MartyrCode,
+        //                    Status = cartItem.Status
+        //                };
+
+        //                // Lấy thông tin chi tiết của dịch vụ (Service) và ánh xạ sang DTO
+        //                if (cartItem.Service != null)
+        //                {
+        //                    cartItemResponse.ServiceView = _mapper.Map<ServiceDtoResponse>(cartItem.Service);
+        //                    totalPriceInCart += cartItemResponse.ServiceView.Price;
+        //                }
+
+        //                // Thêm đối tượng vào danh sách kết quả
+        //                cartItemResponses.Add(cartItemResponse);
+        //            }
+        //            else
+        //            {
+        //                throw new KeyNotFoundException("Grave not found.");
+        //            }
+        //        }
+        //        return (cartItemResponses, totalPriceInCart);  // Trả về danh sách giỏ hàng
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        throw new Exception(ex.Message);  // Quản lý lỗi nếu có bất kỳ ngoại lệ nào
+        //    }
+        //}
+
+
         public async Task<(List<CartItemGetByCustomerDTOResponse> cartitemList, double totalPriceInCart)> GetCartItemsByAccountId(int accountId)
         {
             try
@@ -124,9 +179,17 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     return (new List<CartItemGetByCustomerDTOResponse>(), 0);  // Trả về danh sách rỗng nếu không có giỏ hàng
                 }
 
+                // Lấy thông tin Account
+                var account = await _unitOfWork.AccountRepository.GetByIDAsync(accountId);
+                if (account == null)
+                {
+                    throw new KeyNotFoundException("Account not found.");
+                }
+
                 // Tạo danh sách CartItemGetByCustomerDTOResponse để chứa kết quả
                 var cartItemResponses = new List<CartItemGetByCustomerDTOResponse>();
                 double totalPriceInCart = 0;
+
                 foreach (var cartItem in cartItems)
                 {
                     var grave = (await _unitOfWork.MartyrGraveRepository.FindAsync(m => m.MartyrId == cartItem.MartyrId)).FirstOrDefault();
@@ -146,6 +209,14 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         if (cartItem.Service != null)
                         {
                             cartItemResponse.ServiceView = _mapper.Map<ServiceDtoResponse>(cartItem.Service);
+
+                            // Kiểm tra nếu CustomerCode của Account và MartyrGrave trùng nhau thì áp dụng giảm giá cho từng dịch vụ
+                            if (!string.IsNullOrEmpty(grave.CustomerCode) && grave.CustomerCode == account.CustomerCode)
+                            {
+                                cartItemResponse.ServiceView.Price *= 0.95; // Giảm giá 5% cho dịch vụ
+                            }
+
+                            // Tính tổng giá trị trong giỏ hàng
                             totalPriceInCart += cartItemResponse.ServiceView.Price;
                         }
 
@@ -157,7 +228,8 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         throw new KeyNotFoundException("Grave not found.");
                     }
                 }
-                return (cartItemResponses, totalPriceInCart);  // Trả về danh sách giỏ hàng
+
+                return (cartItemResponses, totalPriceInCart);  // Trả về danh sách giỏ hàng và tổng giá
             }
             catch (Exception ex)
             {
@@ -189,7 +261,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
         {
             try
             {
-                // Lấy danh sách CartItem dựa trên AccountId
+                // Lấy danh sách CartItem dựa trên AccountId và chỉ lấy các mục có Status là true
                 var cartItems = await _unitOfWork.CartItemRepository.GetAsync(c => c.AccountId == accountId && c.Status == true, includeProperties: "Service");
 
                 // Kiểm tra xem có mặt hàng nào trong giỏ hàng không
@@ -198,9 +270,17 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     return (new List<CartItemGetByCustomerDTOResponse>(), 0);  // Trả về danh sách rỗng nếu không có giỏ hàng
                 }
 
+                // Lấy thông tin Account
+                var account = await _unitOfWork.AccountRepository.GetByIDAsync(accountId);
+                if (account == null)
+                {
+                    throw new KeyNotFoundException("Account not found.");
+                }
+
                 // Tạo danh sách CartItemGetByCustomerDTOResponse để chứa kết quả
                 var cartItemResponses = new List<CartItemGetByCustomerDTOResponse>();
                 double totalPriceInCart = 0;
+
                 foreach (var cartItem in cartItems)
                 {
                     var grave = (await _unitOfWork.MartyrGraveRepository.FindAsync(m => m.MartyrId == cartItem.MartyrId)).FirstOrDefault();
@@ -220,6 +300,14 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         if (cartItem.Service != null)
                         {
                             cartItemResponse.ServiceView = _mapper.Map<ServiceDtoResponse>(cartItem.Service);
+
+                            // Kiểm tra nếu CustomerCode của Account và MartyrGrave trùng nhau thì áp dụng giảm giá cho từng dịch vụ
+                            if (!string.IsNullOrEmpty(grave.CustomerCode) && grave.CustomerCode == account.CustomerCode)
+                            {
+                                cartItemResponse.ServiceView.Price *= 0.95; // Giảm giá 5% cho dịch vụ
+                            }
+
+                            // Tính tổng giá trị trong giỏ hàng
                             totalPriceInCart += cartItemResponse.ServiceView.Price;
                         }
 
@@ -231,7 +319,8 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         throw new KeyNotFoundException("Grave not found.");
                     }
                 }
-                return (cartItemResponses, totalPriceInCart);  // Trả về danh sách giỏ hàng
+
+                return (cartItemResponses, totalPriceInCart);  // Trả về danh sách giỏ hàng và tổng giá
             }
             catch (Exception ex)
             {
