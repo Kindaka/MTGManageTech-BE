@@ -13,10 +13,13 @@ namespace MartyrGraveManagement.Controllers
     {
         private readonly ICustomerService _customerService;
         private readonly IAuthService _authService;
-        public CustomerController(ICustomerService customerService, IAuthService authService)
+        private readonly IAuthorizeService _authorizeService;
+
+        public CustomerController(ICustomerService customerService, IAuthService authService, IAuthorizeService authorizeService)
         {
             _customerService = customerService;
             _authService = authService;
+            _authorizeService = authorizeService;
         }
 
         [Authorize(Policy = "RequireCustomerRole")]
@@ -61,5 +64,53 @@ namespace MartyrGraveManagement.Controllers
                 return StatusCode(500, $"Internal Server Error: {ex.Message}");
             }
         }
+
+        /// <summary>
+        /// Update Profile for Customer
+        /// </summary>
+        [Authorize(Policy = "RequireCustomerRole")]
+        [HttpPut("update-profile/{accountId}")]
+        public async Task<IActionResult> UpdateProfile(int accountId, [FromBody] UpdateProfileDtoRequest updateProfileDto)
+        {
+            try
+            {
+                // Lấy AccountId từ token
+                var tokenAccountId = User.FindFirst("AccountId")?.Value;
+                if (tokenAccountId == null)
+                {
+                    return Forbid();
+                }
+
+                // Kiểm tra nếu AccountId trong URL có khớp với AccountId trong token không
+                if (int.Parse(tokenAccountId) != accountId)
+                {
+                    return Forbid("Bạn không có quyền cập nhật thông tin của tài khoản này.");
+                }
+
+                // Kiểm tra quyền truy cập của khách hàng
+                var authorizationResult = await _authorizeService.CheckAuthorizeByAccountId(accountId, int.Parse(tokenAccountId));
+                if (!authorizationResult.isMatchedCustomer)
+                {
+                    return Forbid();
+                }
+
+                // Cập nhật thông tin tài khoản
+                var result = await _customerService.UpdateProfile(accountId, updateProfileDto);
+                if (result)
+                {
+                    return Ok("Cập nhật thông tin thành công.");
+                }
+                else
+                {
+                    return BadRequest("Cập nhật thông tin thất bại.");
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Lỗi hệ thống: {ex.Message}");
+            }
+        }
+
+
     }
 }

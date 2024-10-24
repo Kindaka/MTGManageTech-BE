@@ -33,6 +33,8 @@ namespace MartyrGraveManagement_BAL.MappingProfiles
             CreateMap<UserAuthenticatingDtoResponse, Account>().ReverseMap();
             CreateMap<Account, AccountDtoResponse>().ReverseMap();
             CreateMap<Account, CustomerRegisterDtoRequest>().ReverseMap();
+            CreateMap<Account, UpdateProfileDtoRequest>().ReverseMap();
+            CreateMap<Account, UpdateProfileStaffOrManagerDtoRequest>().ReverseMap();
 
             // Area mappings
             CreateMap<Area, AreaDTOResponse>().ReverseMap();

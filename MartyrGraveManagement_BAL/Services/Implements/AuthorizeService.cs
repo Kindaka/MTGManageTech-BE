@@ -47,6 +47,40 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
         }
 
+        public async Task<(bool isMatchedStaffOrManager, bool isAuthorized)> CheckAuthorizeStaffOrManager(int userAccountId, int accountId)
+        {
+            try
+            {
+                bool isAuthorized = false;
+                bool isMatchedStaffOrManager = false;
+
+                // Lấy thông tin tài khoản từ userAccountId (người dùng hiện tại)
+                var account = await _unitOfWork.AccountRepository.GetByIDAsync(userAccountId);
+                if (account != null && account.AccountId == accountId)
+                {
+                    isMatchedStaffOrManager = true;
+                }
+
+                // Lấy thông tin tài khoản để kiểm tra quyền
+                var accountToCheck = await _unitOfWork.AccountRepository.GetByIDAsync(accountId);
+                if (accountToCheck != null)
+                {
+                    // Kiểm tra nếu tài khoản là quản lý (RoleId == 2) hoặc nhân viên (RoleId == 3)
+                    if (accountToCheck.RoleId == 2 || accountToCheck.RoleId == 3)
+                    {
+                        isAuthorized = true;
+                    }
+                }
+
+                return (isMatchedStaffOrManager, isAuthorized);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error in authorization check: {ex.Message}");
+            }
+        }
+
+
         public async Task<bool> CheckAuthorizeByCartId(int cartId, int customerId)
         {
             try

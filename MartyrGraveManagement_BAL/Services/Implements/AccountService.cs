@@ -104,5 +104,78 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
         }
 
+
+        public async Task<bool> UpdateProfileForStaffOrManager(int accountId, UpdateProfileStaffOrManagerDtoRequest updateProfileDto)
+        {
+            try
+            {
+                var account = await _unitOfWork.AccountRepository.GetByIDAsync(accountId);
+                if (account == null)
+                {
+                    throw new KeyNotFoundException("Không tìm thấy tài khoản.");
+                }
+
+                if (account.RoleId != 2 && account.RoleId != 3)
+                {
+                    throw new UnauthorizedAccessException("Chỉ có tài khoản nhân viên hoặc quản lý mới được phép cập nhật thông tin.");
+                }
+
+                // Cập nhật các thông tin của nhân viên hoặc quản lý
+                if (!string.IsNullOrEmpty(updateProfileDto.FullName))
+                {
+                    account.FullName = updateProfileDto.FullName;
+                }
+
+                if (updateProfileDto.DateOfBirth.HasValue)
+                {
+                    account.DateOfBirth = updateProfileDto.DateOfBirth.Value;
+                }
+
+                if (!string.IsNullOrEmpty(updateProfileDto.Address))
+                {
+                    account.Address = updateProfileDto.Address;
+                }
+
+                if (!string.IsNullOrEmpty(updateProfileDto.AvatarPath))
+                {
+                    account.AvatarPath = updateProfileDto.AvatarPath;
+                }
+
+                if (!string.IsNullOrEmpty(updateProfileDto.EmailAddress))
+                {
+                    account.EmailAddress = updateProfileDto.EmailAddress;
+                }
+
+                // Kiểm tra và cập nhật AreaId nếu có
+                if (updateProfileDto.AreaId.HasValue)
+                {
+                    var area = await _unitOfWork.AreaRepository.GetByIDAsync(updateProfileDto.AreaId.Value);
+                    if (area == null)
+                    {
+                        throw new KeyNotFoundException("Khu vực không tồn tại.");
+                    }
+
+                    if (!area.Status)
+                    {
+                        throw new InvalidOperationException("Khu vực không còn hiệu lực.");
+                    }
+
+                    // Chỉ cập nhật AreaId nếu khu vực tồn tại
+                    account.AreaId = updateProfileDto.AreaId;
+                }
+
+                // Lưu thông tin đã cập nhật vào cơ sở dữ liệu
+                await _unitOfWork.AccountRepository.UpdateAsync(account);
+                await _unitOfWork.SaveAsync();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Cập nhật thông tin thất bại: {ex.Message}");
+            }
+        }
+
+
     }
 }
