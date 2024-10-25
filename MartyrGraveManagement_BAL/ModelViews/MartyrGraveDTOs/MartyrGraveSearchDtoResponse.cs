@@ -15,5 +15,9 @@ namespace MartyrGraveManagement_BAL.ModelViews.MartyrGraveDTOs
         public DateTime? DateOfBirth { get; set; }
         public DateTime DateOfSacrifice { get; set; }
         public string MartyrCode { get; set; }
+        public string? GraveLocation { get; set; }
+
+        public List<GraveImageDtoResponse> ImageUrls { get; set; }
+
     }
 }

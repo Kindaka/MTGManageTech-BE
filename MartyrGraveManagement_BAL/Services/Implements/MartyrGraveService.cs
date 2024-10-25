@@ -866,19 +866,51 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             var martyrGraves = await _unitOfWork.MartyrGraveInformationRepository.GetAsync(filter, includeProperties: "MartyrGrave");
 
             // Ánh xạ từ entity sang DTO
-            var result = martyrGraves.Select(m => new MartyrGraveSearchDtoResponse
+            var result = new List<MartyrGraveSearchDtoResponse>();
+
+            foreach (var m in martyrGraves)
             {
-                MartyrId = m.MartyrId,
-                Name = m.Name,
-                NickName = m.NickName,
-                HomeTown = m.HomeTown,
-                DateOfBirth = m.DateOfBirth,
-                DateOfSacrifice = m.DateOfSacrifice,
-                MartyrCode = m.MartyrGrave?.MartyrCode
-            }).ToList();
+                var graveDto = new MartyrGraveSearchDtoResponse
+                {
+                    MartyrId = m.MartyrId,
+                    Name = m.Name,
+                    NickName = m.NickName,
+                    HomeTown = m.HomeTown,
+                    DateOfBirth = m.DateOfBirth,
+                    DateOfSacrifice = m.DateOfSacrifice,
+                    MartyrCode = m.MartyrGrave?.MartyrCode,
+                    ImageUrls = new List<GraveImageDtoResponse>() // Khởi tạo danh sách cho URL ảnh
+                };
+
+                // Ghép vị trí mộ từ AreaNumber, RowNumber, và MartyrNumber
+                var martyrGrave = m.MartyrGrave;
+                if (martyrGrave != null)
+                {
+                    graveDto.GraveLocation = $"K{martyrGrave.AreaNumber}-R{martyrGrave.RowNumber}-{martyrGrave.MartyrNumber}";
+                }
+
+                // Lấy tất cả ảnh liên quan đến MartyrGrave này
+                var graveImages = await _unitOfWork.GraveImageRepository.GetAsync(g => g.MartyrId == m.MartyrId);
+
+                // Thêm URL dưới dạng đối tượng với khóa "Image" vào danh sách ImageUrls của DTO
+                foreach (var image in graveImages)
+                {
+                    if (!string.IsNullOrEmpty(image.UrlPath))
+                    {
+                        graveDto.ImageUrls.Add(new GraveImageDtoResponse
+                        {
+                            Image = image.UrlPath
+                        });
+                    }
+                }
+
+                result.Add(graveDto);
+            }
 
             return result;
         }
+
+
 
 
     }
