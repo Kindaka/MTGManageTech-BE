@@ -11,6 +11,9 @@ namespace MartyrGraveManagement_BAL.ModelViews.CustomerDTOs
     {
 
         public string? UserName { get; set; }
+        [Required(ErrorMessage = "Phone number is required.")]
+        [StringLength(10, MinimumLength = 10, ErrorMessage = "Phone number must be exactly 10 digits.")]
+        [RegularExpression(@"^\d{10}$", ErrorMessage = "Phone number must be numeric and exactly 10 digits.")]
         public string? Phone { get; set; }
         public string? Address { get; set; }
         [EmailAddress]

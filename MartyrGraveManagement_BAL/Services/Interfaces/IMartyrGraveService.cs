@@ -15,7 +15,7 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
         Task<MartyrGraveDtoResponse> GetMartyrGraveByIdAsync(int id);
         Task<List<MartyrGraveDtoResponse>> GetMartyrGraveByCustomerCode(string customerCode);
         Task<MartyrGraveDtoResponse> CreateMartyrGraveAsync(MartyrGraveDtoRequest martyrGraveDto);
-        Task<(bool status, string result, string? accountName, string? password)> CreateMartyrGraveAsyncV2(MartyrGraveDtoRequest martyrGraveDto);
+        Task<(bool status, string result, string? phone, string? password)> CreateMartyrGraveAsyncV2(MartyrGraveDtoRequest martyrGraveDto);
         Task<(bool status, string result, string? accountName, string? password)> CreateRelativeGraveAsync(int martyrGraveId,CustomerDtoRequest customer);
         Task<MartyrGraveDtoResponse> UpdateMartyrGraveAsync(int id, MartyrGraveDtoRequest martyrGraveDto);
         Task<bool> UpdateStatusMartyrGraveAsync(int id, int status);

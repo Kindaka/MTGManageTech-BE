@@ -127,7 +127,7 @@ namespace MartyrGraveManagement.Controllers
                 var createGrave = await _martyrGraveService.CreateMartyrGraveAsyncV2(martyrGraveDto);
                 if(createGrave.status)
                 {
-                    return Ok(new { result = createGrave.result, accountName = createGrave.accountName, password = createGrave.password});
+                    return Ok(new { result = createGrave.result, phone = createGrave.phone, password = createGrave.password});
                 }
                 else
                 {
@@ -153,7 +153,7 @@ namespace MartyrGraveManagement.Controllers
                 var createGrave = await _martyrGraveService.CreateRelativeGraveAsync(graveId, customerDtoRequest);
                 if (createGrave.status)
                 {
-                    return Ok(new { result = createGrave.result, accountName = createGrave.accountName, password = createGrave.password });
+                    return Ok(new { result = createGrave.result, phone = createGrave.accountName, password = createGrave.password });
                 }
                 else
                 {

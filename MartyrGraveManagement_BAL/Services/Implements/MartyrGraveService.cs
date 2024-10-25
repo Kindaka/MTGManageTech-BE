@@ -277,7 +277,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
         }
 
 
-        public async Task<(bool status, string result, string? accountName, string? password)> CreateMartyrGraveAsyncV2(MartyrGraveDtoRequest martyrGraveDto)
+        public async Task<(bool status, string result, string? phone, string? password)> CreateMartyrGraveAsyncV2(MartyrGraveDtoRequest martyrGraveDto)
         {
             try
             {
@@ -291,9 +291,9 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 if (martyrGraveDto.Customer.UserName != null && martyrGraveDto.Customer.Phone != null)
                 {
                     var customerCode = GenerateCustomerCode(martyrGraveDto.Customer.UserName, martyrGraveDto.Customer.Phone);
-                    var existedCustomerCode = (await _unitOfWork.AccountRepository.FindAsync(c => c.CustomerCode == customerCode)).FirstOrDefault();
+                    var existedCustomer = (await _unitOfWork.AccountRepository.FindAsync(c => c.PhoneNumber == martyrGraveDto.Customer.Phone)).FirstOrDefault();
 
-                    if (existedCustomerCode != null)
+                    if (existedCustomer != null)
                     {
                         // Tạo thực thể từ DTO
                         var martyrGrave = _mapper.Map<MartyrGrave>(martyrGraveDto);
@@ -718,8 +718,8 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         if (existedGrave.CustomerCode == null)
                         {
                             var customerCode = GenerateCustomerCode(customer.UserName, customer.Phone);
-                            var existedCustomerCode = (await _unitOfWork.AccountRepository.FindAsync(c => c.CustomerCode == customerCode)).FirstOrDefault();
-                            if (existedCustomerCode == null)
+                            var existedCustomer = (await _unitOfWork.AccountRepository.FindAsync(c => c.PhoneNumber == customer.Phone)).FirstOrDefault();
+                            if (existedCustomer == null)
                             {
                                 var accountMapping = new Account
                                 {
@@ -767,6 +767,9 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                             }
                             else
                             {
+                                existedCustomer.CustomerCode = customerCode;
+                                await _unitOfWork.AccountRepository.UpdateAsync(existedCustomer);
+                                await _unitOfWork.SaveAsync();
                                 existedGrave.CustomerCode = customerCode;
                                 await _unitOfWork.MartyrGraveRepository.UpdateAsync(existedGrave);
                                 await _unitOfWork.SaveAsync();

@@ -42,7 +42,7 @@ namespace MartyrGraveManagement.Controllers
                 {
                     if (isAuthenticated.Status == false)
                     {
-                        return BadRequest("Your account is locked by administrator");
+                        return BadRequest("Tài khoản của bạn đã bị khóa");
                     }
                     var accessToken = await _authService.GenerateAccessToken(isAuthenticated);
                     if (accessToken.IsNullOrEmpty())
@@ -52,7 +52,7 @@ namespace MartyrGraveManagement.Controllers
                     response = Ok(new { accessToken = accessToken });
                     return response;
                 }
-                return NotFound("Wrong email or password");
+                return NotFound("Sai số điện thoại hoặc mật khẩu");
             }
             catch (Exception ex)
             {
