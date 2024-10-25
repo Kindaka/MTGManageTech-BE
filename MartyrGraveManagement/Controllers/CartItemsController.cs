@@ -105,7 +105,7 @@ namespace MartyrGraveManagement.Controllers
                 // Kiểm tra nếu không có giỏ hàng nào được tìm thấy
                 if (cartItems.cartitemList == null || !cartItems.cartitemList.Any())
                 {
-                    return NotFound(new { message = "No cart items found for this account." });
+                    return Ok(cartItems);
                 }
 
                 // Trả về danh sách các mục trong giỏ hàng
@@ -134,13 +134,13 @@ namespace MartyrGraveManagement.Controllers
                 {
                     return Forbid();
                 }
-                // Gọi service để lấy giỏ hàng của accountId
+
                 var cartItems = await _cartItemsService.GetCheckoutByAccountId(customerId);
 
-                // Kiểm tra nếu không có giỏ hàng nào được tìm thấy
+                
                 if (cartItems.cartitemList == null || !cartItems.cartitemList.Any())
                 {
-                    return NotFound(new { message = "No cart items found for this account." });
+                    return Ok(cartItems);
                 }
 
                 // Trả về danh sách các mục trong giỏ hàng

@@ -38,12 +38,6 @@ namespace MartyrGraveManagement.Controllers
             try
             {
                 var orders = await _odersService.GetAllOrders();
-
-                if (orders == null || !orders.Any())
-                {
-                    return NotFound(new { message = "No orders found." });
-                }
-
                 return Ok(orders);
             }
             catch (Exception ex)
@@ -59,12 +53,6 @@ namespace MartyrGraveManagement.Controllers
             try
             {
                 var order = await _odersService.GetOrderById(id);
-
-                if (order == null)
-                {
-                    return NotFound(new { message = "Order not found." });
-                }
-
                 return Ok(order);
             }
             catch (Exception ex)
@@ -93,12 +81,6 @@ namespace MartyrGraveManagement.Controllers
                     return Forbid();
                 }
                 var orders = await _odersService.GetOrderByAccountId(customerId);
-
-                if (orders == null || !orders.Any())
-                {
-                    return NotFound(new { message = "No orders found for this account." });
-                }
-
                 return Ok(orders);
             }
             catch (Exception ex)
@@ -119,11 +101,6 @@ namespace MartyrGraveManagement.Controllers
             try
             {
                 var orders = await _odersService.GetOrderByAreaId(areaId);
-                if (orders == null || !orders.Any())
-                {
-                    return NotFound(new { message = "No orders found for the given area." });
-                }
-
                 return Ok(orders);
             }
             catch (Exception ex)
