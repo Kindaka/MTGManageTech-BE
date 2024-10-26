@@ -66,12 +66,13 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     foreach (var orderDetail in order.OrderDetails)
                     {
                         var martyrGraveInfo = orderDetail.MartyrGrave?.MartyrGraveInformations?.FirstOrDefault();
-
+                        var task = (await _unitOfWork.TaskRepository.GetAsync(t => t.DetailId == orderDetail.DetailId)).FirstOrDefault();
                         var orderDetailDto = new OrderDetailDtoResponse
                         {
                             ServiceName = orderDetail.Service?.ServiceName,
                             MartyrName = martyrGraveInfo?.Name,  // Lấy thông tin liệt sĩ từ MartyrGraveInformation
-                            OrderPrice = orderDetail.OrderPrice
+                            OrderPrice = orderDetail.OrderPrice,
+                            StatusTask = task.Status
                         };
 
                         orderDto.OrderDetails.Add(orderDetailDto);
