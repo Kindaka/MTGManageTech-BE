@@ -157,8 +157,8 @@ namespace MartyrGraveManagement_DAL.Entities
                 .OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<MartyrGrave>()
                 .HasOne(mg => mg.Location)
-                .WithMany(a => a.MartyrGraves)
-                .HasForeignKey(mg => mg.LocationId)
+                .WithOne(a => a.MartyrGraves)
+                .HasForeignKey<MartyrGrave>(mg => mg.LocationId)
                 .OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<MartyrGrave>()
                 .HasOne(mg => mg.Account)
