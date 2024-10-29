@@ -343,7 +343,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
 
         public async Task<(bool status, string? paymentUrl, string responseContent)> CreateOrderFromCartAsync(int accountId)
-        {//
+        {
             using (var transaction = await _unitOfWork.BeginTransactionAsync())
             {
                 try
@@ -381,11 +381,11 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         var grave = await _unitOfWork.MartyrGraveRepository.GetByIDAsync(cartItem.MartyrId);
                         decimal priceToApply = (decimal)service.Price;
 
-                        //if (grave != null && !string.IsNullOrEmpty(grave.CustomerCode) && grave.CustomerCode == account.CustomerCode)
-                        //{
-                        //    // Giảm giá 5% nếu điều kiện CustomerCode trùng khớp
-                        //    priceToApply *= 0.95m;
-                        //}
+                        if (grave.AccountId == account.AccountId)
+                        {
+                            // Giảm giá 5% nếu điều kiện CustomerCode trùng khớp
+                            priceToApply *= 0.95m;
+                        }
 
                         totalPrice += priceToApply;
                         orderDetails.Add(new OrderDetail

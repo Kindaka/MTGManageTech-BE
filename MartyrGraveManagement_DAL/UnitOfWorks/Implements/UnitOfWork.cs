@@ -17,6 +17,7 @@ namespace MartyrGraveManagement_DAL.UnitOfWorks.Implements
         private GenericRepository<Account> _accountRepository;
         private GenericRepository<Role> _roleRepository;
         private GenericRepository<Area> _areaRepository;
+        private GenericRepository<Location> _locationRepository;
         private GenericRepository<MartyrGrave> _martyrGraveRepository;
         private GenericRepository<GraveImage> _graveImageRepository;
         private GenericRepository<MartyrGraveInformation> _martyrGraveInformationRepository;
@@ -41,6 +42,7 @@ namespace MartyrGraveManagement_DAL.UnitOfWorks.Implements
         public IGenericRepository<Account> AccountRepository => _accountRepository ??= new GenericRepository<Account>(_context);
         public IGenericRepository<Role> RoleRepository => _roleRepository ??= new GenericRepository<Role>(_context);
         public IGenericRepository<Area> AreaRepository => _areaRepository ??= new GenericRepository<Area>(_context);
+        public IGenericRepository<Location> LocationRepository => _locationRepository ??= new GenericRepository<Location>(_context);
         public IGenericRepository<MartyrGrave> MartyrGraveRepository => _martyrGraveRepository ??= new GenericRepository<MartyrGrave>(_context);
         public IGenericRepository<GraveImage> GraveImageRepository => _graveImageRepository ??= new GenericRepository<GraveImage>(_context);
         public IGenericRepository<MartyrGraveInformation> MartyrGraveInformationRepository => _martyrGraveInformationRepository ??= new GenericRepository<MartyrGraveInformation>(_context);

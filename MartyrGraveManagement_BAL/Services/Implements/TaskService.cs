@@ -21,7 +21,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
         }
 
         public async Task<IEnumerable<TaskDtoResponse>> GetAllTasksAsync()
-        {//
+        {
             var tasks = await _unitOfWork.TaskRepository.GetAsync(includeProperties: "OrderDetail.Service,OrderDetail.MartyrGrave");
 
             if (!tasks.Any())
@@ -46,10 +46,11 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
                 // Ghép vị trí mộ từ AreaNumber, RowNumber, và MartyrNumber
                 var martyrGrave = task.OrderDetail?.MartyrGrave;
-                //if (martyrGrave != null)
-                //{
-                //    taskDto.GraveLocation = $"K{martyrGrave.AreaNumber}-R{martyrGrave.RowNumber}-{martyrGrave.MartyrNumber}";
-                //}
+                if (martyrGrave != null)
+                {
+                    var location = await _unitOfWork.LocationRepository.GetByIDAsync(martyrGrave.LocationId);
+                    taskDto.GraveLocation = $"K{location.AreaNumber}-R{location.RowNumber}-{location.MartyrNumber}";
+                }
 
                 taskResponses.Add(taskDto);
             }
@@ -63,7 +64,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
 
         public async Task<IEnumerable<TaskDtoResponse>> GetTasksByAccountIdAsync(int accountId)
-        {//
+        {
             // Kiểm tra xem AccountId có tồn tại không
             var account = await _unitOfWork.AccountRepository.GetByIDAsync(accountId);
             if (account == null)
@@ -92,10 +93,11 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
                 // Ghép vị trí mộ từ AreaNumber, RowNumber, và MartyrNumber
                 var martyrGrave = task.OrderDetail?.MartyrGrave;
-                //if (martyrGrave != null)
-                //{
-                //    taskDto.GraveLocation = $"K{martyrGrave.AreaNumber}-R{martyrGrave.RowNumber}-{martyrGrave.MartyrNumber}";
-                //}
+                if (martyrGrave != null)
+                {
+                    var location = await _unitOfWork.LocationRepository.GetByIDAsync(martyrGrave.LocationId);
+                    taskDto.GraveLocation = $"K{location.AreaNumber}-R{location.RowNumber}-{location.MartyrNumber}";
+                }
 
                 taskResponses.Add(taskDto);
             }
@@ -109,7 +111,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
 
         public async Task<TaskDtoResponse> GetTaskByIdAsync(int taskId)
-        {//
+        {
             // Lấy thông tin Task theo taskId, bao gồm các bảng liên quan
             var task = await _unitOfWork.TaskRepository.GetAsync(t => t.TaskId == taskId, includeProperties: "OrderDetail.Service,OrderDetail.MartyrGrave");
 
@@ -134,10 +136,11 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
             // Ghép vị trí mộ từ AreaNumber, RowNumber, và MartyrNumber
             var martyrGrave = singleTask.OrderDetail?.MartyrGrave;
-            //if (martyrGrave != null)
-            //{
-            //    taskDto.GraveLocation = $"K{martyrGrave.AreaNumber}-R{martyrGrave.RowNumber}-{martyrGrave.MartyrNumber}";
-            //}
+            if (martyrGrave != null)
+            {
+                var location = await _unitOfWork.LocationRepository.GetByIDAsync(martyrGrave.LocationId);
+                taskDto.GraveLocation = $"K{location.AreaNumber}-R{location.RowNumber}-{location.MartyrNumber}";
+            }
 
             return taskDto;
         }

@@ -140,31 +140,7 @@ namespace MartyrGraveManagement.Controllers
             }
         }
 
-        [Authorize(Policy = "RequireManagerRole")]
-        [HttpPost("create-relative-grave-v2")]
-        public async Task<IActionResult> CreateRelativeGrave([FromBody] CustomerDtoRequest customerDtoRequest, int graveId)
-        {
-            try
-            {
-                if(customerDtoRequest.UserName == null || customerDtoRequest.Phone == null)
-                {
-                    return BadRequest("Username or phone must be required");
-                }
-                var createGrave = await _martyrGraveService.CreateRelativeGraveAsync(graveId, customerDtoRequest);
-                if (createGrave.status)
-                {
-                    return Ok(new { result = createGrave.result, phone = createGrave.accountName, password = createGrave.password });
-                }
-                else
-                {
-                    return BadRequest($"{createGrave.result}");
-                }
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
-            }
-        }
+
 
         /// <summary>
         /// Updates a martyr grave with the specified ID.
