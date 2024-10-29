@@ -114,7 +114,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 {
                     FeedbackId = f.FeedbackId,
                     AccountId = f.AccountId,
-                    OrderId = f.OrderId,
+                    DetailId = f.DetailId,
                     Content = f.Content,
                     CreatedAt = f.CreatedAt,
                     UpdatedAt = f.UpdatedAt,

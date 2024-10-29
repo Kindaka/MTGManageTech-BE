@@ -212,7 +212,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                             cartItemResponse.ServiceView = _mapper.Map<ServiceDtoResponse>(cartItem.Service);
 
                             // Kiểm tra nếu CustomerCode của Account và MartyrGrave trùng nhau thì áp dụng giảm giá cho từng dịch vụ
-                            if (!string.IsNullOrEmpty(grave.CustomerCode) && grave.CustomerCode == account.CustomerCode)
+                            if (grave.AccountId == account.AccountId)
                             {
                                 cartItemResponse.ServiceView.Price *= 0.95; // Giảm giá 5% cho dịch vụ
                             }
@@ -303,7 +303,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                             cartItemResponse.ServiceView = _mapper.Map<ServiceDtoResponse>(cartItem.Service);
 
                             // Kiểm tra nếu CustomerCode của Account và MartyrGrave trùng nhau thì áp dụng giảm giá cho từng dịch vụ
-                            if (!string.IsNullOrEmpty(grave.CustomerCode) && grave.CustomerCode == account.CustomerCode)
+                            if (grave.AccountId == account.AccountId)
                             {
                                 cartItemResponse.ServiceView.Price *= 0.95; // Giảm giá 5% cho dịch vụ
                             }

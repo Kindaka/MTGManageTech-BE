@@ -11,7 +11,7 @@ namespace MartyrGraveManagement_BAL.ModelViews.FeedbackDTOs
     {
         public int FeedbackId { get; set; }
         public int AccountId { get; set; }
-        public int OrderId { get; set; }
+        public int DetailId { get; set; }
         public string Content { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }

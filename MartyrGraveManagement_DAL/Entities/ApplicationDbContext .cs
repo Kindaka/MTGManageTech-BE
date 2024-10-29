@@ -16,6 +16,7 @@ namespace MartyrGraveManagement_DAL.Entities
 
         public DbSet<ServiceCategory> ServiceCategories { get; set; }
         public DbSet<Service> Services { get; set; }
+        public DbSet<Material> Materials { get; set; }
         public DbSet<Account> Accounts { get; set; }
         public DbSet<Role> Roles { get; set; }
         public DbSet<Order> Orders { get; set; }
@@ -24,11 +25,27 @@ namespace MartyrGraveManagement_DAL.Entities
         public DbSet<CartItemCustomer> CartItems { get; set; }
         public DbSet<Feedback> Feedbacks { get; set; }
         public DbSet<MartyrGrave> MartyrGraves { get; set; }
+        public DbSet<GraveImage> GraveImages { get; set; }
         public DbSet<MartyrGraveInformation> MartyrGraveInformations { get; set; }
         public DbSet<WeeklyReportGrave> WeeklyReportGraves { get; set; }
         public DbSet<Area> Areas { get; set; }
         public DbSet<StaffTask> Tasks { get; set; }
         public DbSet<WorkPerformance> WorkPerformances { get; set; }
+        public DbSet<GraveService> GraveServices { get; set; }
+        public DbSet<HistoricalEvent> HistoricalEvents { get; set; }
+        public DbSet<HistoricalImage> HistoricalImages { get; set; }
+        public DbSet<HistoricalRelatedMartyr> HistoricalRelatedMartyrs { get; set; }
+        public DbSet<Holiday_Event> HolidayEvents { get; set; }
+        public DbSet<Icon> Icons { get; set; }
+        public DbSet<Comment_Icon> Comment_Icons { get; set; }
+        public DbSet<Comment> Comments { get; set; }
+        public DbSet<Event_Image> EventImages { get; set; }
+        public DbSet<Comment_Report> CommentReports { get; set; }
+        public DbSet<Location> Locations { get; set; }
+        public DbSet<Schedule_Staff> ScheduleStaffs { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
+        public DbSet<NotificationAccount> NotificationAccounts { get; set; }
+        public DbSet<Slot> Slots { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -92,8 +109,8 @@ namespace MartyrGraveManagement_DAL.Entities
                 .HasKey(p => p.PaymentId);
             modelBuilder.Entity<Payment>()
                 .HasOne(p => p.Order)
-                .WithOne(o => o.Payment)
-                .HasForeignKey<Payment>(p => p.OrderId)
+                .WithMany(o => o.Payments)
+                .HasForeignKey(p => p.OrderId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // CartItem Configuration
@@ -124,9 +141,9 @@ namespace MartyrGraveManagement_DAL.Entities
                 .HasForeignKey(f => f.AccountId)
                 .OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<Feedback>()
-                .HasOne(f => f.Order)
+                .HasOne(f => f.OrderDetail)
                 .WithOne(o => o.Feedback)
-                .HasForeignKey<Feedback>(f => f.OrderId)
+                .HasForeignKey<Feedback>(f => f.DetailId)
                 .OnDelete(DeleteBehavior.Restrict);
 
 
@@ -138,6 +155,16 @@ namespace MartyrGraveManagement_DAL.Entities
                 .WithMany(a => a.MartyrGraves)
                 .HasForeignKey(mg => mg.AreaId)
                 .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<MartyrGrave>()
+                .HasOne(mg => mg.Location)
+                .WithMany(a => a.MartyrGraves)
+                .HasForeignKey(mg => mg.LocationId)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<MartyrGrave>()
+                .HasOne(mg => mg.Account)
+                .WithMany(a => a.MartyrGraves)
+                .HasForeignKey(mg => mg.AccountId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             // MartyrGraveInformation Configuration
             modelBuilder.Entity<MartyrGraveInformation>()
@@ -147,6 +174,21 @@ namespace MartyrGraveManagement_DAL.Entities
                 .WithMany(mg => mg.MartyrGraveInformations)
                 .HasForeignKey(mgi => mgi.MartyrId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            //GraveService Configuration
+            modelBuilder.Entity<GraveService>()
+                .HasKey(mgi => mgi.GraveServiceId);
+            modelBuilder.Entity<GraveService>()
+                .HasOne(mgi => mgi.MartyrGrave)
+                .WithMany(mg => mg.GraveServices)
+                .HasForeignKey(mgi => mgi.MartyrId)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<GraveService>()
+                .HasOne(mgi => mgi.Service)
+                .WithMany(mg => mg.GraveServices)
+                .HasForeignKey(mgi => mgi.ServiceId)
+                .OnDelete(DeleteBehavior.Restrict);
+
 
             // WeeklyReportGrave Configuration
             modelBuilder.Entity<WeeklyReportGrave>()
@@ -162,6 +204,101 @@ namespace MartyrGraveManagement_DAL.Entities
             modelBuilder.Entity<Area>()
                 .HasKey(a => a.AreaId);
 
+            // Location Configuration
+            modelBuilder.Entity<Location>()
+                .HasKey(l => l.LocationId);
+
+            //Historical_Event Configuration
+            modelBuilder.Entity<HistoricalEvent>()
+                .HasKey(he => he.HistoryId);
+
+            // Historical_Related_Martyr Configuration
+            modelBuilder.Entity<HistoricalRelatedMartyr>()
+                .HasKey(hrm => hrm.RelatedId);
+            modelBuilder.Entity<HistoricalRelatedMartyr>()
+                .HasOne(hrm => hrm.MartyrGraveInformation)
+                .WithMany(mg => mg.HistoricalRelatedMartyrs)
+                .HasForeignKey(hrm => hrm.InformationId)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<HistoricalRelatedMartyr>()
+                .HasOne(hrm => hrm.History)
+                .WithMany(hrm => hrm.HistoricalRelatedMartyrs)
+                .HasForeignKey(hrm => hrm.HistoryId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Historical_Image Configuration
+            modelBuilder.Entity<HistoricalImage>()
+                .HasKey(hi => hi.ImageId);
+            modelBuilder.Entity<HistoricalImage>()
+                .HasOne(hi => hi.HistoricalEvent)
+                .WithMany(hi => hi.HistoricalImages)
+                .HasForeignKey(hi => hi.HistoryId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Comment Configuration
+            modelBuilder.Entity<Comment>()
+                .HasKey(c => c.CommentId);
+            modelBuilder.Entity<Comment>()
+                .HasOne(c => c.HistoricalEvent)
+                .WithMany(c => c.Comments)
+                .HasForeignKey(c => c.HistoryId)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Comment>()
+                .HasOne(c => c.Account)
+                .WithMany(c => c.Comments)
+                .HasForeignKey(c => c.AccountId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            //Icon Configuration
+            modelBuilder.Entity<Icon>()
+                .HasKey(i => i.IconId);
+
+            //Comment_Icon Configuration
+            modelBuilder.Entity<Comment_Icon>()
+                .HasKey(ci => ci.Id);
+            modelBuilder.Entity<Comment_Icon>()
+                .HasOne(ci => ci.Icon)
+                .WithMany(ci => ci.Comment_Icons)
+                .HasForeignKey(ci => ci.IconId)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Comment_Icon>()
+                .HasOne(ci => ci.Comment)
+                .WithMany(ci => ci.Comment_Icons)
+                .HasForeignKey(ci => ci.CommentId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Report Configuration
+            modelBuilder.Entity<Comment_Report>()
+                .HasKey(cr => cr.ReportId);
+            modelBuilder.Entity<Comment_Report>()
+                .HasOne(cr => cr.Comment)
+                .WithMany(cr => cr.Comment_Reports)
+                .HasForeignKey(cr => cr.CommentId)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Comment_Report>()
+                .HasOne(cr => cr.Account)
+                .WithMany(cr => cr.Comment_Reports)
+                .HasForeignKey(cr => cr.AccountId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Holiday_Event Configuration
+            modelBuilder.Entity<Holiday_Event>()
+                .HasKey(he => he.EventId);
+            modelBuilder.Entity<Holiday_Event>()
+                .HasOne(he => he.Account)
+                .WithMany(he => he.Holiday_Events)
+                .HasForeignKey(he => he.AccountId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Event_Image Configuration
+            modelBuilder.Entity<Event_Image>()
+                .HasKey(ei => ei.ImageId);
+            modelBuilder.Entity<Event_Image>()
+                .HasOne(ei => ei.Holiday_Event)
+                .WithMany(ei => ei.EventImages)
+                .HasForeignKey(ei => ei.EventId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             // Task Configuration
             modelBuilder.Entity<StaffTask>()
                 .HasKey(t => t.TaskId);
@@ -172,8 +309,44 @@ namespace MartyrGraveManagement_DAL.Entities
                 .OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<StaffTask>()
                 .HasOne(t => t.OrderDetail)
-                .WithOne(o => o.StaffTask)
-                .HasForeignKey<StaffTask>(t => t.DetailId)
+                .WithMany(o => o.StaffTasks)
+                .HasForeignKey(t => t.DetailId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Slot Configuration
+            modelBuilder.Entity<Slot>()
+                .HasKey(s => s.SlotId);
+
+            // Schedule_Staff Configuration
+            modelBuilder.Entity<Schedule_Staff>()
+                .HasKey(ss => ss.ScheduleId);
+            modelBuilder.Entity<Schedule_Staff>()
+                .HasOne(ss => ss.Account)
+                .WithMany(ss => ss.Schedules)
+                .HasForeignKey(ss => ss.AccountId)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Schedule_Staff>()
+                .HasOne(ss => ss.Slot)
+                .WithMany(ss => ss.Schedules)
+                .HasForeignKey(ss => ss.SlotId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            //Notification Configuration
+            modelBuilder.Entity<Notification>()
+                .HasKey(n => n.NotificationId);
+
+            //Notification_Account Configuration
+            modelBuilder.Entity<NotificationAccount>()
+                .HasKey(n => n.Id);
+            modelBuilder.Entity<NotificationAccount>()
+                .HasOne(n => n.Notification)
+                .WithMany(n => n.NotificationAccounts)
+                .HasForeignKey(n => n.NotificationId)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<NotificationAccount>()
+                .HasOne(n => n.Account)
+                .WithMany(n => n.NotificationAccounts)
+                .HasForeignKey(n => n.AccountId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // WorkPerformance Configuration

@@ -136,7 +136,7 @@ builder.Services.AddScoped<IAreaService, AreaService>();
 builder.Services.AddScoped<IMartyrGraveService, MartyrGraveService>();
 builder.Services.AddScoped<IMartyrGraveInformationService, MartyrGraveInformationService>();
 builder.Services.AddScoped<IServiceCategory_Service, ServiceCategory_Service>();
-builder.Services.AddScoped<IGraveService_Service, GraveService_Service>();
+builder.Services.AddScoped<IService_Service, Service_Service>();
 builder.Services.AddScoped<ICartService, CartItemsService>();
 builder.Services.AddScoped<ITaskService, TaskService>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();

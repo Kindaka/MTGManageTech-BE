@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace MartyrGraveManagement_BAL.Services.Interfaces
 {
-    public interface IGraveService_Service
+    public interface IService_Service
     {
         Task<(bool status, string result)> AddService(ServiceDtoRequest service);
         Task<(bool status, string result)> UpdateService(ServiceDtoRequest service, int serviceId);

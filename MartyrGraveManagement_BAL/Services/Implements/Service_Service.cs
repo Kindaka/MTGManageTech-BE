@@ -13,11 +13,11 @@ using System.Threading.Tasks;
 
 namespace MartyrGraveManagement_BAL.Services.Implements
 {
-    public class GraveService_Service : IGraveService_Service
+    public class Service_Service : IService_Service
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        public GraveService_Service(IUnitOfWork unitOfWork, IMapper mapper)
+        public Service_Service(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;

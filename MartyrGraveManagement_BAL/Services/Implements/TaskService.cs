@@ -21,7 +21,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
         }
 
         public async Task<IEnumerable<TaskDtoResponse>> GetAllTasksAsync()
-        {
+        {//
             var tasks = await _unitOfWork.TaskRepository.GetAsync(includeProperties: "OrderDetail.Service,OrderDetail.MartyrGrave");
 
             if (!tasks.Any())
@@ -46,10 +46,10 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
                 // Ghép vị trí mộ từ AreaNumber, RowNumber, và MartyrNumber
                 var martyrGrave = task.OrderDetail?.MartyrGrave;
-                if (martyrGrave != null)
-                {
-                    taskDto.GraveLocation = $"K{martyrGrave.AreaNumber}-R{martyrGrave.RowNumber}-{martyrGrave.MartyrNumber}";
-                }
+                //if (martyrGrave != null)
+                //{
+                //    taskDto.GraveLocation = $"K{martyrGrave.AreaNumber}-R{martyrGrave.RowNumber}-{martyrGrave.MartyrNumber}";
+                //}
 
                 taskResponses.Add(taskDto);
             }
@@ -63,7 +63,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
 
         public async Task<IEnumerable<TaskDtoResponse>> GetTasksByAccountIdAsync(int accountId)
-        {
+        {//
             // Kiểm tra xem AccountId có tồn tại không
             var account = await _unitOfWork.AccountRepository.GetByIDAsync(accountId);
             if (account == null)
@@ -92,10 +92,10 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
                 // Ghép vị trí mộ từ AreaNumber, RowNumber, và MartyrNumber
                 var martyrGrave = task.OrderDetail?.MartyrGrave;
-                if (martyrGrave != null)
-                {
-                    taskDto.GraveLocation = $"K{martyrGrave.AreaNumber}-R{martyrGrave.RowNumber}-{martyrGrave.MartyrNumber}";
-                }
+                //if (martyrGrave != null)
+                //{
+                //    taskDto.GraveLocation = $"K{martyrGrave.AreaNumber}-R{martyrGrave.RowNumber}-{martyrGrave.MartyrNumber}";
+                //}
 
                 taskResponses.Add(taskDto);
             }
@@ -109,7 +109,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
 
         public async Task<TaskDtoResponse> GetTaskByIdAsync(int taskId)
-        {
+        {//
             // Lấy thông tin Task theo taskId, bao gồm các bảng liên quan
             var task = await _unitOfWork.TaskRepository.GetAsync(t => t.TaskId == taskId, includeProperties: "OrderDetail.Service,OrderDetail.MartyrGrave");
 
@@ -134,10 +134,10 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
             // Ghép vị trí mộ từ AreaNumber, RowNumber, và MartyrNumber
             var martyrGrave = singleTask.OrderDetail?.MartyrGrave;
-            if (martyrGrave != null)
-            {
-                taskDto.GraveLocation = $"K{martyrGrave.AreaNumber}-R{martyrGrave.RowNumber}-{martyrGrave.MartyrNumber}";
-            }
+            //if (martyrGrave != null)
+            //{
+            //    taskDto.GraveLocation = $"K{martyrGrave.AreaNumber}-R{martyrGrave.RowNumber}-{martyrGrave.MartyrNumber}";
+            //}
 
             return taskDto;
         }
@@ -453,7 +453,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
 
         public async Task<List<TaskDtoResponse>> CreateTasksAsync(List<TaskDtoRequest> taskDtos)
-        {
+        {//
             var taskResponses = new List<TaskDtoResponse>();
 
             foreach (var taskDto in taskDtos)
@@ -479,7 +479,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     throw new InvalidOperationException("Invalid DetailId or does not belong to the given OrderId.");
                 }
 
-            
+
                 // Tự động điều chỉnh EndDate của Task không được vượt quá EndDate của Order
                 DateTime taskEndDate = order.EndDate;
                 if (taskDto.EndDate <= order.EndDate)
@@ -499,7 +499,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 };
 
                 // Gán task cho order detail
-                orderDetail.StaffTask = taskEntity;
+                //orderDetail.StaffTask = taskEntity;
 
                 // Thêm Task vào cơ sở dữ liệu
                 await _unitOfWork.TaskRepository.AddAsync(taskEntity);
@@ -846,7 +846,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
 
         public async Task<bool> DeleteTaskAsync(int taskId)
-        {
+        {//
             using (var transaction = await _unitOfWork.BeginTransactionAsync())
             {
                 try
@@ -872,7 +872,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     }
 
                     // 4. Nếu task được xóa, có thể cập nhật OrderDetail (nếu cần)
-                    orderDetail.StaffTask = null; // Gỡ liên kết task khỏi OrderDetail
+                    //orderDetail.StaffTask = null; // Gỡ liên kết task khỏi OrderDetail
 
                     // 5. Xóa Task khỏi cơ sở dữ liệu
                     await _unitOfWork.TaskRepository.DeleteAsync(task);

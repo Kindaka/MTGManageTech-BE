@@ -16,7 +16,6 @@ namespace MartyrGraveManagement_DAL.Entities
         public string? CustomerCode { get; set; }
         public int RoleId { get; set; }
         public int? AreaId { get; set; }
-        //public string AccountName { get; set; } // để login
         public string HashedPassword { get; set; }
         public string? EmailAddress { get; set; } // để gửi WeeklyReport qua mail không dùng đề login
         [Column(TypeName = "nvarchar(255)")]
@@ -35,6 +34,13 @@ namespace MartyrGraveManagement_DAL.Entities
         public IEnumerable<WorkPerformance>? WorkPerformances { get; set; }
         public IEnumerable<StaffTask>? Tasks { get; set; }
         public IEnumerable<CartItemCustomer>? CartItems { get; set; }
+        public IEnumerable<Comment>? Comments { get; set; }
+        public IEnumerable<MartyrGrave>? MartyrGraves { get; set; }
+        public IEnumerable<Comment_Icon>? Comment_Icons { get; set; }
+        public IEnumerable<Comment_Report>? Comment_Reports { get; set; }
+        public IEnumerable<Schedule_Staff>? Schedules { get; set; }
+        public IEnumerable<Holiday_Event>? Holiday_Events { get; set; }
+        public IEnumerable<NotificationAccount>? NotificationAccounts { get; set; }
 
 
     }

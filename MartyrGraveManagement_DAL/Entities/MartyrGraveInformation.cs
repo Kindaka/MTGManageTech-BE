@@ -18,16 +18,19 @@ namespace MartyrGraveManagement_DAL.Entities
         public string Name { get; set; }
         [Column(TypeName = "nvarchar(100)")]
         public string? NickName { get; set; }
-        [Column(TypeName = "nvarchar(100)")]
+        [Column(TypeName = "nvarchar(250)")]
         public string? Position { get; set; }
-        [Column(TypeName = "nvarchar(255)")]
+        [Column(TypeName = "nvarchar(1000)")]
         public string? Medal { get; set; }
         [Column(TypeName = "nvarchar(100)")]
         public string? HomeTown { get; set; }
         public DateTime? DateOfBirth { get; set; }
         public DateTime DateOfSacrifice { get; set; }
+        [Column(TypeName = "nvarchar(1000)")]
+        public string? ReasonOfSacrifice { get; set; }
 
-        public MartyrGrave MartyrGrave { get; set; }
+        public MartyrGrave? MartyrGrave { get; set; }
+        public IEnumerable<HistoricalRelatedMartyr> HistoricalRelatedMartyrs { get; set; }
     }
 
 }

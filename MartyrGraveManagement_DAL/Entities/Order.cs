@@ -26,8 +26,7 @@ namespace MartyrGraveManagement_DAL.Entities
         public string? ResponseContent { get; set; }
         public Account? Account { get; set; }
         public IEnumerable<OrderDetail>? OrderDetails { get; set; }
-        public Payment? Payment { get; set; }
-        public Feedback? Feedback { get; set; }
+        public IEnumerable<Payment>? Payments { get; set; }
     }
 
 }

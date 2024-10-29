@@ -13,8 +13,8 @@ namespace MartyrGraveManagement.Controllers
     [ApiController]
     public class ServiceController : ControllerBase
     {
-        private readonly IGraveService_Service _service;
-        public ServiceController(IGraveService_Service service)
+        private readonly IService_Service _service;
+        public ServiceController(IService_Service service)
         {
             _service = service;
         }
