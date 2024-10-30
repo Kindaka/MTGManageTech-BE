@@ -14,7 +14,7 @@ namespace MartyrGraveManagement_DAL.Entities
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int CommentId { get; set; }
         public int AccountId { get; set; }
-        public int HistoryId { get; set; }
+        public int BlogId { get; set; }
         [Column(TypeName = "nvarchar(MAX)")]
         public string Content { get; set; }
         public DateTime CreatedDate { get; set; }
@@ -23,7 +23,7 @@ namespace MartyrGraveManagement_DAL.Entities
 
         // Navigation properties
         public Account? Account { get; set; }
-        public HistoricalEvent? HistoricalEvent { get; set; }
+        public Blog? Blog { get; set; }
         public IEnumerable<Comment_Icon>? Comment_Icons { get; set; }
         public IEnumerable<Comment_Report>? Comment_Reports { get; set; }
     }

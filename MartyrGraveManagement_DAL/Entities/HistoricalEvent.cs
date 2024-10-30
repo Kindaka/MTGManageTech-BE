@@ -21,9 +21,6 @@ namespace MartyrGraveManagement_DAL.Entities
         public DateTime EndTime { get; set; }
         public bool Status { get; set; }
 
-
-        public ICollection<HistoricalImage>? HistoricalImages { get; set; }
-        public ICollection<Comment>? Comments { get; set; }
-        public IEnumerable<HistoricalRelatedMartyr>? HistoricalRelatedMartyrs { get; set; }
+        public IEnumerable<Blog>? Blogs { get; set; }
     }
 }

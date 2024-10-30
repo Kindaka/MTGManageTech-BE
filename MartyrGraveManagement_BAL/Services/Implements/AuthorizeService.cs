@@ -17,29 +17,29 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<(bool isMatchedCustomer, bool isAuthorizedAccount)> CheckAuthorizeByAccountId(int userAccountId, int accountId)
+        public async Task<(bool isMatchedAccount, bool isAuthorizedAccount)> CheckAuthorizeByAccountId(int userAccountId, int accountId)
         {
             try
             {
                 bool isAuthorizedAccount = false;
-                bool isMatchedCustomer = false;
+                bool isMatchedAccount = false;
                 var account = (await _unitOfWork.AccountRepository.GetByIDAsync(userAccountId));
                 if (account != null)
                 {
                     if (account.AccountId == accountId)
                     {
-                        isMatchedCustomer = true;
+                        isMatchedAccount = true;
                     }
                 }
                 var accountJwt = await _unitOfWork.AccountRepository.GetByIDAsync(accountId);
                 if (accountJwt != null)
                 {
-                    if (accountJwt.RoleId == 1 || accountJwt.RoleId == 2)
+                    if (accountJwt.RoleId == 1 || accountJwt.RoleId == 2 || accountJwt.RoleId == 3 || accountJwt.RoleId == 4)
                     {
                         isAuthorizedAccount = true;
                     }
                 }
-                return (isMatchedCustomer, isAuthorizedAccount);
+                return (isMatchedAccount, isAuthorizedAccount);
             }
             catch (Exception ex)
             {

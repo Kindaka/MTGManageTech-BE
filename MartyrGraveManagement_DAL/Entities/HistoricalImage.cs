@@ -13,9 +13,9 @@ namespace MartyrGraveManagement_DAL.Entities
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int ImageId { get; set; }
-        public int HistoryId { get; set; }
+        public int BlogId { get; set; }
         public string? ImagePath { get; set; }
 
-        public HistoricalEvent? HistoricalEvent { get; set; }
+        public Blog? Blog { get; set; }
     }
 }

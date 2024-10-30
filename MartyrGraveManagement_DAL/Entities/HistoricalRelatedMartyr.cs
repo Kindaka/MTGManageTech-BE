@@ -13,11 +13,11 @@ namespace MartyrGraveManagement_DAL.Entities
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int RelatedId { get; set; }
-        public int HistoryId { get; set; }
+        public int BlogId { get; set; }
         public int InformationId { get; set; }
         public bool Status { get; set; }
 
         public MartyrGraveInformation? MartyrGraveInformation { get; set; }
-        public HistoricalEvent? History { get; set; }
+        public Blog? Blog { get; set; }
     }
 }

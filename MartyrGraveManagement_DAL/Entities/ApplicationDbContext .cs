@@ -32,7 +32,7 @@ namespace MartyrGraveManagement_DAL.Entities
         public DbSet<StaffTask> Tasks { get; set; }
         public DbSet<WorkPerformance> WorkPerformances { get; set; }
         public DbSet<GraveService> GraveServices { get; set; }
-        public DbSet<HistoricalEvent> HistoricalEvents { get; set; }
+        public DbSet<Blog> Blogs { get; set; }
         public DbSet<HistoricalImage> HistoricalImages { get; set; }
         public DbSet<HistoricalRelatedMartyr> HistoricalRelatedMartyrs { get; set; }
         public DbSet<Holiday_Event> HolidayEvents { get; set; }
@@ -209,8 +209,18 @@ namespace MartyrGraveManagement_DAL.Entities
                 .HasKey(l => l.LocationId);
 
             //Historical_Event Configuration
-            modelBuilder.Entity<HistoricalEvent>()
-                .HasKey(he => he.HistoryId);
+            modelBuilder.Entity<Blog>()
+                .HasKey(b => b.BlogId);
+            modelBuilder.Entity<Blog>()
+                .HasOne(b => b.Account)
+                .WithMany(b => b.Blogs)
+                .HasForeignKey(b => b.AccountId)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Blog>()
+                .HasOne(b => b.HistoricalEvent)
+                .WithMany(b => b.Blogs)
+                .HasForeignKey(b => b.HistoryId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             // Historical_Related_Martyr Configuration
             modelBuilder.Entity<HistoricalRelatedMartyr>()
@@ -221,27 +231,27 @@ namespace MartyrGraveManagement_DAL.Entities
                 .HasForeignKey(hrm => hrm.InformationId)
                 .OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<HistoricalRelatedMartyr>()
-                .HasOne(hrm => hrm.History)
+                .HasOne(hrm => hrm.Blog)
                 .WithMany(hrm => hrm.HistoricalRelatedMartyrs)
-                .HasForeignKey(hrm => hrm.HistoryId)
+                .HasForeignKey(hrm => hrm.BlogId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Historical_Image Configuration
             modelBuilder.Entity<HistoricalImage>()
                 .HasKey(hi => hi.ImageId);
             modelBuilder.Entity<HistoricalImage>()
-                .HasOne(hi => hi.HistoricalEvent)
+                .HasOne(hi => hi.Blog)
                 .WithMany(hi => hi.HistoricalImages)
-                .HasForeignKey(hi => hi.HistoryId)
+                .HasForeignKey(hi => hi.BlogId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Comment Configuration
             modelBuilder.Entity<Comment>()
                 .HasKey(c => c.CommentId);
             modelBuilder.Entity<Comment>()
-                .HasOne(c => c.HistoricalEvent)
+                .HasOne(c => c.Blog)
                 .WithMany(c => c.Comments)
-                .HasForeignKey(c => c.HistoryId)
+                .HasForeignKey(c => c.BlogId)
                 .OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<Comment>()
                 .HasOne(c => c.Account)

@@ -51,6 +51,35 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
         }
 
+        public async Task<AccountDtoResponse> GetAccountProfile(int accountId)
+        {
+            try
+            {
+                var account = await _unitOfWork.AccountRepository.GetByIDAsync(accountId);
+                if (account != null) {
+                    var accountResponse = new AccountDtoResponse()
+                    {
+                        AccountId = account.AccountId,
+                        AreaId = account.AreaId,
+                        FullName = account.FullName,
+                        DateOfBirth = account.DateOfBirth,
+                        phoneNumber = account.PhoneNumber,
+                        EmailAddress = account.EmailAddress,
+                        Address = account.Address,
+                        AvatarPath = account.AvatarPath,
+                        CreateAt = account.CreateAt,
+                        RoleId = account.RoleId,
+                        Status = account.Status
+                    };
+                    return accountResponse;
+                }
+                return null;
+            }
+            catch (Exception ex) {
+                throw new Exception(ex.Message);
+            }
+        }
+
         public async Task<(List<AccountDtoResponse> managerList, int totalPage)> GetManagerList(int page, int pageSize)
         {
             try
@@ -147,21 +176,24 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 }
 
                 // Kiểm tra và cập nhật AreaId nếu có
-                if (updateProfileDto.AreaId.HasValue)
+                if (account.RoleId == 2)
                 {
-                    var area = await _unitOfWork.AreaRepository.GetByIDAsync(updateProfileDto.AreaId.Value);
-                    if (area == null)
+                    if (updateProfileDto.AreaId.HasValue)
                     {
-                        throw new KeyNotFoundException("Khu vực không tồn tại.");
-                    }
+                        var area = await _unitOfWork.AreaRepository.GetByIDAsync(updateProfileDto.AreaId.Value);
+                        if (area == null)
+                        {
+                            throw new KeyNotFoundException("Khu vực không tồn tại.");
+                        }
 
-                    if (!area.Status)
-                    {
-                        throw new InvalidOperationException("Khu vực không còn hiệu lực.");
-                    }
+                        if (!area.Status)
+                        {
+                            throw new InvalidOperationException("Khu vực không còn hiệu lực.");
+                        }
 
-                    // Chỉ cập nhật AreaId nếu khu vực tồn tại
-                    account.AreaId = updateProfileDto.AreaId;
+                        // Chỉ cập nhật AreaId nếu khu vực tồn tại
+                        account.AreaId = updateProfileDto.AreaId;
+                    }
                 }
 
                 // Lưu thông tin đã cập nhật vào cơ sở dữ liệu

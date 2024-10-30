@@ -32,6 +32,7 @@ namespace MartyrGraveManagement_DAL.UnitOfWorks.Implements
         private GenericRepository<StaffTask> _taskRepository;
         private GenericRepository<Material> _materialRepository;
         private GenericRepository<Feedback> _feedbackRepository;
+        private GenericRepository<GraveService> _graveServiceRepository;
 
 
         public UnitOfWork(ApplicationDbContext context)
@@ -58,6 +59,7 @@ namespace MartyrGraveManagement_DAL.UnitOfWorks.Implements
         public IGenericRepository<OrderDetail> OrderDetailRepository => _orderDetailRepository ??= new GenericRepository<OrderDetail>(_context);
 
         public IGenericRepository<Payment> PaymentRepository => _paymentRepository ??= new GenericRepository<Payment>(_context);
+        public IGenericRepository<GraveService> GraveServiceRepository => _graveServiceRepository ??= new GenericRepository<GraveService>(_context);
         public async Task<IDbContextTransaction> BeginTransactionAsync()
         {
             return await _context.Database.BeginTransactionAsync();

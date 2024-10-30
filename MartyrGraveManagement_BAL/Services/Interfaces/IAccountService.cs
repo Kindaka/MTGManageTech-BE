@@ -14,5 +14,6 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
         Task<(List<AccountDtoResponse> managerList, int totalPage)> GetManagerList(int page, int pageSize);
         Task<bool> UpdateProfileForStaffOrManager(int accountId, UpdateProfileStaffOrManagerDtoRequest updateProfileDto);
         Task<bool> ChangeStatusUser(int accountId);
+        Task<AccountDtoResponse> GetAccountProfile(int accountId);
     }
 }

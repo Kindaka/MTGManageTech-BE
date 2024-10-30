@@ -41,6 +41,7 @@ namespace MartyrGraveManagement_DAL.Entities
         public IEnumerable<Schedule_Staff>? Schedules { get; set; }
         public IEnumerable<Holiday_Event>? Holiday_Events { get; set; }
         public IEnumerable<NotificationAccount>? NotificationAccounts { get; set; }
+        public IEnumerable<Blog>? Blogs { get; set; }
 
 
     }

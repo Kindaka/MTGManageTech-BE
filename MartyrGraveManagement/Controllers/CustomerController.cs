@@ -88,7 +88,7 @@ namespace MartyrGraveManagement.Controllers
                 }
 
                 // Kiểm tra quyền truy cập của khách hàng
-                var authorizationResult = await _authorizeService.CheckAuthorizeByAccountId(accountId, int.Parse(tokenAccountId));
+                var authorizationResult = await _authorizeService.CheckAuthorizeByCustomerId(accountId, int.Parse(tokenAccountId));
                 if (!authorizationResult.isMatchedCustomer)
                 {
                     return Forbid();
