@@ -4,6 +4,7 @@ using MartyrGraveManagement_BAL.ModelViews.AreaDTOs;
 using MartyrGraveManagement_BAL.ModelViews.CartItemsDTOs;
 using MartyrGraveManagement_BAL.ModelViews.CustomerDTOs;
 using MartyrGraveManagement_BAL.ModelViews.FeedbackDTOs;
+using MartyrGraveManagement_BAL.ModelViews.HistoricalEventDTOs;
 using MartyrGraveManagement_BAL.ModelViews.MartyrGraveDTOs;
 using MartyrGraveManagement_BAL.ModelViews.MartyrGraveInformationDTOs;
 using MartyrGraveManagement_BAL.ModelViews.OrdersDTOs;
@@ -89,6 +90,9 @@ namespace MartyrGraveManagement_BAL.MappingProfiles
             CreateMap<Feedback, FeedbackContentDtoRequest>().ReverseMap();
             CreateMap<Feedback, FeedbackResponseDtoRequest>().ReverseMap();
 
+            //HistoricalEvent mapping
+            CreateMap<CreateHistoricalEventDTORequest, HistoricalEvent>().ReverseMap();
+            CreateMap<HistoricalEventDTOResponse, HistoricalEvent>().ReverseMap();
 
         }
     }

@@ -28,6 +28,10 @@ namespace MartyrGraveManagement_DAL.UnitOfWorks.Interfaces
         public IGenericRepository<Material> MaterialRepository { get; }
         public IGenericRepository<Feedback> FeedbackRepository { get; }
         public IGenericRepository<GraveService> GraveServiceRepository { get; }
+        public IGenericRepository<HistoricalEvent> HistoricalEventRepository { get; }
+        public IGenericRepository<Blog> BlogRepository { get; }
+        public IGenericRepository<HistoricalImage> HistoricalImageRepository { get; }
+        public IGenericRepository<HistoricalRelatedMartyr> HistoricalRelatedMartyrRepository { get; }
 
 
         Task SaveAsync();
