@@ -484,8 +484,8 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
 
                 // Tự động điều chỉnh EndDate của Task không được vượt quá EndDate của Order
-                DateTime taskEndDate = order.EndDate;
-                if (taskDto.EndDate <= order.EndDate)
+                DateTime taskEndDate = order.ExpectedCompletionDate;
+                if (taskDto.EndDate <= order.ExpectedCompletionDate)
                 {
                     taskEndDate = taskDto.EndDate;
                 }

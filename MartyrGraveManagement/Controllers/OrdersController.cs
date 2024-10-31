@@ -113,7 +113,7 @@ namespace MartyrGraveManagement.Controllers
 
         [Authorize(Policy = "RequireCustomerRole")]
         [HttpPost]
-        public async Task<ActionResult<OrdersDTOResponse>> Create(int customerId)
+        public async Task<ActionResult<OrdersDTOResponse>> Create(int customerId, [FromBody] OrdersDTORequest orderBody)
         {
             try
             {
@@ -127,7 +127,7 @@ namespace MartyrGraveManagement.Controllers
                 {
                     return Forbid();
                 }
-                var create = await _odersService.CreateOrderFromCartAsync(customerId);
+                var create = await _odersService.CreateOrderFromCartAsync(customerId, orderBody);
                 if (create.status)
                 {
                     return Ok(new { paymentUrl = create.paymentUrl, responseContent = create.responseContent });

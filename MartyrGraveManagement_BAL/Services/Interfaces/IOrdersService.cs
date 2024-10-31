@@ -11,7 +11,7 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
     {
         Task<List<OrdersGetAllDTOResponse>> GetAllOrders();
         Task<OrdersGetAllDTOResponse> GetOrderById(int orderId);
-        Task<(bool status, string? paymentUrl, string responseContent)> CreateOrderFromCartAsync(int accountId);
+        Task<(bool status, string? paymentUrl, string responseContent)> CreateOrderFromCartAsync(int accountId, OrdersDTORequest orderBody);
         Task<List<OrdersGetAllDTOResponse>> GetOrderByAccountId(int accountId);
         Task<List<OrdersGetAllDTOResponse>> GetOrderByAreaId(int areaId);
         Task<bool> UpdateOrderStatus(int orderId, int newStatus);

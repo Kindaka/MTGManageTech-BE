@@ -319,8 +319,8 @@ namespace MartyrGraveManagement_DAL.Entities
                 .OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<StaffTask>()
                 .HasOne(t => t.OrderDetail)
-                .WithMany(o => o.StaffTasks)
-                .HasForeignKey(t => t.DetailId)
+                .WithOne(o => o.StaffTask)
+                .HasForeignKey<StaffTask>(t => t.DetailId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Slot Configuration

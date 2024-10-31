@@ -22,7 +22,7 @@ namespace MartyrGraveManagement_BAL.BackgroundServices.Implements
             {
                 
                 var expiredOrders = await _unitOfWork.OrderRepository.GetAsync(order =>
-                    order.Status == 0 && order.StartDate.AddMinutes(10) <= DateTime.Now);
+                    order.Status == 0 && order.OrderDate.AddMinutes(10) <= DateTime.Now);
 
                 if (expiredOrders.Any())
                 {

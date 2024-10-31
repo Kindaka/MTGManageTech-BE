@@ -56,8 +56,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         OrderId = order.OrderId,
                         AccountId = order.AccountId,
                         OrderDate = order.OrderDate,
-                        StartDate = order.StartDate,
-                        EndDate = order.EndDate,
+                        ExpectedCompletionDate = order.ExpectedCompletionDate,
                         TotalPrice = order.TotalPrice,
                         Status = order.Status
                     };
@@ -120,8 +119,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         OrderId = order.OrderId,
                         AccountId = order.AccountId,
                         OrderDate = order.OrderDate,
-                        StartDate = order.StartDate,
-                        EndDate = order.EndDate,
+                        ExpectedCompletionDate = order.ExpectedCompletionDate,
                         TotalPrice = order.TotalPrice,
                         Status = order.Status
                     };
@@ -176,8 +174,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     OrderId = orderEntity.OrderId,
                     AccountId = orderEntity.AccountId,
                     OrderDate = orderEntity.OrderDate,
-                    StartDate = orderEntity.StartDate,
-                    EndDate = orderEntity.EndDate,
+                    ExpectedCompletionDate = orderEntity.ExpectedCompletionDate,
                     TotalPrice = orderEntity.TotalPrice,
                     Status = orderEntity.Status
                 };
@@ -342,7 +339,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
         //}
 
 
-        public async Task<(bool status, string? paymentUrl, string responseContent)> CreateOrderFromCartAsync(int accountId)
+        public async Task<(bool status, string? paymentUrl, string responseContent)> CreateOrderFromCartAsync(int accountId, OrdersDTORequest orderBody)
         {
             using (var transaction = await _unitOfWork.BeginTransactionAsync())
             {
@@ -402,10 +399,10 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     {
                         AccountId = accountId,
                         OrderDate = DateTime.Now,
-                        StartDate = DateTime.Now,
                         TotalPrice = totalPrice,
                         Status = 0,  // Chưa thanh toán
-                        EndDate = DateTime.Now.AddDays(7)
+                        ExpectedCompletionDate = orderBody.ExpectedCompletionDate,
+                        Note = orderBody.Note
                     };
 
                     await _unitOfWork.OrderRepository.AddAsync(order);
@@ -490,8 +487,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         OrderId = order.OrderId,
                         AccountId = order.AccountId,
                         OrderDate = order.OrderDate,
-                        StartDate = order.StartDate,
-                        EndDate = order.EndDate,
+                        ExpectedCompletionDate = order.ExpectedCompletionDate,
                         TotalPrice = order.TotalPrice,
                         Status = order.Status
                     };
