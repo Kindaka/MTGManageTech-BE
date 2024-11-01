@@ -202,7 +202,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                             AccountId = cartItem.AccountId,
                             ServiceId = cartItem.ServiceId,
                             MartyrCode = grave.MartyrCode,
-                            MarrtyrId = grave.MartyrId,
+                            MartyrId = grave.MartyrId,
                             Status = cartItem.Status
                         };
 
@@ -294,6 +294,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                             AccountId = cartItem.AccountId,
                             ServiceId = cartItem.ServiceId,
                             MartyrCode = grave.MartyrCode,
+                            MartyrId = grave.MartyrId,
                             Status = cartItem.Status
                         };
 

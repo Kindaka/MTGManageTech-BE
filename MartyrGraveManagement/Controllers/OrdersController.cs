@@ -46,13 +46,23 @@ namespace MartyrGraveManagement.Controllers
             }
         }
 
-        [Authorize]
+        [Authorize(Policy = "RequireManagerRole")]
         [HttpGet("{id}")]
-        public async Task<ActionResult<OrdersGetAllDTOResponse>> GetOrderById(int id)
+        public async Task<ActionResult<OrdersGetAllDTOResponse>> GetOrderById(int id, int managerId)
         {
             try
             {
-                var order = await _odersService.GetOrderById(id);
+                var accountId = User.FindFirst("AccountId")?.Value;
+                if (accountId == null)
+                {
+                    return Forbid();
+                }
+                var checkMatchedId = await _authorizeService.CheckAuthorizeStaffOrManager(managerId, int.Parse(accountId));
+                if (!checkMatchedId.isMatchedStaffOrManager)
+                {
+                    return Forbid();
+                }
+                var order = await _odersService.GetOrderById(id, managerId);
                 return Ok(order);
             }
             catch (Exception ex)
@@ -95,12 +105,22 @@ namespace MartyrGraveManagement.Controllers
         /// Get orders by area ID (Manager or Staff Role).
         /// </summary>
         [Authorize(Policy = "RequireManagerOrStaffRole")]
-        [HttpGet("orders/area/{areaId}")]
-        public async Task<IActionResult> GetOrdersByAreaId(int areaId)
+        [HttpGet("orders/area/{managerId}")]
+        public async Task<IActionResult> GetOrdersByAreaId(int managerId)
         {
             try
             {
-                var orders = await _odersService.GetOrderByAreaId(areaId);
+                var accountId = User.FindFirst("AccountId")?.Value;
+                if (accountId == null)
+                {
+                    return Forbid();
+                }
+                var checkMatchedId = await _authorizeService.CheckAuthorizeStaffOrManager(managerId, int.Parse(accountId));
+                if (!checkMatchedId.isMatchedStaffOrManager)
+                {
+                    return Forbid();
+                }
+                var orders = await _odersService.GetOrderByAreaId(managerId);
                 return Ok(orders);
             }
             catch (Exception ex)
@@ -117,6 +137,9 @@ namespace MartyrGraveManagement.Controllers
         {
             try
             {
+                if (orderBody.ExpectedCompletionDate <= DateTime.Now.AddDays(3)) {
+                    return BadRequest("Ngày hoàn thành dự kiến phải ít nhất sau 3 ngày kể từ bây giờ");
+                }
                 var accountId = User.FindFirst("AccountId")?.Value;
                 if (accountId == null)
                 {

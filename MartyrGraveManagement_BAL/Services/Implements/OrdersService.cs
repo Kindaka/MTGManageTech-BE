@@ -151,7 +151,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
         }
 
-        public async Task<OrdersGetAllDTOResponse> GetOrderById(int orderId)
+        public async Task<OrdersGetAllDTOResponse> GetOrderById(int orderId, int managerId)
         {
             try
             {
@@ -197,20 +197,23 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     {
                         orderDetailDto.StatusTask = taskStatus.Status;
                     }
-
-                    var accountStaffs = await _unitOfWork.AccountRepository.GetAsync(s => s.AreaId == orderDetail.MartyrGrave.AreaId);
-                    if (accountStaffs != null)
+                    var manager = await _unitOfWork.AccountRepository.GetByIDAsync(managerId);
+                    if (manager.AreaId == orderDetail.MartyrGrave.AreaId)
                     {
-                        foreach (var accountStaff in accountStaffs)
+                        var accountStaffs = await _unitOfWork.AccountRepository.GetAsync(s => s.AreaId == orderDetail.MartyrGrave.AreaId && s.RoleId == 3);
+                        if (accountStaffs != null)
                         {
-                            if (accountStaff.Status == true)
+                            foreach (var accountStaff in accountStaffs)
                             {
-                                var staffDto = new StaffDtoResponse
+                                if (accountStaff.Status == true)
                                 {
-                                    AccountId = accountStaff.AccountId,
-                                    StaffFullName = accountStaff.FullName
-                                };
-                                orderDetailDto.Staffs?.Add(staffDto);
+                                    var staffDto = new StaffDtoResponse
+                                    {
+                                        AccountId = accountStaff.AccountId,
+                                        StaffFullName = accountStaff.FullName
+                                    };
+                                    orderDetailDto.Staffs?.Add(staffDto);
+                                }
                             }
                         }
                     }
@@ -461,57 +464,84 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
         }
 
-        public async Task<List<OrdersGetAllDTOResponse>> GetOrderByAreaId(int areaId)
+        public async Task<List<OrderDetailDtoResponse>> GetOrderByAreaId(int managerId)
         {
             try
             {
                 // Lấy các đơn hàng theo AreaId, bao gồm các chi tiết liên quan
-                var orders = await _unitOfWork.OrderRepository.GetAsync(
-                    filter: o => o.OrderDetails.Any(od => od.MartyrGrave.AreaId == areaId),
-                    includeProperties: "OrderDetails,OrderDetails.Service,OrderDetails.MartyrGrave.MartyrGraveInformations"
-                );
+                //var orders = await _unitOfWork.OrderRepository.GetAsync(
+                //    filter: o => o.OrderDetails.Any(od => od.MartyrGrave.AreaId == areaId),
+                //    includeProperties: "OrderDetails,OrderDetails.Service,OrderDetails.MartyrGrave.MartyrGraveInformations"
+                //);
+                var manager = await _unitOfWork.AccountRepository.GetByIDAsync(managerId);
+                if(manager == null)
+                {
+                    return new List<OrderDetailDtoResponse>(); // Trả về danh sách rỗng nếu không có đơn hàng
+                }
+                var orderDetails = await _unitOfWork.OrderDetailRepository.GetAsync(od => od.MartyrGrave.AreaId == manager.AreaId, includeProperties: "MartyrGrave.MartyrGraveInformations,Service,Order");
+
 
                 // Kiểm tra nếu không có đơn hàng cho AreaId này
-                if (orders == null || !orders.Any())
+                //if (orderDetail == null || !orderDetail.Any())
+                //{
+                //    return new List<OrdersGetAllDTOResponse>(); // Trả về danh sách rỗng nếu không có đơn hàng
+                //}
+                // Kiểm tra nếu đơn hàng không tồn tại
+                var orderEntity = orderDetails.FirstOrDefault();
+                if (orderEntity == null)
                 {
-                    return new List<OrdersGetAllDTOResponse>(); // Trả về danh sách rỗng nếu không có đơn hàng
+                    return new List<OrderDetailDtoResponse>(); // Trả về danh sách rỗng nếu không có đơn hàng
                 }
 
-                // Ánh xạ từng đơn hàng và chi tiết đơn hàng sang DTO
-                var orderDtoList = new List<OrdersGetAllDTOResponse>();
 
-                foreach (var order in orders)
+                var orderDetailList = new List<OrderDetailDtoResponse>();
+
+                foreach (var orderDetail in orderDetails)
                 {
-                    var orderDto = new OrdersGetAllDTOResponse
-                    {
-                        OrderId = order.OrderId,
-                        AccountId = order.AccountId,
-                        OrderDate = order.OrderDate,
-                        ExpectedCompletionDate = order.ExpectedCompletionDate,
-                        TotalPrice = order.TotalPrice,
-                        Status = order.Status
-                    };
 
-                    // Ánh xạ chi tiết đơn hàng
-                    foreach (var orderDetail in order.OrderDetails)
-                    {
+                        
+
                         var martyrGraveInfo = orderDetail.MartyrGrave?.MartyrGraveInformations?.FirstOrDefault();
 
                         var orderDetailDto = new OrderDetailDtoResponse
                         {
+                            DetailId = orderDetail.DetailId,
                             ServiceName = orderDetail.Service?.ServiceName,
                             MartyrName = martyrGraveInfo?.Name, // Lấy thông tin liệt sĩ từ MartyrGraveInformation
                             OrderPrice = orderDetail.OrderPrice
                         };
 
-                        orderDto.OrderDetails.Add(orderDetailDto);
-                    }
+                        var taskStatus = (await _unitOfWork.TaskRepository.GetAsync(t => t.DetailId == orderDetail.DetailId)).FirstOrDefault();
+                        if (taskStatus != null)
+                        {
+                            orderDetailDto.StatusTask = taskStatus.Status;
+                        }
+                        if (manager.AreaId == orderDetail.MartyrGrave.AreaId)
+                        {
+                            var accountStaffs = await _unitOfWork.AccountRepository.GetAsync(s => s.AreaId == orderDetail.MartyrGrave.AreaId && s.RoleId == 3);
+                            if (accountStaffs != null)
+                            {
+                                foreach (var accountStaff in accountStaffs)
+                                {
+                                    if (accountStaff.Status == true)
+                                    {
+                                        var staffDto = new StaffDtoResponse
+                                        {
+                                            AccountId = accountStaff.AccountId,
+                                            StaffFullName = accountStaff.FullName
+                                        };
+                                        orderDetailDto.Staffs?.Add(staffDto);
+                                    }
+                                }
+                            }
+                        }
+                        orderDetailList.Add(orderDetailDto);
 
-                    // Thêm DTO của đơn hàng vào danh sách kết quả
-                    orderDtoList.Add(orderDto);
+
+                    
                 }
 
-                return orderDtoList;
+                return orderDetailList;
             }
             catch (Exception ex)
             {
