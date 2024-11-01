@@ -97,6 +97,8 @@ namespace MartyrGraveManagement_BAL.MappingProfiles
 
             //Schedule mapping
             CreateMap<CreateScheduleDTORequest, Schedule_Staff>().ReverseMap();
+            CreateMap<UpdateScheduleDTORequest, Schedule_Staff>().ReverseMap();
+            CreateMap<ScheduleDTOResponse, Schedule_Staff>().ReverseMap();
         }
     }
 }

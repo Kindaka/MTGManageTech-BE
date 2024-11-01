@@ -180,7 +180,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
                 };
 
-                if (account.RoleId == 3 && account.AreaId.HasValue)
+                if (account.RoleId == 3 || account.RoleId == 2 && account.AreaId.HasValue)
                 {
                     claims.Add(new Claim("areaId", account.AreaId.Value.ToString()));
                 }

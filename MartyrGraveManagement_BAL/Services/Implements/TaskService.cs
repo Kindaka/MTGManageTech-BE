@@ -672,40 +672,40 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         {
                             task.Status = 3;  // Nhận task
 
-                            // Lấy tất cả OrderDetail của Order để kiểm tra số lượng Task
-                            var orderDetails = await _unitOfWork.OrderDetailRepository.GetAsync(od => od.OrderId == task.OrderId);
-                            bool allTasksForOrderInProgress = true;
+                            //// Lấy tất cả OrderDetail của Order để kiểm tra số lượng Task
+                            //var orderDetails = await _unitOfWork.OrderDetailRepository.GetAsync(od => od.OrderId == task.OrderId);
+                            //bool allTasksForOrderInProgress = true;
 
-                            foreach (var orderDetail in orderDetails)
-                            {
-                                // Lấy tất cả các Task của từng OrderDetail
-                                var tasksForDetail = await _unitOfWork.TaskRepository.GetAsync(t => t.DetailId == orderDetail.DetailId);
+                            //foreach (var orderDetail in orderDetails)
+                            //{
+                            //    // Lấy tất cả các Task của từng OrderDetail
+                            //    var tasksForDetail = await _unitOfWork.TaskRepository.GetAsync(t => t.DetailId == orderDetail.DetailId);
 
-                                // Kiểm tra xem OrderDetail đã có Task nào chưa
-                                if (!tasksForDetail.Any())
-                                {
-                                    allTasksForOrderInProgress = false;
-                                    break;
-                                }
+                            //    // Kiểm tra xem OrderDetail đã có Task nào chưa
+                            //    if (!tasksForDetail.Any())
+                            //    {
+                            //        allTasksForOrderInProgress = false;
+                            //        break;
+                            //    }
 
-                                // Kiểm tra nếu tất cả các Task của OrderDetail này có trạng thái là 3
-                                if (tasksForDetail.Any(t => t.Status != 3))
-                                {
-                                    allTasksForOrderInProgress = false;
-                                    break;
-                                }
-                            }
+                            //    // Kiểm tra nếu tất cả các Task của OrderDetail này có trạng thái là 3
+                            //    if (tasksForDetail.Any(t => t.Status != 3))
+                            //    {
+                            //        allTasksForOrderInProgress = false;
+                            //        break;
+                            //    }
+                            //}
 
-                            if (allTasksForOrderInProgress)
-                            {
-                                // Chỉ khi tất cả OrderDetail đã có Task và các Task đều có trạng thái là 3 thì mới cập nhật trạng thái của Order
-                                var order = await _unitOfWork.OrderRepository.GetByIDAsync(task.OrderId);
-                                if (order != null)
-                                {
-                                    order.Status = 3;  // Order chuyển sang trạng thái "đang thực hiện"
-                                    await _unitOfWork.OrderRepository.UpdateAsync(order);
-                                }
-                            }
+                            //if (allTasksForOrderInProgress)
+                            //{
+                            //    // Chỉ khi tất cả OrderDetail đã có Task và các Task đều có trạng thái là 3 thì mới cập nhật trạng thái của Order
+                            //    var order = await _unitOfWork.OrderRepository.GetByIDAsync(task.OrderId);
+                            //    if (order != null)
+                            //    {
+                            //        order.Status = 3;  // Order chuyển sang trạng thái "đang thực hiện"
+                            //        await _unitOfWork.OrderRepository.UpdateAsync(order);
+                            //    }
+                            //}
                         }
                         else
                         {

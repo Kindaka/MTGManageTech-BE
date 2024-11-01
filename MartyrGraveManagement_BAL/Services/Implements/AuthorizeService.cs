@@ -193,17 +193,17 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 {
                     if (account.AccountId == accountId)
                     {
-                        if (account.RoleId == 2 || account.RoleId == 4)
-                        {
+                        
+                        
                             isMatchedAccountStaff = true;
-                        }
+                        
 
                     }
                 }
                 var accountJwt = await _unitOfWork.AccountRepository.GetByIDAsync(accountId);
                 if (accountJwt != null)
                 {
-                    if (accountJwt.RoleId == 4 || accountJwt.RoleId == 2)
+                    if (accountJwt.RoleId == 3)
                     {
                         isAuthorizedAccount = true;
                     }
@@ -264,7 +264,33 @@ namespace MartyrGraveManagement_BAL.Services.Implements
         }
 
 
+        public async Task<bool> CheckAuthorizeStaffByAreaId(int accountId, int areaId)
+        {
+            try
+            {
+                // Lấy thông tin Account (nhân viên) dựa trên accountId
+                var staffAccount = await _unitOfWork.AccountRepository.GetByIDAsync(accountId);
+                if (staffAccount == null || staffAccount.RoleId != 3)
+                {
+                    // Nếu accountId không tồn tại hoặc không phải là nhân viên, trả về false
+                    return false;
+                }
 
+                // Kiểm tra nếu AreaId của nhân viên khớp với areaId yêu cầu
+                if (staffAccount.AreaId != areaId)
+                {
+                    // Nhân viên không thuộc AreaId yêu cầu
+                    return false;
+                }
+
+                // Nếu tất cả điều kiện thỏa mãn, trả về true (nhân viên thuộc khu vực này)
+                return true;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Authorization check failed: {ex.Message}");
+            }
+        }
 
     }
 }

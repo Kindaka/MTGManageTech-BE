@@ -11,5 +11,6 @@
         Task<(bool isMatchedCustomer, bool isAuthorizedAccount)> CheckAuthorizeByOrderId(int orderId, int accountId);
 
         Task<bool> CheckAuthorizeStaffByAreaId(int taskId, int accountId, int areaId);
+        Task<bool> CheckAuthorizeStaffByAreaId(int accountId, int areaId);
     }
 }
