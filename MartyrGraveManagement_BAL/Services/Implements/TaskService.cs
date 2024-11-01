@@ -456,39 +456,47 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
 
         public async Task<List<TaskDtoResponse>> CreateTasksAsync(List<TaskDtoRequest> taskDtos)
-        {//
+        {
             var taskResponses = new List<TaskDtoResponse>();
 
             foreach (var taskDto in taskDtos)
             {
-                // Kiểm tra xem AccountId (nhân viên) có tồn tại không
+                // Kiểm tra xem AccountId (nhân viên) có tồn tại và là tài khoản hợp lệ không
                 var staffAccount = await _unitOfWork.AccountRepository.GetByIDAsync(taskDto.AccountId);
                 if (staffAccount == null || staffAccount.RoleId != 3)
                 {
-                    throw new KeyNotFoundException("Staff AccountId does not exist or is not a valid staff account.");
+                    throw new KeyNotFoundException("Staff AccountId không tồn tại hoặc không phải tài khoản nhân viên hợp lệ.");
                 }
 
                 // Kiểm tra xem OrderId có tồn tại không
                 var order = await _unitOfWork.OrderRepository.GetByIDAsync(taskDto.OrderId);
                 if (order == null)
                 {
-                    throw new KeyNotFoundException("OrderId does not exist.");
+                    throw new KeyNotFoundException("OrderId không tồn tại.");
                 }
 
-                // Kiểm tra xem DetailId có tồn tại không
+                // Kiểm tra trạng thái của Order, nếu không phải là 1 thì không cho tạo Task
+                if (order.Status != 1)
+                {
+                    throw new InvalidOperationException("Order không ở trạng thái hợp lệ để tạo Task.");
+                }
+
+                // Kiểm tra xem DetailId có tồn tại và thuộc về OrderId không
                 var orderDetail = await _unitOfWork.OrderDetailRepository.GetByIDAsync(taskDto.DetailId);
                 if (orderDetail == null || orderDetail.OrderId != taskDto.OrderId)
                 {
-                    throw new InvalidOperationException("Invalid DetailId or does not belong to the given OrderId.");
+                    throw new InvalidOperationException("DetailId không hợp lệ hoặc không thuộc về OrderId được cung cấp.");
                 }
 
-
-                // Tự động điều chỉnh EndDate của Task không được vượt quá EndDate của Order
-                DateTime taskEndDate = order.ExpectedCompletionDate;
-                if (taskDto.EndDate <= order.ExpectedCompletionDate)
+                // Kiểm tra xem khu vực của nhân viên có trùng với khu vực của MartyrGrave trong OrderDetail không
+                var martyrGrave = await _unitOfWork.MartyrGraveRepository.GetByIDAsync(orderDetail.MartyrId);
+                if (martyrGrave == null || martyrGrave.AreaId != staffAccount.AreaId)
                 {
-                    taskEndDate = taskDto.EndDate;
+                    throw new InvalidOperationException("Nhân viên không thuộc khu vực của MartyrGrave trong OrderDetail.");
                 }
+
+                // Đặt EndDate của task bằng với ExpectedCompletionDate của Order
+                DateTime taskEndDate = order.ExpectedCompletionDate;
 
                 // Tạo task mới
                 var taskEntity = new StaffTask
@@ -498,11 +506,8 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     DetailId = taskDto.DetailId,
                     StartDate = DateTime.Now,
                     EndDate = taskEndDate,
-                    Status = 1  // Trạng thái ban đầu là đã bàn giao
+                    Status = 1  // Trạng thái ban đầu là 'assigned'
                 };
-
-                // Gán task cho order detail
-                //orderDetail.StaffTask = taskEntity;
 
                 // Thêm Task vào cơ sở dữ liệu
                 await _unitOfWork.TaskRepository.AddAsync(taskEntity);
@@ -515,6 +520,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
             return taskResponses;
         }
+
 
 
 
@@ -666,12 +672,33 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         {
                             task.Status = 3;  // Nhận task
 
-                            // Kiểm tra nếu tất cả các Task của Order đều ở trạng thái "đang thực hiện"
-                            var allTasksForOrder = await _unitOfWork.TaskRepository.GetAsync(t => t.OrderId == task.OrderId);
+                            // Lấy tất cả OrderDetail của Order để kiểm tra số lượng Task
+                            var orderDetails = await _unitOfWork.OrderDetailRepository.GetAsync(od => od.OrderId == task.OrderId);
+                            bool allTasksForOrderInProgress = true;
 
-                            if (allTasksForOrder.All(t => t.Status == 3)) // Kiểm tra tất cả task có status là 3
+                            foreach (var orderDetail in orderDetails)
                             {
-                                // Cập nhật trạng thái của Order sang "đang thực hiện" nếu tất cả các Task đang thực hiện
+                                // Lấy tất cả các Task của từng OrderDetail
+                                var tasksForDetail = await _unitOfWork.TaskRepository.GetAsync(t => t.DetailId == orderDetail.DetailId);
+
+                                // Kiểm tra xem OrderDetail đã có Task nào chưa
+                                if (!tasksForDetail.Any())
+                                {
+                                    allTasksForOrderInProgress = false;
+                                    break;
+                                }
+
+                                // Kiểm tra nếu tất cả các Task của OrderDetail này có trạng thái là 3
+                                if (tasksForDetail.Any(t => t.Status != 3))
+                                {
+                                    allTasksForOrderInProgress = false;
+                                    break;
+                                }
+                            }
+
+                            if (allTasksForOrderInProgress)
+                            {
+                                // Chỉ khi tất cả OrderDetail đã có Task và các Task đều có trạng thái là 3 thì mới cập nhật trạng thái của Order
                                 var order = await _unitOfWork.OrderRepository.GetByIDAsync(task.OrderId);
                                 if (order != null)
                                 {
@@ -712,6 +739,68 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
 
 
+
+
+
+        //public async Task<TaskDtoResponse> UpdateTaskImagesAsync(int taskId, TaskImageUpdateDTO imageUpdateDto)
+        //{
+        //    using (var transaction = await _unitOfWork.BeginTransactionAsync())
+        //    {
+        //        try
+        //        {
+        //            // 1. Kiểm tra TaskId có tồn tại không
+        //            var task = await _unitOfWork.TaskRepository.GetByIDAsync(taskId);
+        //            if (task == null)
+        //            {
+        //                throw new KeyNotFoundException("TaskId does not exist.");
+        //            }
+
+        //            // 2. Kiểm tra nếu task có thể cập nhật hình ảnh (task phải ở trạng thái "đang thực hiện")
+        //            if (task.Status != 3)
+        //            {
+        //                throw new InvalidOperationException("Task is not in a state that allows image updates.");
+        //            }
+
+        //            // 3. Cập nhật hình ảnh
+        //            task.ImagePath1 = imageUpdateDto.UrlImages.ElementAtOrDefault(0);  // Ảnh 1
+        //            task.ImagePath2 = imageUpdateDto.UrlImages.ElementAtOrDefault(1);  // Ảnh 2 (nếu có)
+        //            task.ImagePath3 = imageUpdateDto.UrlImages.ElementAtOrDefault(2);  // Ảnh 3 (nếu có)
+
+        //            // 4. Cập nhật trạng thái task lên 4
+        //            task.Status = 4;  // Task hoàn thành
+        //            await _unitOfWork.TaskRepository.UpdateAsync(task);
+
+        //            // 5. Kiểm tra nếu tất cả các task của Order này đều đã hoàn thành
+        //            var allTasksForOrder = await _unitOfWork.TaskRepository.GetAsync(t => t.OrderId == task.OrderId);
+        //            if (allTasksForOrder.All(t => t.Status == 4)) // Kiểm tra tất cả task có status là 4
+        //            {
+        //                var order = await _unitOfWork.OrderRepository.GetByIDAsync(task.OrderId);
+        //                if (order != null)
+        //                {
+        //                    // Cập nhật trạng thái của Order sang 4 nếu tất cả các Task đã hoàn thành
+        //                    order.Status = 4;  // Order hoàn thành
+        //                    await _unitOfWork.OrderRepository.UpdateAsync(order);
+        //                }
+        //            }
+
+        //            // 6. Lưu thay đổi
+        //            await _unitOfWork.SaveAsync();
+
+        //            // 7. Commit transaction nếu không có lỗi
+        //            await transaction.CommitAsync();
+
+        //            return _mapper.Map<TaskDtoResponse>(task);
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            // Rollback transaction nếu có lỗi
+        //            await transaction.RollbackAsync();
+        //            throw new Exception($"Failed to update task images: {ex.Message}");
+        //        }
+        //    }
+        //}
+
+
         public async Task<TaskDtoResponse> UpdateTaskImagesAsync(int taskId, TaskImageUpdateDTO imageUpdateDto)
         {
             using (var transaction = await _unitOfWork.BeginTransactionAsync())
@@ -740,14 +829,29 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     task.Status = 4;  // Task hoàn thành
                     await _unitOfWork.TaskRepository.UpdateAsync(task);
 
-                    // 5. Kiểm tra nếu tất cả các task của Order này đều đã hoàn thành
-                    var allTasksForOrder = await _unitOfWork.TaskRepository.GetAsync(t => t.OrderId == task.OrderId);
-                    if (allTasksForOrder.All(t => t.Status == 4)) // Kiểm tra tất cả task có status là 4
+                    // 5. Kiểm tra nếu tất cả các task của tất cả OrderDetail của Order này đều đã hoàn thành
+                    var orderDetails = await _unitOfWork.OrderDetailRepository.GetAsync(od => od.OrderId == task.OrderId);
+                    bool allOrderDetailsHaveCompletedTasks = true;
+
+                    foreach (var orderDetail in orderDetails)
                     {
+                        // Lấy tất cả các Task của từng OrderDetail
+                        var tasksForDetail = await _unitOfWork.TaskRepository.GetAsync(t => t.DetailId == orderDetail.DetailId);
+
+                        // Nếu một OrderDetail không có Task nào, hoặc có Task chưa hoàn thành, không cập nhật Order
+                        if (!tasksForDetail.Any() || tasksForDetail.Any(t => t.Status != 4))
+                        {
+                            allOrderDetailsHaveCompletedTasks = false;
+                            break;
+                        }
+                    }
+
+                    if (allOrderDetailsHaveCompletedTasks)
+                    {
+                        // Chỉ khi tất cả các OrderDetail có Task và tất cả Task đó đều hoàn thành thì cập nhật trạng thái Order
                         var order = await _unitOfWork.OrderRepository.GetByIDAsync(task.OrderId);
                         if (order != null)
                         {
-                            // Cập nhật trạng thái của Order sang 4 nếu tất cả các Task đã hoàn thành
                             order.Status = 4;  // Order hoàn thành
                             await _unitOfWork.OrderRepository.UpdateAsync(order);
                         }
@@ -769,7 +873,6 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 }
             }
         }
-
 
 
 

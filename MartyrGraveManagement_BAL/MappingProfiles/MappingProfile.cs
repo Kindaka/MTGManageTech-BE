@@ -9,6 +9,7 @@ using MartyrGraveManagement_BAL.ModelViews.MartyrGraveDTOs;
 using MartyrGraveManagement_BAL.ModelViews.MartyrGraveInformationDTOs;
 using MartyrGraveManagement_BAL.ModelViews.OrdersDTOs;
 using MartyrGraveManagement_BAL.ModelViews.PaymentDTOs;
+using MartyrGraveManagement_BAL.ModelViews.ScheduleDTOs;
 using MartyrGraveManagement_BAL.ModelViews.ServiceCategoryDTOs;
 using MartyrGraveManagement_BAL.ModelViews.ServiceDTOs;
 using MartyrGraveManagement_BAL.ModelViews.TaskDTOs;
@@ -94,6 +95,8 @@ namespace MartyrGraveManagement_BAL.MappingProfiles
             CreateMap<CreateHistoricalEventDTORequest, HistoricalEvent>().ReverseMap();
             CreateMap<HistoricalEventDTOResponse, HistoricalEvent>().ReverseMap();
 
+            //Schedule mapping
+            CreateMap<CreateScheduleDTORequest, Schedule_Staff>().ReverseMap();
         }
     }
 }

@@ -18,8 +18,6 @@ namespace MartyrGraveManagement_BAL.ModelViews.TaskDTOs
         [Required(ErrorMessage = "OrderDetailId is required.")]
         public int DetailId { get; set; }
 
-        [Required]
-        public DateTime EndDate { get; set; }
 
     }
 }
