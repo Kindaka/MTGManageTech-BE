@@ -96,13 +96,11 @@ namespace MartyrGraveManagement_BAL.MappingProfiles
             CreateMap<HistoricalEventDTOResponse, HistoricalEvent>().ReverseMap();
 
             //Schedule mapping
-<<<<<<< Updated upstream
-            CreateMap<CreateScheduleDTORequest, Schedule_Staff>().ReverseMap();
-            CreateMap<UpdateScheduleDTORequest, Schedule_Staff>().ReverseMap();
-            CreateMap<ScheduleDTOResponse, Schedule_Staff>().ReverseMap();
-=======
             CreateMap<CreateScheduleDTORequest, Schedule>().ReverseMap();
->>>>>>> Stashed changes
+            CreateMap<UpdateScheduleDTORequest, Schedule>().ReverseMap();
+            CreateMap<ScheduleDTOResponse, Schedule>().ReverseMap();
+            CreateMap<CreateScheduleDTORequest, Schedule>().ReverseMap();
+
         }
     }
 }

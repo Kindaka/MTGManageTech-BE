@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MartyrGraveManagement_DAL.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20241031135748_FixRelationship")]
-    partial class FixRelationship
+    [Migration("20241102133951_UpdateDB")]
+    partial class UpdateDB
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -101,6 +101,41 @@ namespace MartyrGraveManagement_DAL.Migrations
                     b.ToTable("Areas");
                 });
 
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Attendance", b =>
+                {
+                    b.Property<int>("AttendanceId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AttendanceId"));
+
+                    b.Property<int>("AccountId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ScheduleId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("AttendanceId");
+
+                    b.HasIndex("AccountId");
+
+                    b.HasIndex("ScheduleId");
+
+                    b.ToTable("Attendances");
+                });
+
             modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Blog", b =>
                 {
                     b.Property<int>("BlogId")
@@ -115,6 +150,10 @@ namespace MartyrGraveManagement_DAL.Migrations
                     b.Property<string>("BlogContent")
                         .IsRequired()
                         .HasColumnType("nvarchar(MAX)");
+
+                    b.Property<string>("BlogDescription")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("BlogName")
                         .IsRequired()
@@ -325,6 +364,9 @@ namespace MartyrGraveManagement_DAL.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<int>("DetailId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Rating")
                         .HasColumnType("int");
 
                     b.Property<string>("ResponseContent")
@@ -870,7 +912,7 @@ namespace MartyrGraveManagement_DAL.Migrations
                     b.ToTable("Roles");
                 });
 
-            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Schedule_Staff", b =>
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Schedule", b =>
                 {
                     b.Property<int>("ScheduleId")
                         .ValueGeneratedOnAdd()
@@ -898,11 +940,43 @@ namespace MartyrGraveManagement_DAL.Migrations
 
                     b.HasKey("ScheduleId");
 
-                    b.HasIndex("AccountId");
-
                     b.HasIndex("SlotId");
 
-                    b.ToTable("ScheduleStaffs");
+                    b.ToTable("Schedule");
+                });
+
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.ScheduleDetail", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AccountId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ScheduleId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TaskId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId");
+
+                    b.HasIndex("ScheduleId");
+
+                    b.HasIndex("TaskId");
+
+                    b.ToTable("ScheduleDetail");
                 });
 
             modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Service", b =>
@@ -1129,6 +1203,25 @@ namespace MartyrGraveManagement_DAL.Migrations
                         .IsRequired();
 
                     b.Navigation("Role");
+                });
+
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Attendance", b =>
+                {
+                    b.HasOne("MartyrGraveManagement_DAL.Entities.Account", "Account")
+                        .WithMany("Attendances")
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MartyrGraveManagement_DAL.Entities.Schedule", "Schedule")
+                        .WithMany("Attendances")
+                        .HasForeignKey("ScheduleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Account");
+
+                    b.Navigation("Schedule");
                 });
 
             modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Blog", b =>
@@ -1460,23 +1553,42 @@ namespace MartyrGraveManagement_DAL.Migrations
                     b.Navigation("Order");
                 });
 
-            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Schedule_Staff", b =>
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Schedule", b =>
                 {
-                    b.HasOne("MartyrGraveManagement_DAL.Entities.Account", "Account")
-                        .WithMany("Schedules")
-                        .HasForeignKey("AccountId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("MartyrGraveManagement_DAL.Entities.Slot", "Slot")
                         .WithMany("Schedules")
                         .HasForeignKey("SlotId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.Navigation("Slot");
+                });
+
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.ScheduleDetail", b =>
+                {
+                    b.HasOne("MartyrGraveManagement_DAL.Entities.Account", "Account")
+                        .WithMany("ScheduleTasks")
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MartyrGraveManagement_DAL.Entities.Schedule", "Schedule")
+                        .WithMany("ScheduleTasks")
+                        .HasForeignKey("ScheduleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MartyrGraveManagement_DAL.Entities.StaffTask", "StaffTask")
+                        .WithMany("ScheduleTasks")
+                        .HasForeignKey("TaskId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("Account");
 
-                    b.Navigation("Slot");
+                    b.Navigation("Schedule");
+
+                    b.Navigation("StaffTask");
                 });
 
             modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Service", b =>
@@ -1533,6 +1645,8 @@ namespace MartyrGraveManagement_DAL.Migrations
 
             modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Account", b =>
                 {
+                    b.Navigation("Attendances");
+
                     b.Navigation("Blogs");
 
                     b.Navigation("CartItems");
@@ -1553,7 +1667,7 @@ namespace MartyrGraveManagement_DAL.Migrations
 
                     b.Navigation("Orders");
 
-                    b.Navigation("Schedules");
+                    b.Navigation("ScheduleTasks");
 
                     b.Navigation("Tasks");
 
@@ -1645,6 +1759,13 @@ namespace MartyrGraveManagement_DAL.Migrations
                     b.Navigation("Accounts");
                 });
 
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Schedule", b =>
+                {
+                    b.Navigation("Attendances");
+
+                    b.Navigation("ScheduleTasks");
+                });
+
             modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Service", b =>
                 {
                     b.Navigation("CartItems");
@@ -1664,6 +1785,11 @@ namespace MartyrGraveManagement_DAL.Migrations
             modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Slot", b =>
                 {
                     b.Navigation("Schedules");
+                });
+
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.StaffTask", b =>
+                {
+                    b.Navigation("ScheduleTasks");
                 });
 #pragma warning restore 612, 618
         }
