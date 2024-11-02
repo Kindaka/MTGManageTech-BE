@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using MartyrGraveManagement_BAL.ModelViews.AccountDTOs;
 using MartyrGraveManagement_BAL.ModelViews.AreaDTOs;
+using MartyrGraveManagement_BAL.ModelViews.BlogDTOs;
 using MartyrGraveManagement_BAL.ModelViews.CartItemsDTOs;
 using MartyrGraveManagement_BAL.ModelViews.CustomerDTOs;
 using MartyrGraveManagement_BAL.ModelViews.FeedbackDTOs;
@@ -101,6 +102,9 @@ namespace MartyrGraveManagement_BAL.MappingProfiles
             CreateMap<ScheduleDTOResponse, Schedule>().ReverseMap();
             CreateMap<CreateScheduleDTORequest, Schedule>().ReverseMap();
 
+            //Blog mapping
+
+            CreateMap<CreateBlogDTORequest, Blog>().ReverseMap();
         }
     }
 }

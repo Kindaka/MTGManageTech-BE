@@ -216,6 +216,40 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
         }
 
+        public async Task<(bool isMatchedAccountManager, bool isAuthorizedAccount)> CheckAuthorizeManagerByAccountId(int userAccountId, int accountId)
+        {
+            try
+            {
+                bool isAuthorizedAccount = false;
+                bool isMatchedAccountManager = false;
+                var account = (await _unitOfWork.AccountRepository.GetByIDAsync(userAccountId));
+                if (account != null)
+                {
+                    if (account.AccountId == accountId)
+                    {
+
+
+                        isMatchedAccountManager = true;
+
+
+                    }
+                }
+                var accountJwt = await _unitOfWork.AccountRepository.GetByIDAsync(accountId);
+                if (accountJwt != null)
+                {
+                    if (accountJwt.RoleId == 2)
+                    {
+                        isAuthorizedAccount = true;
+                    }
+                }
+                return (isMatchedAccountManager, isAuthorizedAccount);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
         public async Task<bool> CheckAuthorizeStaffByAreaId(int taskId, int accountId, int areaId)
         {
             try

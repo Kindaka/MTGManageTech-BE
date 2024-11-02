@@ -248,7 +248,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
         {
             var historicalEvent = _mapper.Map<HistoricalEvent>(newEventRequest);
 
-            historicalEvent.Status = false;
+            historicalEvent.Status = true;
 
             await _unitOfWork.HistoricalEventRepository.AddAsync(historicalEvent);
             await _unitOfWork.SaveAsync();

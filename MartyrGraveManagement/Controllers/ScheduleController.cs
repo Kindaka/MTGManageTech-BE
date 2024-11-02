@@ -21,7 +21,7 @@ namespace MartyrGraveManagement.Controllers
             _authorizeService = authorizeService;
         }
 
-        [Authorize(Policy = "RequireStaffRole")]
+        [Authorize(Policy = "RequireManagerRole")]
         [HttpPost("CreateSchedule")]
         public async Task<IActionResult> CreateSchedule([FromBody] List<CreateScheduleDTORequest> requests, int accountId)
         {
@@ -39,8 +39,8 @@ namespace MartyrGraveManagement.Controllers
 
             foreach (var request in requests)
             {
-                var checkAuthorize = await _authorizeService.CheckAuthorizeStaffByAccountId(tokenAccountId, request.AccountId);
-                if (!checkAuthorize.isMatchedAccountStaff || !checkAuthorize.isAuthorizedAccount)
+                var checkAuthorize = await _authorizeService.CheckAuthorizeManagerByAccountId(tokenAccountId, request.AccountId);
+                if (!checkAuthorize.isMatchedAccountManager || !checkAuthorize.isAuthorizedAccount)
                 {
                     return Forbid("Bạn không có quyền tạo lịch trình cho tài khoản này.");
                 }
@@ -65,7 +65,7 @@ namespace MartyrGraveManagement.Controllers
         /// <summary>
         /// Get List Schedule by AccountId (Staff Role)
         /// </summary>
-        [Authorize(Policy = "RequireStaffRole")]
+        [Authorize(Policy = "RequireManagerRole")]
         [HttpGet("GetScheduleByAccountId/{accountId}")]
         public async Task<IActionResult> GetScheduleByAccountId(int accountId)
         {
@@ -85,8 +85,8 @@ namespace MartyrGraveManagement.Controllers
             }
 
             // Sử dụng hàm mới để kiểm tra quyền của nhân viên hoặc quản lý
-            var checkAuthorize = await _authorizeService.CheckAuthorizeStaffByAccountId(tokenAccountId, accountId);
-            if (!checkAuthorize.isMatchedAccountStaff || !checkAuthorize.isAuthorizedAccount)
+            var checkAuthorize = await _authorizeService.CheckAuthorizeManagerByAccountId(tokenAccountId, accountId);
+            if (!checkAuthorize.isMatchedAccountManager || !checkAuthorize.isAuthorizedAccount)
             {
                 return Forbid();
             }
@@ -117,7 +117,7 @@ namespace MartyrGraveManagement.Controllers
         /// <summary>
         /// Update Schedule.
         /// </summary>
-        [Authorize(Policy = "RequireStaffRole")]
+        [Authorize(Policy = "RequireManagerRole")]
         [HttpPut("{scheduleId}")]
         public async Task<IActionResult> UpdateSchedule(int scheduleId, [FromBody] UpdateScheduleDTORequest request, int accountId)
         {
@@ -137,8 +137,8 @@ namespace MartyrGraveManagement.Controllers
             }
 
             // Sử dụng hàm mới để kiểm tra quyền của nhân viên hoặc quản lý
-            var checkAuthorize = await _authorizeService.CheckAuthorizeStaffByAccountId(tokenAccountId, accountId);
-            if (!checkAuthorize.isMatchedAccountStaff || !checkAuthorize.isAuthorizedAccount)
+            var checkAuthorize = await _authorizeService.CheckAuthorizeManagerByAccountId(tokenAccountId, accountId);
+            if (!checkAuthorize.isMatchedAccountManager || !checkAuthorize.isAuthorizedAccount)
             {
                 return Forbid();
             }
@@ -160,7 +160,7 @@ namespace MartyrGraveManagement.Controllers
         /// <summary>
         /// Delete Schedule.
         /// </summary>
-        [Authorize(Policy = "RequireStaffRole")]
+        [Authorize(Policy = "RequireManagerRole")]
         [HttpDelete("{scheduleId}")]
         public async Task<IActionResult> DeleteSchedule(int scheduleId, int accountId)
         {
@@ -180,8 +180,8 @@ namespace MartyrGraveManagement.Controllers
             }
 
             // Sử dụng hàm mới để kiểm tra quyền của nhân viên hoặc quản lý
-            var checkAuthorize = await _authorizeService.CheckAuthorizeStaffByAccountId(tokenAccountId, accountId);
-            if (!checkAuthorize.isMatchedAccountStaff || !checkAuthorize.isAuthorizedAccount)
+            var checkAuthorize = await _authorizeService.CheckAuthorizeManagerByAccountId(tokenAccountId, accountId);
+            if (!checkAuthorize.isMatchedAccountManager || !checkAuthorize.isAuthorizedAccount)
             {
                 return Forbid();
             }
@@ -201,7 +201,7 @@ namespace MartyrGraveManagement.Controllers
             }
         }
 
-        [Authorize(Policy = "RequireStaffRole")]
+        [Authorize(Policy = "RequireManagerRole")]
         [HttpGet("GetScheduleById/{scheduleId}")]
         public async Task<IActionResult> GetScheduleById(int scheduleId, int accountId)
         {
@@ -221,8 +221,8 @@ namespace MartyrGraveManagement.Controllers
             }
 
             // Sử dụng hàm mới để kiểm tra quyền của nhân viên hoặc quản lý
-            var checkAuthorize = await _authorizeService.CheckAuthorizeStaffByAccountId(tokenAccountId, accountId);
-            if (!checkAuthorize.isMatchedAccountStaff || !checkAuthorize.isAuthorizedAccount)
+            var checkAuthorize = await _authorizeService.CheckAuthorizeManagerByAccountId(tokenAccountId, accountId);
+            if (!checkAuthorize.isMatchedAccountManager || !checkAuthorize.isAuthorizedAccount)
             {
                 return Forbid();
             }

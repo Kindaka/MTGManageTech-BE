@@ -93,7 +93,7 @@ namespace MartyrGraveManagement.Controllers
         }
 
         [HttpPost("CreateHistoricalEvent")]
-        [Authorize(Policy = "RequireManagerRole")] // Chỉ cho phép Admin hoặc Manager
+        [Authorize(Policy = "RequireManagerRole")] 
         public async Task<IActionResult> CreateHistoricalEvent([FromBody] CreateHistoricalEventDTORequest newEvent)
         {
             if (newEvent == null)

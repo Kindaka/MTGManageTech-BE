@@ -149,6 +149,7 @@ builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IGraveService_Service, GraveService_Service>();
 builder.Services.AddScoped<IHistoricalEventService, HistoricalEventService>();
 builder.Services.AddScoped<IScheduleService, ScheduleService>();
+builder.Services.AddScoped<IBlogService, BlogService>();
 
 var app = builder.Build();
 
