@@ -25,11 +25,20 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
         public async Task<List<DetailedBlogResponseDTO>> GetBlogByAccountId(int accountId)
         {
+            // Kiểm tra xem AccountId có tồn tại trong hệ thống không
+            var accountExists = await _unitOfWork.AccountRepository.GetByIDAsync(accountId);
+            if (accountExists == null)
+            {
+                throw new KeyNotFoundException("Account không tồn tại.");
+            }
+
+            // Lấy các blog thuộc về account đã xác thực
             var blogs = await _unitOfWork.BlogRepository.GetAsync(
                 filter: b => b.AccountId == accountId,
                 includeProperties: "Account,HistoricalEvent,HistoricalImages,Comments,HistoricalRelatedMartyrs"
             );
 
+            // Chuyển đổi các blog lấy được sang dạng DTO để trả về
             var blogResponses = blogs.Select(blog => new DetailedBlogResponseDTO
             {
                 BlogId = blog.BlogId,
@@ -41,13 +50,14 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 CreateDate = blog.CreateDate,
                 UpdateDate = blog.UpdateDate,
                 Status = blog.Status,
-                FullName = blog.Account?.FullName, // From Account
-                HistoryEventName = blog.HistoricalEvent?.HistoryEventName, // From HistoricalEvent
-                HistoricalImages = blog.HistoricalImages?.Select(img => img.ImagePath), // Assuming HistoricalImage has ImageUrl
+                FullName = blog.Account?.FullName, // Tên đầy đủ từ Account
+                HistoryEventName = blog.HistoricalEvent?.HistoryEventName, // Tên sự kiện lịch sử từ HistoricalEvent
+                HistoricalImages = blog.HistoricalImages?.Select(img => img.ImagePath) // Các đường dẫn hình ảnh từ HistoricalImages
             }).ToList();
 
             return blogResponses;
         }
+
 
         public async Task<string> CreateBlogAsync(CreateBlogDTORequest request)
         {
@@ -55,6 +65,33 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             {
                 try
                 {
+                    // Kiểm tra xem AccountId có tồn tại không
+                    var accountExists = await _unitOfWork.AccountRepository.GetByIDAsync(request.AccountId);
+                    if (accountExists == null)
+                    {
+                        throw new KeyNotFoundException("Account không tồn tại.");
+                    }
+
+                    // Kiểm tra xem HistoryId có tồn tại không
+                    var historicalEventExists = await _unitOfWork.HistoricalEventRepository.GetByIDAsync(request.HistoryId);
+                    if (historicalEventExists == null)
+                    {
+                        throw new KeyNotFoundException("HistoricalEvent không tồn tại.");
+                    }
+
+                    // Kiểm tra tính hợp lệ của các RelatedMartyrIds (nếu có)
+                    if (request.RelatedMartyrIds != null && request.RelatedMartyrIds.Any())
+                    {
+                        foreach (var martyrId in request.RelatedMartyrIds)
+                        {
+                            var martyrExists = await _unitOfWork.MartyrGraveInformationRepository.GetByIDAsync(martyrId);
+                            if (martyrExists == null)
+                            {
+                                throw new KeyNotFoundException($"Martyr with ID {martyrId} không tồn tại.");
+                            }
+                        }
+                    }
+
                     // 1. Tạo Blog mới từ request
                     var newBlog = new Blog
                     {
@@ -68,42 +105,32 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         Status = false
                     };
 
-                    // 2. Thêm Blog vào cơ sở dữ liệu trước để có được BlogId
+                    // 2. Thêm Blog vào cơ sở dữ liệu để có được BlogId
                     await _unitOfWork.BlogRepository.AddAsync(newBlog);
                     await _unitOfWork.SaveAsync();
 
                     // 3. Thêm các HistoricalImages nếu có
                     if (request.HistoricalImageUrls != null && request.HistoricalImageUrls.Any())
                     {
-                        var historicalImages = new List<HistoricalImage>();
-                        foreach (var url in request.HistoricalImageUrls)
+                        var historicalImages = request.HistoricalImageUrls.Select(url => new HistoricalImage
                         {
-                            historicalImages.Add(new HistoricalImage
-                            {
-                                BlogId = newBlog.BlogId, // liên kết BlogId sau khi Blog đã được thêm
-                                ImagePath = url
-                            });
-                        }
+                            BlogId = newBlog.BlogId,
+                            ImagePath = url
+                        }).ToList();
 
-                        // Thêm tất cả các HistoricalImage vào cơ sở dữ liệu
                         await _unitOfWork.HistoricalImageRepository.AddRangeAsync(historicalImages);
                     }
 
                     // 4. Thêm các HistoricalRelatedMartyrs nếu có
                     if (request.RelatedMartyrIds != null && request.RelatedMartyrIds.Any())
                     {
-                        var historicalRelatedMartyrs = new List<HistoricalRelatedMartyr>();
-                        foreach (var martyrId in request.RelatedMartyrIds)
+                        var historicalRelatedMartyrs = request.RelatedMartyrIds.Select(martyrId => new HistoricalRelatedMartyr
                         {
-                            historicalRelatedMartyrs.Add(new HistoricalRelatedMartyr
-                            {
-                                BlogId = newBlog.BlogId, // liên kết BlogId sau khi Blog đã được thêm
-                                InformationId = martyrId,
-                                Status = true
-                            });
-                        }
+                            BlogId = newBlog.BlogId,
+                            InformationId = martyrId,
+                            Status = true
+                        }).ToList();
 
-                        // Thêm tất cả các HistoricalRelatedMartyr vào cơ sở dữ liệu
                         await _unitOfWork.HistoricalRelatedMartyrRepository.AddRangeAsync(historicalRelatedMartyrs);
                     }
 
@@ -120,6 +147,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 }
             }
         }
+
 
 
         public async Task<List<BlogDTO>> GetAllBlogsAsync()
@@ -152,7 +180,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
         {
             var blog = await _unitOfWork.BlogRepository.GetAsync(
                 filter: b => b.BlogId == blogId,
-                includeProperties: "Account,HistoricalEvent"
+                includeProperties: "Account,HistoricalEvent,HistoricalImages,HistoricalRelatedMartyrs.MartyrGraveInformation.MartyrGrave.GraveImages,Comments.Account,Comments.Comment_Icons.Icon,Comments.Comment_Icons.Account"
             );
 
             var blogEntity = blog.FirstOrDefault();
@@ -170,9 +198,49 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 HistoryEventName = blogEntity.HistoricalEvent?.HistoryEventName,
                 CreateDate = blogEntity.CreateDate,
                 UpdateDate = blogEntity.UpdateDate,
-                Status = blogEntity.Status
+                Status = blogEntity.Status,
+
+                HistoricalImages = blogEntity.HistoricalImages?.Select(img => img.ImagePath).ToList(),
+
+                RelatedMartyrDetails = blogEntity.HistoricalRelatedMartyrs?
+                    .Where(hrm => hrm.MartyrGraveInformation != null)
+                    .Select(hrm => new MartyrDetailDTO
+                    {
+                        Name = hrm.MartyrGraveInformation.Name,
+                        Images = hrm.MartyrGraveInformation.MartyrGrave?.GraveImages?.Select(img => img.UrlPath).ToList()
+                    })
+                    .ToList(),
+
+                // Lấy danh sách bình luận với các biểu tượng liên kết, bao gồm Id, IconId, và các thông tin khác
+                Comments = blogEntity.Comments?.Select(comment => new CommentDetailDTO
+                {
+                    CommentId = comment.CommentId,
+                    Content = comment.Content,
+                    CreatedDate = comment.CreatedDate,
+                    UpdatedDate = comment.UpdatedDate,
+                    AccountName = comment.Account?.FullName,
+
+                    // Tính toán số lần mỗi biểu tượng xuất hiện và lấy thông tin chi tiết
+                    CommentIcons = comment.Comment_Icons
+                        .GroupBy(icon => icon.Icon?.IconImage)
+                        .Select(group => new CommentIconDetailDTO
+                        {
+                            Id = group.First().Id,            // Lấy Id đầu tiên trong nhóm
+                            IconId = group.First().IconId,    // Lấy IconId đầu tiên trong nhóm
+                            IconImage = group.Key,
+                            Count = group.Count(),            // Đếm số lần xuất hiện của biểu tượng này
+                            AccountNames = group.Select(icon => icon.Account?.FullName)
+                                .Where(name => !string.IsNullOrEmpty(name)).ToList() // Danh sách tên người thả biểu tượng
+                        })
+                        .ToList()
+                }).ToList()
             };
         }
+
+
+
+
+
 
 
         public async Task<string> UpdateBlogAsync(int blogId, CreateBlogDTORequest request)

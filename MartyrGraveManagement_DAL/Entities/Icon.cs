@@ -13,12 +13,6 @@ namespace MartyrGraveManagement_DAL.Entities
         public string? IconImage { get; set; }
         [Column(TypeName = "nvarchar(500)")]
         public string? IconName { get; set; }
-        [Column(TypeName = "nvarchar(1000)")]
-        public string? Description { get; set; }
-        public DateTime UploadDate { get; set; }
-        public bool Status { get; set; }
-
-        // Navigation properties
         public IEnumerable<Comment_Icon>? Comment_Icons { get; set; }
     }
 }
