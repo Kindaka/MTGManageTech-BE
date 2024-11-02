@@ -8,8 +8,10 @@ using System.Threading.Tasks;
 
 namespace MartyrGraveManagement_DAL.Entities
 {
-    public class Schedule_Staff
+    [Table("Schedule")]
+    public class Schedule
     {
+        
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int ScheduleId { get; set; }
@@ -22,6 +24,7 @@ namespace MartyrGraveManagement_DAL.Entities
         public int Status { get; set; }
 
         public Slot? Slot { get; set; }  
-        public Account? Account { get; set; }    
+        public IEnumerable<ScheduleDetail>? ScheduleTasks { get; set; }  
+        public IEnumerable<Attendance>? Attendances { get; set; }
     }
 }

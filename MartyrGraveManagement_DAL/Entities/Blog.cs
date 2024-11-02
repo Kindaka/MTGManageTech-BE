@@ -17,6 +17,8 @@ namespace MartyrGraveManagement_DAL.Entities
         public int HistoryId { get; set; }
         [Column(TypeName = "nvarchar(500)")]
         public string BlogName { get; set; }
+        [Column(TypeName = "nvarchar(500)")]
+        public string BlogDescription { get; set; }
         [Column(TypeName = "nvarchar(MAX)")]
         public string BlogContent { get; set; }
         public DateTime CreateDate { get; set; }

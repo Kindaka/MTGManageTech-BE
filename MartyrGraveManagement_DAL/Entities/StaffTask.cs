@@ -28,7 +28,7 @@ namespace MartyrGraveManagement_DAL.Entities
         public int Status { get; set; }
         public Account? Account { get; set; }
         public OrderDetail? OrderDetail { get; set; }
-        
+        public IEnumerable<ScheduleDetail>? ScheduleTasks { get; set; }
 
     }
 

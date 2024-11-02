@@ -32,7 +32,7 @@ namespace MartyrGraveManagement_DAL.UnitOfWorks.Interfaces
         public IGenericRepository<Blog> BlogRepository { get; }
         public IGenericRepository<HistoricalImage> HistoricalImageRepository { get; }
         public IGenericRepository<HistoricalRelatedMartyr> HistoricalRelatedMartyrRepository { get; }
-        public IGenericRepository<Schedule_Staff> ScheduleRepository { get; }
+        public IGenericRepository<Schedule> ScheduleRepository { get; }
         public IGenericRepository<Slot> SlotRepository { get; }
 
 

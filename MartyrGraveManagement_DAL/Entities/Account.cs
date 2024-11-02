@@ -38,10 +38,11 @@ namespace MartyrGraveManagement_DAL.Entities
         public IEnumerable<MartyrGrave>? MartyrGraves { get; set; }
         public IEnumerable<Comment_Icon>? Comment_Icons { get; set; }
         public IEnumerable<Comment_Report>? Comment_Reports { get; set; }
-        public IEnumerable<Schedule_Staff>? Schedules { get; set; }
+        public IEnumerable<ScheduleDetail>? ScheduleTasks { get; set; }
         public IEnumerable<Holiday_Event>? Holiday_Events { get; set; }
         public IEnumerable<NotificationAccount>? NotificationAccounts { get; set; }
         public IEnumerable<Blog>? Blogs { get; set; }
+        public IEnumerable<Attendance>? Attendances { get; set; }
 
 
     }

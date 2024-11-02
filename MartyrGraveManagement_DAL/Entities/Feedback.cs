@@ -20,6 +20,7 @@ namespace MartyrGraveManagement_DAL.Entities
         public string Content { get; set; }
         [Column(TypeName = "nvarchar(500)")]
         public string? ResponseContent { get; set; }
+        public int Rating { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         public bool Status { get; set; }

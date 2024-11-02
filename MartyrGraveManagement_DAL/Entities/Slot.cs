@@ -21,6 +21,6 @@ namespace MartyrGraveManagement_DAL.Entities
         public TimeOnly EndTime { get; set; }
         public bool Status { get; set; }
 
-        public IEnumerable<Schedule_Staff>? Schedules { get; set; }
+        public IEnumerable<Schedule>? Schedules { get; set; }
     }
 }
