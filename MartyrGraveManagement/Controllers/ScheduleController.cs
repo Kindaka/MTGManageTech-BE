@@ -37,16 +37,12 @@ namespace MartyrGraveManagement.Controllers
                 return Forbid("Bạn không có quyền cập nhật thông tin của tài khoản này.");
             }
 
-            foreach (var request in requests)
+            var checkAuthorize = await _authorizeService.CheckAuthorizeManagerByAccountId(tokenAccountId, accountId);
+            if (!checkAuthorize.isMatchedAccountManager || !checkAuthorize.isAuthorizedAccount)
             {
-                var checkAuthorize = await _authorizeService.CheckAuthorizeManagerByAccountId(tokenAccountId, accountId);
-                if (!checkAuthorize.isMatchedAccountManager || !checkAuthorize.isAuthorizedAccount)
-                var checkAuthorize = await _authorizeService.CheckAuthorizeManagerByAccountId(tokenAccountId, request.AccountId);
-                if (!checkAuthorize.isMatchedAccountManager || !checkAuthorize.isAuthorizedAccount)
-                {
-                    return Forbid("Bạn không có quyền tạo lịch làm việc.");
-                }
+               return Forbid("Bạn không có quyền tạo lịch làm việc.");
             }
+
 
             // Gọi dịch vụ để tạo danh sách lịch trình và nhận danh sách kết quả
             var results = await _scheduleService.CreateSchedule(requests, accountId);

@@ -128,45 +128,28 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             // Lấy danh sách Schedule của accountId, bao gồm Slot và Account
             var schedules = await _unitOfWork.ScheduleRepository.GetAsync(
                 filter: s => s.AccountId == accountId,
-                includeProperties: "Slot,Account"
+                includeProperties: "Slot"
             );
-
+            
             var scheduleResponses = new List<ScheduleDTOResponse>();
 
             foreach (var schedule in schedules)
-            {
-                // Lấy Task dựa vào TaskId trong mỗi Schedule
-                var task = await _unitOfWork.TaskRepository.GetByIDAsync(schedule.TaskId);
+            { 
 
-                if (task != null)
-                {
-                    // Lấy OrderDetail của Task và bao gồm các navigation properties cần thiết
-                    var orderDetail = await _unitOfWork.OrderDetailRepository.GetAsync(
-                        filter: od => od.DetailId == task.DetailId,
-                        includeProperties: "Service,MartyrGrave.Location"
-                    );
+                var manager = await _unitOfWork.AccountRepository.GetByIDAsync(schedule.AccountId);
 
-                    var orderDetailEntity = orderDetail.FirstOrDefault();
-
-                    // Xác định thông tin Location nếu có dữ liệu
-                    var martyrGrave = orderDetailEntity?.MartyrGrave;
-                    var location = martyrGrave != null && martyrGrave.Location != null
-                        ? $"K{martyrGrave.Location.AreaNumber}-R{martyrGrave.Location.RowNumber}-{martyrGrave.Location.MartyrNumber}"
-                        : "Location Not Available";
-
+                if (manager != null)
+                { 
                     // Tạo response cho từng schedule
                     var response = new ScheduleDTOResponse
                     {
                         ScheduleId = schedule.ScheduleId,
-                        AccountId = schedule.AccountId,
+                        ManagerName = manager.FullName,
                         SlotId = schedule.SlotId,
-                        TaskId = schedule.TaskId,
-                        //FullName = schedule.Account.FullName,
                         SlotName = schedule.Slot.SlotName,
+                        Date = schedule.Date,
                         StartTime = schedule.Slot.StartTime,
-                        EndTime = schedule.Slot.EndTime,
-                        ServiceName = orderDetailEntity?.Service?.ServiceName,
-                        Location = location
+                        EndTime = schedule.Slot.EndTime
                     };
 
                     scheduleResponses.Add(response);
@@ -270,7 +253,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             // Lấy Schedule dựa trên scheduleId, bao gồm Slot và Account
             var schedule = await _unitOfWork.ScheduleRepository.GetAsync(
                 filter: s => s.ScheduleId == scheduleId,
-                includeProperties: "Slot,Account"
+                includeProperties: "Slot"
             );
 
             var scheduleEntity = schedule.FirstOrDefault();
@@ -279,40 +262,19 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 throw new KeyNotFoundException("Schedule not found.");
             }
 
-            // Lấy Task dựa vào TaskId của Schedule
-            var task = await _unitOfWork.TaskRepository.GetByIDAsync(scheduleEntity.TaskId);
-            if (task == null)
-            {
-                throw new KeyNotFoundException("Task not found.");
-            }
 
-            // Lấy OrderDetail của Task và bao gồm các navigation properties cần thiết
-            var orderDetail = await _unitOfWork.OrderDetailRepository.GetAsync(
-                filter: od => od.DetailId == task.DetailId,
-                includeProperties: "Service,MartyrGrave.Location"
-            );
-
-            var orderDetailEntity = orderDetail.FirstOrDefault();
-
-            // Xác định thông tin Location nếu có dữ liệu
-            var martyrGrave = orderDetailEntity?.MartyrGrave;
-            var location = martyrGrave != null && martyrGrave.Location != null
-                ? $"K{martyrGrave.Location.AreaNumber}-R{martyrGrave.Location.RowNumber}-{martyrGrave.Location.MartyrNumber}"
-                : "Location Not Available";
+            var manager = await _unitOfWork.AccountRepository.GetByIDAsync(scheduleEntity.AccountId);
 
             // Tạo response với các thuộc tính giống GetScheduleByAccountId
             var response = new ScheduleDTOResponse
             {
                 ScheduleId = scheduleEntity.ScheduleId,
-                AccountId = scheduleEntity.AccountId,
+                ManagerName = manager.FullName,
                 SlotId = scheduleEntity.SlotId,
-                TaskId = scheduleEntity.TaskId,
-                //FullName = scheduleEntity.Account.FullName,
                 SlotName = scheduleEntity.Slot.SlotName,
+                Date = scheduleEntity.Date,
                 StartTime = scheduleEntity.Slot.StartTime,
                 EndTime = scheduleEntity.Slot.EndTime,
-                ServiceName = orderDetailEntity?.Service?.ServiceName,
-                Location = location
             };
 
             return response;

@@ -148,7 +148,10 @@ builder.Services.AddScoped<IAuthorizeService, AuthorizeService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IGraveService_Service, GraveService_Service>();
 builder.Services.AddScoped<IHistoricalEventService, HistoricalEventService>();
+builder.Services.AddScoped<IBlogService, BlogService>();
 builder.Services.AddScoped<IScheduleService, ScheduleService>();
+builder.Services.AddScoped<IScheduleDetailService, ScheduleDetailService>();
+builder.Services.AddScoped<IAttendanceService, AttendanceService>();
 
 var app = builder.Build();
 
