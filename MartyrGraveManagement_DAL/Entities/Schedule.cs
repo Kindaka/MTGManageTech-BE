@@ -18,7 +18,7 @@ namespace MartyrGraveManagement_DAL.Entities
         public int AccountId { get; set; }
         public int SlotId { get; set; }
         public int? TaskId { get; set; }
-        public DateTime Date { get; set; }
+        public DateOnly Date { get; set; }
         [Column(TypeName = "nvarchar(MAX)")]
         public string? Description { get; set; }
         public int Status { get; set; }

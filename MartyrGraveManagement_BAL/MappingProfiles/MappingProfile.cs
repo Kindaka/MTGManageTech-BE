@@ -10,6 +10,7 @@ using MartyrGraveManagement_BAL.ModelViews.MartyrGraveDTOs;
 using MartyrGraveManagement_BAL.ModelViews.MartyrGraveInformationDTOs;
 using MartyrGraveManagement_BAL.ModelViews.OrdersDTOs;
 using MartyrGraveManagement_BAL.ModelViews.PaymentDTOs;
+using MartyrGraveManagement_BAL.ModelViews.ScheduleDetailDTOs;
 using MartyrGraveManagement_BAL.ModelViews.ScheduleDTOs;
 using MartyrGraveManagement_BAL.ModelViews.ServiceCategoryDTOs;
 using MartyrGraveManagement_BAL.ModelViews.ServiceDTOs;
@@ -105,6 +106,9 @@ namespace MartyrGraveManagement_BAL.MappingProfiles
             //Blog mapping
 
             CreateMap<CreateBlogDTORequest, Blog>().ReverseMap();
+
+            //ScheduleDetail mapping
+            CreateMap<ScheduleDetail, ScheduleDetailListDtoResponse>().ReverseMap();
         }
     }
 }

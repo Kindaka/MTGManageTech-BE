@@ -39,15 +39,17 @@ namespace MartyrGraveManagement.Controllers
 
             foreach (var request in requests)
             {
+                var checkAuthorize = await _authorizeService.CheckAuthorizeManagerByAccountId(tokenAccountId, accountId);
+                if (!checkAuthorize.isMatchedAccountManager || !checkAuthorize.isAuthorizedAccount)
                 var checkAuthorize = await _authorizeService.CheckAuthorizeManagerByAccountId(tokenAccountId, request.AccountId);
                 if (!checkAuthorize.isMatchedAccountManager || !checkAuthorize.isAuthorizedAccount)
                 {
-                    return Forbid("Bạn không có quyền tạo lịch trình cho tài khoản này.");
+                    return Forbid("Bạn không có quyền tạo lịch làm việc.");
                 }
             }
 
             // Gọi dịch vụ để tạo danh sách lịch trình và nhận danh sách kết quả
-            var results = await _scheduleService.CreateSchedule(requests);
+            var results = await _scheduleService.CreateSchedule(requests, accountId);
 
             // Kiểm tra nếu có lỗi trong kết quả
             if (results.Any(r => !r.Contains("thành công")))

@@ -15,6 +15,6 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
         Task<ScheduleDTOResponse> GetScheduleById(int scheduleId);
         Task<string> DeleteSchedule(int scheduleId);
 
-        Task<List<string>> CreateSchedule(List<CreateScheduleDTORequest> requests);
+        Task<List<string>> CreateSchedule(List<CreateScheduleDTORequest> requests, int accountId);
     }
 }

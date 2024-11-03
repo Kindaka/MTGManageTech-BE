@@ -8,7 +8,7 @@ namespace MartyrGraveManagement_BAL.ModelViews.ScheduleDTOs
 {
     public class UpdateScheduleDTORequest
     {
-        public DateTime Date { get; set; }
+        public DateOnly Date { get; set; }
         public int SlotId { get; set; }
         public string Description { get; set; }
     }

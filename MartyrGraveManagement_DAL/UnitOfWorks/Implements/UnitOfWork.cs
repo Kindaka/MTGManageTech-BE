@@ -39,6 +39,8 @@ namespace MartyrGraveManagement_DAL.UnitOfWorks.Implements
         private GenericRepository<HistoricalRelatedMartyr> _historicalRelatedMartyrRepository;
         private GenericRepository<Schedule> _scheduleRepository;
         private GenericRepository<Slot> _slotRepository;
+        private GenericRepository<ScheduleDetail> _scheduleDetailRepository;
+        private GenericRepository<Attendance> _attendanceRepository;
 
 
         public UnitOfWork(ApplicationDbContext context)
@@ -72,6 +74,8 @@ namespace MartyrGraveManagement_DAL.UnitOfWorks.Implements
         public IGenericRepository<HistoricalRelatedMartyr> HistoricalRelatedMartyrRepository => _historicalRelatedMartyrRepository ??= new GenericRepository<HistoricalRelatedMartyr>(_context);
         public IGenericRepository<Schedule> ScheduleRepository => _scheduleRepository ??= new GenericRepository<Schedule>(_context);
         public IGenericRepository<Slot> SlotRepository => _slotRepository ??= new GenericRepository<Slot>(_context);
+        public IGenericRepository<ScheduleDetail> ScheduleDetailRepository => _scheduleDetailRepository ??= new GenericRepository<ScheduleDetail>(_context);
+        public IGenericRepository<Attendance> AttendanceRepository => _attendanceRepository ??= new GenericRepository<Attendance>(_context);
 
 
         public async Task<IDbContextTransaction> BeginTransactionAsync()
