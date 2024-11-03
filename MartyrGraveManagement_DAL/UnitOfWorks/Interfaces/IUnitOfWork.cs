@@ -36,6 +36,9 @@ namespace MartyrGraveManagement_DAL.UnitOfWorks.Interfaces
         public IGenericRepository<Slot> SlotRepository { get; }
         public IGenericRepository<ScheduleDetail> ScheduleDetailRepository { get; }
         public IGenericRepository<Attendance> AttendanceRepository { get; }
+        public IGenericRepository<Comment> CommentRepository { get; }
+        public IGenericRepository<Comment_Icon> CommentIconRepository { get; }
+        public IGenericRepository<Comment_Report> CommentReportRepository { get; }
 
 
         Task SaveAsync();

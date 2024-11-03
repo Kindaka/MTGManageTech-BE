@@ -3,6 +3,9 @@ using MartyrGraveManagement_BAL.ModelViews.AccountDTOs;
 using MartyrGraveManagement_BAL.ModelViews.AreaDTOs;
 using MartyrGraveManagement_BAL.ModelViews.BlogDTOs;
 using MartyrGraveManagement_BAL.ModelViews.CartItemsDTOs;
+using MartyrGraveManagement_BAL.ModelViews.CommentDTOs;
+using MartyrGraveManagement_BAL.ModelViews.CommentIconDTOs;
+using MartyrGraveManagement_BAL.ModelViews.CommentReportDTOs;
 using MartyrGraveManagement_BAL.ModelViews.CustomerDTOs;
 using MartyrGraveManagement_BAL.ModelViews.FeedbackDTOs;
 using MartyrGraveManagement_BAL.ModelViews.HistoricalEventDTOs;
@@ -109,6 +112,21 @@ namespace MartyrGraveManagement_BAL.MappingProfiles
 
             //ScheduleDetail mapping
             CreateMap<ScheduleDetail, ScheduleDetailListDtoResponse>().ReverseMap();
+           
+
+            //Comment mapping
+                 CreateMap<CommentDTO, Comment>().ReverseMap();
+                 CreateMap<CommentIconDTO, Comment_Icon>().ReverseMap();
+                 CreateMap<CreateCommentDTO, Comment>().ReverseMap();
+                 CreateMap<UpdateCommentDTO, Comment>().ReverseMap();
+                 CreateMap<UpdateCommentStatusDTO, Comment>().ReverseMap();
+
+            //CommentIcon mapping
+            CreateMap<CreateCommentIconDTO, Comment_Icon>().ReverseMap();
+            CreateMap<UpdateCommentIconDTO, Comment_Icon>().ReverseMap();
+            //CommentReport mapping
+            CreateMap<CommentReportDTO, Comment_Report>().ReverseMap();
+            CreateMap<CreateCommentReportDTO, Comment_Report>().ReverseMap();
         }
     }
 }

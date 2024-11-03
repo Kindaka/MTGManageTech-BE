@@ -59,14 +59,14 @@ namespace MartyrGraveManagement_BAL.Services.Implements
         }
 
 
-        public async Task<string> CreateBlogAsync(CreateBlogDTORequest request)
+        public async Task<string> CreateBlogAsync(CreateBlogDTORequest request, int accountId)
         {
             using (var transaction = await _unitOfWork.BeginTransactionAsync())
             {
                 try
                 {
                     // Kiểm tra xem AccountId có tồn tại không
-                    var accountExists = await _unitOfWork.AccountRepository.GetByIDAsync(request.AccountId);
+                    var accountExists = await _unitOfWork.AccountRepository.GetByIDAsync(accountId);
                     if (accountExists == null)
                     {
                         throw new KeyNotFoundException("Account không tồn tại.");
@@ -95,7 +95,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     // 1. Tạo Blog mới từ request
                     var newBlog = new Blog
                     {
-                        AccountId = request.AccountId,
+                        AccountId = accountId,  // Sử dụng AccountId từ token
                         HistoryId = request.HistoryId,
                         BlogName = request.BlogName,
                         BlogDescription = request.BlogDescription,
@@ -150,6 +150,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
 
 
+
         public async Task<List<BlogDTO>> GetAllBlogsAsync()
         {
             var blogs = await _unitOfWork.BlogRepository.GetAllAsync(includeProperties: "Account,HistoricalEvent");
@@ -175,6 +176,39 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
             return blogDtos;
         }
+
+        public async Task<List<BlogDTO>> GetAllBlogsWithStatusTrueAsync()
+        {
+            // Lấy tất cả các blog có status = true
+            var blogs = await _unitOfWork.BlogRepository.GetAsync(
+                filter: b => b.Status == true,
+                includeProperties: "Account,HistoricalEvent,HistoricalImages"
+            );
+
+            // Chuyển đổi dữ liệu sang danh sách BlogDTO
+            var blogDTOs = blogs.Select(blog => new BlogDTO
+            {
+                BlogId = blog.BlogId,
+                BlogName = blog.BlogName,
+                BlogDescription = blog.BlogDescription,
+                BlogContent = blog.BlogContent,
+                AccountId = blog.AccountId,
+                FullName = blog.Account?.FullName,
+                HistoryId = blog.HistoryId,
+                HistoryEventName = blog.HistoricalEvent?.HistoryEventName,
+                CreateDate = blog.CreateDate,
+                UpdateDate = blog.UpdateDate,
+                Status = blog.Status,
+
+                // Danh sách hình ảnh lịch sử liên kết với blog
+                HistoricalImages = blog.HistoricalImages?.Select(img => img.ImagePath).ToList()
+            }).ToList();
+
+            return blogDTOs;
+        }
+
+
+
 
         public async Task<BlogDTO> GetBlogByIdAsync(int blogId)
         {
@@ -211,31 +245,32 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     })
                     .ToList(),
 
-                // Lấy danh sách bình luận với các biểu tượng liên kết, bao gồm Id, IconId, và các thông tin khác
-                Comments = blogEntity.Comments?.Select(comment => new CommentDetailDTO
-                {
-                    CommentId = comment.CommentId,
-                    Content = comment.Content,
-                    CreatedDate = comment.CreatedDate,
-                    UpdatedDate = comment.UpdatedDate,
-                    AccountName = comment.Account?.FullName,
+                Comments = blogEntity.Comments?
+                    .Where(comment => comment.Status == true) 
+                    .Select(comment => new CommentDetailDTO
+                    {
+                        CommentId = comment.CommentId,
+                        Content = comment.Content,
+                        CreatedDate = comment.CreatedDate,
+                        UpdatedDate = comment.UpdatedDate,
+                        AccountName = comment.Account?.FullName,
 
-                    // Tính toán số lần mỗi biểu tượng xuất hiện và lấy thông tin chi tiết
-                    CommentIcons = comment.Comment_Icons
-                        .GroupBy(icon => icon.Icon?.IconImage)
-                        .Select(group => new CommentIconDetailDTO
-                        {
-                            Id = group.First().Id,            // Lấy Id đầu tiên trong nhóm
-                            IconId = group.First().IconId,    // Lấy IconId đầu tiên trong nhóm
-                            IconImage = group.Key,
-                            Count = group.Count(),            // Đếm số lần xuất hiện của biểu tượng này
-                            AccountNames = group.Select(icon => icon.Account?.FullName)
-                                .Where(name => !string.IsNullOrEmpty(name)).ToList() // Danh sách tên người thả biểu tượng
-                        })
-                        .ToList()
-                }).ToList()
+                        CommentIcons = comment.Comment_Icons
+                            .GroupBy(icon => icon.Icon?.IconImage)
+                            .Select(group => new CommentIconDetailDTO
+                            {
+                                Id = group.First().Id,           
+                                IconId = group.First().IconId,   
+                                IconImage = group.Key,
+                                Count = group.Count(),           
+                                AccountNames = group.Select(icon => icon.Account?.FullName)
+                                    .Where(name => !string.IsNullOrEmpty(name)).ToList() 
+                            })
+                            .ToList()
+                    }).ToList()
             };
         }
+
 
 
 

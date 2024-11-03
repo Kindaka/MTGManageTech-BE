@@ -10,8 +10,9 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
     public interface IBlogService
     {
         Task<List<DetailedBlogResponseDTO>> GetBlogByAccountId(int accountId);
-        Task<string> CreateBlogAsync(CreateBlogDTORequest request);
+        Task<string> CreateBlogAsync(CreateBlogDTORequest request, int accountId);
         Task<List<BlogDTO>> GetAllBlogsAsync();
+        Task<List<BlogDTO>> GetAllBlogsWithStatusTrueAsync();
         Task<BlogDTO> GetBlogByIdAsync(int blogId);
         Task<string> UpdateBlogAsync(int blogId, CreateBlogDTORequest request);
         Task<string> UpdateBlogStatusAsync(int blogId, bool status);

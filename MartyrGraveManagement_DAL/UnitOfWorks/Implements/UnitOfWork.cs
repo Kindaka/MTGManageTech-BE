@@ -41,6 +41,9 @@ namespace MartyrGraveManagement_DAL.UnitOfWorks.Implements
         private GenericRepository<Slot> _slotRepository;
         private GenericRepository<ScheduleDetail> _scheduleDetailRepository;
         private GenericRepository<Attendance> _attendanceRepository;
+        private GenericRepository<Comment> _commentRepository;
+        private GenericRepository<Comment_Icon> _commentIconRepository;
+        private GenericRepository<Comment_Report> _commentReportRepository;
 
 
         public UnitOfWork(ApplicationDbContext context)
@@ -76,6 +79,9 @@ namespace MartyrGraveManagement_DAL.UnitOfWorks.Implements
         public IGenericRepository<Slot> SlotRepository => _slotRepository ??= new GenericRepository<Slot>(_context);
         public IGenericRepository<ScheduleDetail> ScheduleDetailRepository => _scheduleDetailRepository ??= new GenericRepository<ScheduleDetail>(_context);
         public IGenericRepository<Attendance> AttendanceRepository => _attendanceRepository ??= new GenericRepository<Attendance>(_context);
+        public IGenericRepository<Comment> CommentRepository => _commentRepository ??= new GenericRepository<Comment>(_context);
+        public IGenericRepository<Comment_Icon> CommentIconRepository => _commentIconRepository ??= new GenericRepository<Comment_Icon>(_context);
+        public IGenericRepository<Comment_Report> CommentReportRepository => _commentReportRepository ??= new GenericRepository<Comment_Report>(_context);
 
 
         public async Task<IDbContextTransaction> BeginTransactionAsync()

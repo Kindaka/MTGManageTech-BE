@@ -63,22 +63,29 @@ namespace MartyrGraveManagement.Controllers
         }
 
         /// <summary>
-        /// Create Blog 
+        /// Create Blog (accountId take from jwt role staff)
         /// </summary>
         [Authorize(Policy = "RequireStaffRole")]
         [HttpPost("CreateBlog")]
         public async Task<IActionResult> CreateBlog([FromBody] CreateBlogDTORequest request)
         {
-
-
             if (request == null)
             {
                 return BadRequest(new { message = "Yêu cầu không hợp lệ." });
             }
 
+            // Lấy AccountId từ token
+            var accountIdClaim = User.FindFirst("AccountId");
+            if (accountIdClaim == null || string.IsNullOrEmpty(accountIdClaim.Value))
+            {
+                return Forbid("Không tìm thấy AccountId trong token.");
+            }
+
+            int accountId = int.Parse(accountIdClaim.Value);
+
             try
             {
-                var result = await _blogService.CreateBlogAsync(request);
+                var result = await _blogService.CreateBlogAsync(request, accountId);
 
                 if (result == "Blog created successfully.")
                 {
@@ -94,13 +101,35 @@ namespace MartyrGraveManagement.Controllers
                 return StatusCode(500, new { message = $"Lỗi khi tạo Blog: {ex.Message}" });
             }
         }
-        [AllowAnonymous]
+
+        /// <summary>
+        /// View All Blog (True and False) Manager
+        /// </summary>
+        [Authorize(Policy = "RequireManagerRole")]
         [HttpGet("GetAllBlogs")]
         public async Task<IActionResult> GetAllBlogs()
         {
             try
             {
                 var blogs = await _blogService.GetAllBlogsAsync();
+                return Ok(new { message = "Blogs retrieved successfully.", data = blogs });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = $"Lỗi khi lấy danh sách Blogs: {ex.Message}" });
+            }
+        }
+
+        /// <summary>
+        /// View All Blog (Customer)
+        /// </summary>
+        [AllowAnonymous]
+        [HttpGet("GetAllBlogsForCustomer")]
+        public async Task<IActionResult> GetAllBlogsWithStatusTrue()
+        {
+            try
+            {
+                var blogs = await _blogService.GetAllBlogsWithStatusTrueAsync();
                 return Ok(new { message = "Blogs retrieved successfully.", data = blogs });
             }
             catch (Exception ex)

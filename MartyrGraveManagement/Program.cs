@@ -152,6 +152,11 @@ builder.Services.AddScoped<IBlogService, BlogService>();
 builder.Services.AddScoped<IScheduleService, ScheduleService>();
 builder.Services.AddScoped<IScheduleDetailService, ScheduleDetailService>();
 builder.Services.AddScoped<IAttendanceService, AttendanceService>();
+builder.Services.AddScoped<ICommentService, CommentService>();
+builder.Services.AddScoped<ICommentIconService, CommentIconService>();
+builder.Services.AddScoped<ICommentReportService, CommentReportService>();
+
+
 
 var app = builder.Build();
 
