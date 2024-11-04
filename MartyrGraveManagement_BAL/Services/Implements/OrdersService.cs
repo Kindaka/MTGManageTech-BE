@@ -571,6 +571,57 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
         }
 
+        public async Task<OrderDetailDtoResponse> GetOrderDetailById(int detailId)
+        {
+            // Truy vấn dữ liệu OrderDetail với các thuộc tính liên quan
+            var orderDetails = await _unitOfWork.OrderDetailRepository.GetAsync(
+                filter: od => od.DetailId == detailId,
+                includeProperties: "Order,Service,MartyrGrave.MartyrGraveInformations,StaffTask"
+            );
+
+            // Lấy đối tượng OrderDetail đầu tiên hoặc trả về null nếu không tồn tại
+            var orderDetail = orderDetails.FirstOrDefault();
+            if (orderDetail == null)
+            {
+                return null;
+            }
+
+            // Tạo đối tượng DTO với các thông tin yêu cầu
+            var martyrGraveInfo = orderDetail.MartyrGrave?.MartyrGraveInformations?.FirstOrDefault();
+            var orderDetailDto = new OrderDetailDtoResponse
+            {
+                OrderId = orderDetail.OrderId,
+                DetailId = orderDetail.DetailId,
+                OrderDate = orderDetail.Order.OrderDate,
+                ExpectedCompletionDate = orderDetail.Order.ExpectedCompletionDate,
+                Note = orderDetail.Order.Note,
+                orderStatus = orderDetail.Order.Status,
+                ServiceName = orderDetail.Service?.ServiceName,
+                MartyrName = martyrGraveInfo?.Name,
+                OrderPrice = orderDetail.OrderPrice,
+                StatusTask = orderDetail.StaffTask?.Status ?? 0
+            };
+
+            // Lấy danh sách nhân viên thuộc cùng AreaId
+            var accountStaffs = await _unitOfWork.AccountRepository.GetAsync(
+                s => s.AreaId == orderDetail.MartyrGrave.AreaId && s.RoleId == 3 && s.Status == true
+            );
+
+            // Thêm danh sách nhân viên vào DTO
+            if (accountStaffs != null && accountStaffs.Any())
+            {
+                orderDetailDto.Staffs = accountStaffs.Select(accountStaff => new StaffDtoResponse
+                {
+                    AccountId = accountStaff.AccountId,
+                    StaffFullName = accountStaff.FullName
+                }).ToList();
+            }
+
+            return orderDetailDto;
+        }
+
+
+
 
 
 

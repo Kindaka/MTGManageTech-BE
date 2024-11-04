@@ -17,5 +17,7 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
         Task<List<OrderDetailDtoResponse>> GetOrderByAreaId(int managerId);
         Task<bool> UpdateOrderStatus(int orderId, int newStatus);
         Task<bool> DeleteAsync(int id);
+
+        Task<OrderDetailDtoResponse> GetOrderDetailById(int orderDetailId);
     }
 }

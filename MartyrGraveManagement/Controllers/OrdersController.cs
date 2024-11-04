@@ -192,5 +192,38 @@ namespace MartyrGraveManagement.Controllers
             }
         }
 
+
+        [Authorize(Policy = "RequireManagerOrStaffRole")]
+        [HttpGet("order-detail/{detailId}")]
+        public async Task<IActionResult> GetOrderDetailById(int detailId, int managerId)
+        {
+            try
+            {
+                var accountId = User.FindFirst("AccountId")?.Value;
+                if (accountId == null)
+                {
+                    return Forbid();
+                }
+
+                var checkMatchedId = await _authorizeService.CheckAuthorizeStaffOrManager(managerId, int.Parse(accountId));
+                if (!checkMatchedId.isMatchedStaffOrManager)
+                {
+                    return Forbid();
+                }
+
+                var orderDetail = await _odersService.GetOrderDetailById(detailId);
+                if (orderDetail == null)
+                {
+                    return NotFound(new { message = "Order detail not found." });
+                }
+
+                return Ok(orderDetail);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An unexpected error occurred.", details = ex.Message });
+            }
+        }
+
     }
 }
