@@ -1,7 +1,9 @@
-﻿using MartyrGraveManagement_BAL.Services.Implements;
+﻿using MartyrGraveManagement_BAL.ModelViews.AttendanceDTOs;
+using MartyrGraveManagement_BAL.Services.Implements;
 using MartyrGraveManagement_BAL.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MartyrGraveManagement.Controllers
@@ -20,8 +22,12 @@ namespace MartyrGraveManagement.Controllers
 
         [Authorize(Policy = "RequireManagerRole")]
         [HttpPut("CheckAttendance")]
-        public async Task<IActionResult> CheckAttendanceStaff(int attendanceId, int managerId, int statusAttendance)
+        public async Task<IActionResult> CheckAttendanceStaff([FromBody] List<CheckAttendancesDtoRequest> checkList, int managerId)
         {
+            if (checkList.Count() == 0)
+            {
+                return NotFound("Danh sách điểm danh bị trống");
+            }
             // Lấy AccountId từ token
             var tokenAccountIdClaim = User.FindFirst("AccountId");
             if (tokenAccountIdClaim == null || string.IsNullOrEmpty(tokenAccountIdClaim.Value))
@@ -47,17 +53,17 @@ namespace MartyrGraveManagement.Controllers
             try
             {
                 // Gọi service để lấy danh sách lịch trình
-                var attendances = await _attendanceService.CheckAttendance(attendanceId, statusAttendance);
+                var attendances = await _attendanceService.CheckAttendance(checkList);
 
-                
-                if(attendances.status)
+                // Kiểm tra nếu có lỗi trong kết quả
+                if (attendances.Any(r => !r.Contains("thành công")))
                 {
-                    return Ok(attendances.responseContent);
+                    return BadRequest(new { message = attendances });
                 }
-                else
-                {
-                    return BadRequest(attendances.responseContent);
-                }
+
+                return Ok(new { message = attendances });
+
+
             }
             catch (KeyNotFoundException ex)
             {

@@ -57,6 +57,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         AccountId = order.AccountId,
                         OrderDate = order.OrderDate,
                         ExpectedCompletionDate = order.ExpectedCompletionDate,
+                        Note = order.Note,
                         TotalPrice = order.TotalPrice,
                         Status = order.Status
                     };
@@ -73,6 +74,12 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         }
                         var orderDetailDto = new OrderDetailDtoResponse
                         {
+                            OrderId = orderDetail.OrderId,
+                            DetailId = orderDetail.DetailId,
+                            OrderDate = order.OrderDate,
+                            ExpectedCompletionDate = order.ExpectedCompletionDate,
+                            Note = order.Note,
+                            orderStatus = order.Status,
                             ServiceName = orderDetail.Service?.ServiceName,
                             MartyrName = martyrGraveInfo?.Name,  // Lấy thông tin liệt sĩ từ MartyrGraveInformation
                             OrderPrice = orderDetail.OrderPrice,
@@ -120,6 +127,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         AccountId = order.AccountId,
                         OrderDate = order.OrderDate,
                         ExpectedCompletionDate = order.ExpectedCompletionDate,
+                        Note = order.Note,
                         TotalPrice = order.TotalPrice,
                         Status = order.Status
                     };
@@ -131,6 +139,12 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
                         var orderDetailDto = new OrderDetailDtoResponse
                         {
+                            OrderId = orderDetail.OrderId,
+                            DetailId = orderDetail.DetailId,
+                            OrderDate = order.OrderDate,
+                            ExpectedCompletionDate = order.ExpectedCompletionDate,
+                            Note = order.Note,
+                            orderStatus = order.Status,
                             ServiceName = orderDetail.Service?.ServiceName,
                             MartyrName = martyrGraveInfo?.Name, // Lấy thông tin liệt sĩ từ MartyrGraveInformation
                             OrderPrice = orderDetail.OrderPrice
@@ -175,6 +189,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     AccountId = orderEntity.AccountId,
                     OrderDate = orderEntity.OrderDate,
                     ExpectedCompletionDate = orderEntity.ExpectedCompletionDate,
+                    Note = orderEntity.Note,
                     TotalPrice = orderEntity.TotalPrice,
                     Status = orderEntity.Status
                 };
@@ -186,7 +201,12 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
                     var orderDetailDto = new OrderDetailDtoResponse
                     {
+                        OrderId = orderDetail.OrderId,
                         DetailId = orderDetail.DetailId,
+                        OrderDate = orderEntity.OrderDate,
+                        ExpectedCompletionDate = orderEntity.ExpectedCompletionDate,
+                        Note = orderEntity.Note,
+                        orderStatus = orderEntity.Status,
                         ServiceName = orderDetail.Service?.ServiceName,
                         MartyrName = martyrGraveInfo?.Name,
                         OrderPrice = orderDetail.OrderPrice
@@ -498,14 +518,16 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
                 foreach (var orderDetail in orderDetails)
                 {
-
-                        
-
                         var martyrGraveInfo = orderDetail.MartyrGrave?.MartyrGraveInformations?.FirstOrDefault();
 
                         var orderDetailDto = new OrderDetailDtoResponse
                         {
+                            OrderId = orderDetail.OrderId,
                             DetailId = orderDetail.DetailId,
+                            OrderDate = orderDetail.Order.OrderDate,
+                            ExpectedCompletionDate = orderDetail.Order.ExpectedCompletionDate,
+                            Note = orderDetail.Order.Note,
+                            orderStatus = orderDetail.Order.Status,
                             ServiceName = orderDetail.Service?.ServiceName,
                             MartyrName = martyrGraveInfo?.Name, // Lấy thông tin liệt sĩ từ MartyrGraveInformation
                             OrderPrice = orderDetail.OrderPrice

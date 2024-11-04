@@ -10,6 +10,7 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
     public interface IScheduleService
     {
         Task<List<ScheduleDTOResponse>> GetScheduleByAccountId(int accountId);
+        Task<List<ScheduleDTOResponse>> GetSchedules(DateTime Date);
 
         Task<string> UpdateSchedule(int scheduleId, UpdateScheduleDTORequest request);
         Task<ScheduleDTOResponse> GetScheduleById(int scheduleId);

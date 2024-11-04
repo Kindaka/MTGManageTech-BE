@@ -63,53 +63,53 @@ namespace MartyrGraveManagement.Controllers
         /// <summary>
         /// Get List Schedule by AccountId (Staff Role)
         /// </summary>
-        [Authorize(Policy = "RequireManagerRole")]
-        [HttpGet("GetScheduleByAccountId/{accountId}")]
-        public async Task<IActionResult> GetScheduleByAccountId(int accountId)
-        {
-            // Lấy AccountId từ token
-            var tokenAccountIdClaim = User.FindFirst("AccountId");
-            if (tokenAccountIdClaim == null || string.IsNullOrEmpty(tokenAccountIdClaim.Value))
-            {
-                return Forbid("Không tìm thấy AccountId trong token.");
-            }
+        //[Authorize(Policy = "RequireManagerRole")]
+        //[HttpGet("GetScheduleByAccountId/{accountId}")]
+        //public async Task<IActionResult> GetScheduleByAccountId(int accountId)
+        //{
+        //    // Lấy AccountId từ token
+        //    var tokenAccountIdClaim = User.FindFirst("AccountId");
+        //    if (tokenAccountIdClaim == null || string.IsNullOrEmpty(tokenAccountIdClaim.Value))
+        //    {
+        //        return Forbid("Không tìm thấy AccountId trong token.");
+        //    }
 
-            var tokenAccountId = int.Parse(tokenAccountIdClaim.Value);
+        //    var tokenAccountId = int.Parse(tokenAccountIdClaim.Value);
 
-            // Kiểm tra nếu AccountId trong URL có khớp với AccountId trong token không
-            if (tokenAccountId != accountId)
-            {
-                return Forbid("Bạn không có quyền cập nhật thông tin của tài khoản này.");
-            }
+        //    // Kiểm tra nếu AccountId trong URL có khớp với AccountId trong token không
+        //    if (tokenAccountId != accountId)
+        //    {
+        //        return Forbid("Bạn không có quyền cập nhật thông tin của tài khoản này.");
+        //    }
 
-            // Sử dụng hàm mới để kiểm tra quyền của nhân viên hoặc quản lý
-            var checkAuthorize = await _authorizeService.CheckAuthorizeManagerByAccountId(tokenAccountId, accountId);
-            if (!checkAuthorize.isMatchedAccountManager || !checkAuthorize.isAuthorizedAccount)
-            {
-                return Forbid();
-            }
+        //    // Sử dụng hàm mới để kiểm tra quyền của nhân viên hoặc quản lý
+        //    var checkAuthorize = await _authorizeService.CheckAuthorizeManagerByAccountId(tokenAccountId, accountId);
+        //    if (!checkAuthorize.isMatchedAccountManager || !checkAuthorize.isAuthorizedAccount)
+        //    {
+        //        return Forbid();
+        //    }
 
-            try
-            {
-                // Gọi service để lấy danh sách lịch trình
-                var schedules = await _scheduleService.GetScheduleByAccountId(accountId);
+        //    try
+        //    {
+        //        // Gọi service để lấy danh sách lịch trình
+        //        var schedules = await _scheduleService.GetScheduleByAccountId(accountId);
 
-                // Trả về dữ liệu dưới dạng JSON
-                return Ok(new { message = "Schedules retrieved successfully.", data = schedules });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                return StatusCode(403, new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = $"Internal server error: {ex.Message}" });
-            }
-        }
+        //        // Trả về dữ liệu dưới dạng JSON
+        //        return Ok(new { message = "Schedules retrieved successfully.", data = schedules });
+        //    }
+        //    catch (KeyNotFoundException ex)
+        //    {
+        //        return NotFound(new { message = ex.Message });
+        //    }
+        //    catch (UnauthorizedAccessException ex)
+        //    {
+        //        return StatusCode(403, new { message = ex.Message });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, new { message = $"Internal server error: {ex.Message}" });
+        //    }
+        //}
 
 
         /// <summary>
@@ -227,6 +227,25 @@ namespace MartyrGraveManagement.Controllers
             try
             {
                 var schedule = await _scheduleService.GetScheduleById(scheduleId);
+                return Ok(new { message = "Schedule retrieved successfully.", data = schedule });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = $"Internal server error: {ex.Message}" });
+            }
+        }
+
+        [Authorize(Policy = "RequireManagerOrStaffRole")]
+        [HttpGet("GetSchedules")]
+        public async Task<IActionResult> GetSchedules(DateTime Date)
+        {
+            try
+            {
+                var schedule = await _scheduleService.GetSchedules(Date);
                 return Ok(new { message = "Schedule retrieved successfully.", data = schedule });
             }
             catch (KeyNotFoundException ex)

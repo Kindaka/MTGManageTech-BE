@@ -4,6 +4,7 @@ using MartyrGraveManagement_BAL.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 
 namespace MartyrGraveManagement.Controllers
 {
@@ -56,8 +57,44 @@ namespace MartyrGraveManagement.Controllers
         }
 
         [Authorize(Policy = "RequireStaffRole")]
-        [HttpGet("GetScheduleForStaff")]
-        public async Task<IActionResult> GetScheduleForStaff(int accountId)
+        [HttpPut("UpdateScheduleDetailForStaff/{Id}")]
+        public async Task<IActionResult> UpdateScheduleDetail(int Id, int scheduleId, int accountId)
+        {
+            var tokenAccountIdClaim = User.FindFirst("AccountId");
+            if (tokenAccountIdClaim == null || string.IsNullOrEmpty(tokenAccountIdClaim.Value))
+            {
+                return Forbid("Không tìm thấy AccountId trong token.");
+            }
+
+            var tokenAccountId = int.Parse(tokenAccountIdClaim.Value);
+            if (tokenAccountId != accountId)
+            {
+                return Forbid("Bạn không có quyền cập nhật thông tin của tài khoản này.");
+            }
+
+
+            var checkAuthorize = await _authorizeService.CheckAuthorizeStaffByAccountId(tokenAccountId, accountId);
+            if (!checkAuthorize.isMatchedAccountStaff || !checkAuthorize.isAuthorizedAccount)
+            {
+                return Forbid("Bạn không có quyền.");
+            }
+
+
+            // Gọi dịch vụ để tạo danh sách lịch trình và nhận danh sách kết quả
+            var result = await _scheduleDetailService.UpdateScheduleDetail(scheduleId, accountId, Id);
+
+            // Kiểm tra nếu có lỗi trong kết quả
+            if (!result.Contains("thành công"))
+            {
+                return BadRequest(new { messaege = result });
+            }
+
+            return Ok(new { message = result });
+        }
+
+        [Authorize(Policy = "RequireStaffRole")]
+        [HttpGet("GetScheduleDetailForStaff")]
+        public async Task<IActionResult> GetScheduleDetailForStaff(int accountId, int scheduleId)
         {
             try
             {
@@ -79,10 +116,43 @@ namespace MartyrGraveManagement.Controllers
                 {
                     return Forbid("Bạn không có quyền.");
                 }
-                var scheduleList = await _scheduleDetailService.GetScheduleDetailStaff(accountId);
+                var scheduleList = await _scheduleDetailService.GetScheduleDetailStaff(accountId, scheduleId);
                 return Ok(scheduleList);
             }
             catch (Exception ex) { 
+                throw new Exception(ex.Message);
+            }
+        }
+
+        [Authorize(Policy = "RequireStaffRole")]
+        [HttpGet("GetSchedulesForStaffFiltterDate")]
+        public async Task<IActionResult> GetScheduleForStaffWithDate(int accountId, [Required] DateTime FromDate, [Required] DateTime ToDate)
+        {
+            try
+            {
+                var tokenAccountIdClaim = User.FindFirst("AccountId");
+                if (tokenAccountIdClaim == null || string.IsNullOrEmpty(tokenAccountIdClaim.Value))
+                {
+                    return Forbid("Không tìm thấy AccountId trong token.");
+                }
+
+                var tokenAccountId = int.Parse(tokenAccountIdClaim.Value);
+                if (tokenAccountId != accountId)
+                {
+                    return Forbid("Bạn không có quyền cập nhật thông tin của tài khoản này.");
+                }
+
+
+                var checkAuthorize = await _authorizeService.CheckAuthorizeStaffByAccountId(tokenAccountId, accountId);
+                if (!checkAuthorize.isMatchedAccountStaff || !checkAuthorize.isAuthorizedAccount)
+                {
+                    return Forbid("Bạn không có quyền.");
+                }
+                var scheduleList = await _scheduleDetailService.GetSchedulesStaff(accountId, FromDate, ToDate);
+                return Ok(scheduleList);
+            }
+            catch (Exception ex)
+            {
                 throw new Exception(ex.Message);
             }
         }

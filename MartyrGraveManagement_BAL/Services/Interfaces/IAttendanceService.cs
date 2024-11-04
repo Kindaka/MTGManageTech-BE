@@ -9,7 +9,7 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
 {
     public interface IAttendanceService
     {
-        Task<(bool status, string responseContent)> CheckAttendance(int attendanceId, int status);
+        Task<List<string>> CheckAttendance(List<CheckAttendancesDtoRequest> checkList);
         Task<List<AttendanceDtoResponse>> GetAttendances(int managerId);
         Task<List<AttendanceDtoResponse>> GetAttendancesByScheduleId(int scheduleId);
     }

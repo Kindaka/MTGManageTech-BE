@@ -3,6 +3,7 @@ using MartyrGraveManagement_BAL.ModelViews.ScheduleDTOs;
 using MartyrGraveManagement_BAL.Services.Interfaces;
 using MartyrGraveManagement_DAL.Entities;
 using MartyrGraveManagement_DAL.UnitOfWorks.Interfaces;
+using Microsoft.Identity.Client;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -93,7 +94,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
                    
                     var existingSchedule = (await _unitOfWork.ScheduleRepository.GetAsync(
-                        s => s.Date == request.Date && s.SlotId == request.SlotId
+                        s => s.Date == DateOnly.FromDateTime(request.Date) && s.SlotId == request.SlotId
                     )).FirstOrDefault();
 
                     if (existingSchedule != null)
@@ -102,10 +103,19 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         continue;
                     }
 
-                    // 7. Tạo mới lịch trình nếu các điều kiện đã được thỏa mãn
-                    var newSchedule = _mapper.Map<Schedule>(request);
-                    newSchedule.Status = 1; // Đặt mặc định là active
-                    newSchedule.AccountId = accountId;
+                    //// 7. Tạo mới lịch trình nếu các điều kiện đã được thỏa mãn
+                    //var newSchedule = _mapper.Map<Schedule>(request);
+                    //newSchedule.Status = 1; // Đặt mặc định là active
+                    //newSchedule.AccountId = accountId;
+
+                    var newSchedule = new Schedule
+                    {
+                        SlotId = request.SlotId,
+                        Date = DateOnly.FromDateTime(request.Date),
+                        Description = request.Description,
+                        AccountId = accountId,
+                        Status = 1
+                    };
                     await _unitOfWork.ScheduleRepository.AddAsync(newSchedule);
 
                     results.Add($"Lịch trình đã được tạo thành công.");
@@ -280,5 +290,47 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             return response;
         }
 
+        public async Task<List<ScheduleDTOResponse>> GetSchedules(DateTime Date)
+        {
+            try
+            {
+                // Lấy danh sách Schedule của accountId, bao gồm Slot và Account
+                var schedules = await _unitOfWork.ScheduleRepository.GetAsync(
+                    filter: s => s.Date == DateOnly.FromDateTime(Date),
+                    includeProperties: "Slot"
+                );
+
+                var scheduleResponses = new List<ScheduleDTOResponse>();
+
+                foreach (var schedule in schedules)
+                {
+
+                    var manager = await _unitOfWork.AccountRepository.GetByIDAsync(schedule.AccountId);
+
+                    if (manager != null)
+                    {
+                        // Tạo response cho từng schedule
+                        var response = new ScheduleDTOResponse
+                        {
+                            ScheduleId = schedule.ScheduleId,
+                            ManagerName = manager.FullName,
+                            SlotId = schedule.SlotId,
+                            SlotName = schedule.Slot.SlotName,
+                            Date = schedule.Date,
+                            StartTime = schedule.Slot.StartTime,
+                            EndTime = schedule.Slot.EndTime
+                        };
+
+                        scheduleResponses.Add(response);
+                    }
+                }
+
+                return scheduleResponses;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
     }
 }

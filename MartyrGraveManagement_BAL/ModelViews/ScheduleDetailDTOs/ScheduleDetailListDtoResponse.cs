@@ -8,6 +8,7 @@ namespace MartyrGraveManagement_BAL.ModelViews.ScheduleDetailDTOs
 {
     public class ScheduleDetailListDtoResponse
     {
+        public int ScheduleDetailId { get; set; }
         public DateOnly Date {  get; set; }
         public TimeOnly StartTime { get; set; }
         public TimeOnly EndTime { get; set; }

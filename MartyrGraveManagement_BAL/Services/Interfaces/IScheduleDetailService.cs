@@ -11,6 +11,8 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
     public interface IScheduleDetailService
     {
         Task<List<string>> CreateScheduleDetail(List<ScheduleDetailDtoRequest> requests, int accountId);
-        Task<List<ScheduleDetailListDtoResponse>> GetScheduleDetailStaff(int accountId);
+        Task<string> UpdateScheduleDetail(int request, int accountId, int Id);
+        Task<List<ScheduleDetailListDtoResponse>> GetScheduleDetailStaff(int accountId, int scheduleId);
+        Task<List<ScheduleDetailListDtoResponse>> GetSchedulesStaff(int accountId, DateTime FromDate, DateTime ToDate);
     }
 }

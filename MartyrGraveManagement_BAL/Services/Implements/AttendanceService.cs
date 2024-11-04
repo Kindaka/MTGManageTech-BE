@@ -21,36 +21,52 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
-        public async Task<(bool status, string responseContent)> CheckAttendance(int attendanceId, int status)
+        public async Task<List<string>> CheckAttendance(List<CheckAttendancesDtoRequest> checkList)
         {
-            try
+            using (var transaction = await _unitOfWork.BeginTransactionAsync())
             {
-                if (status != 1 && status != 2) {
-                    return (false, "Trạng thái không đúng, kiểm tra lại");
-                }
-                var attendance = await _unitOfWork.AttendanceRepository.GetByIDAsync(attendanceId);
-                if (attendance != null) {
-                    var schedule = await _unitOfWork.ScheduleRepository.GetByIDAsync(attendance.ScheduleId);
-                    if (schedule.Date == DateOnly.FromDateTime(DateTime.Now))
-                    {
-                        attendance.Status = status; //1 là điểm danh có mặt, 2 là vắng mặt
-                        attendance.UpdatedAt = DateTime.Now;
-                        await _unitOfWork.AttendanceRepository.UpdateAsync(attendance);
-                        return (true, "Đã cập nhật thành công");
-                    }
-                    else
-                    {
-                        return (false, "Thời gian điểm danh không trùng với lịch (phải tới ngày làm việc)");
-                    }
-                }
-                else
+                try
                 {
-                    return (false, "Không tìm thấy staff để điểm danh");
+                    var results = new List<string>();
+                    foreach (var checkAttendance in checkList)
+                    {
+                        if (checkAttendance.statusAttendance != 1 && checkAttendance.statusAttendance != 2)
+                        {
+                            //return (false, "Trạng thái không đúng, kiểm tra lại");
+                            results.Add("Trạng thái không đúng, kiểm tra lại");
+                            continue;
+                        }
+                        var attendance = await _unitOfWork.AttendanceRepository.GetByIDAsync(checkAttendance.attendanceId);
+                        if (attendance != null)
+                        {
+                            var schedule = (await _unitOfWork.ScheduleRepository.GetAsync(s => s.ScheduleId == attendance.ScheduleId, includeProperties:"Slot")).FirstOrDefault();
+                            if (schedule.Date == DateOnly.FromDateTime(DateTime.Now) && schedule.Slot.StartTime <= TimeOnly.FromDateTime(DateTime.Now))
+                            {
+                                attendance.Status = checkAttendance.statusAttendance; //1 là điểm danh có mặt, 2 là vắng mặt
+                                attendance.UpdatedAt = DateTime.Now;
+                                await _unitOfWork.AttendanceRepository.UpdateAsync(attendance);
+                            }
+                            else
+                            {
+                                results.Add("Thời gian điểm danh không trùng với lịch (phải tới ngày làm việc)");
+                                continue;
+                            }
+                        }
+                        else
+                        {
+                            results.Add("Không tìm thấy mục điểm danh (attendanceId không tìm thấy)");
+                            continue;
+                        }
+                        results.Add("Đã cập nhật thành công");
+                    }
+                    await transaction.CommitAsync();
+                    return results;
                 }
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    throw new Exception(ex.Message);
+                }
             }
         }
 
@@ -68,6 +84,9 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                             if (attendance.Account.RoleId == 3 && attendance.Account.AreaId == manager.AreaId) {
                                 var attendanceItem = new AttendanceDtoResponse
                                 {
+                                    AttendanceId = attendance.AttendanceId,
+                                    AccountId = attendance.AccountId,
+                                    ScheduleId = attendance.ScheduleId,
                                     staffName = attendance.Account.FullName,
                                     Date = attendance.Schedule.Date,
                                     StartTime = attendance.Schedule.Slot.StartTime,
@@ -111,6 +130,9 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         {
                             var attendanceItem = new AttendanceDtoResponse
                             {
+                                AttendanceId = attendance.AttendanceId,
+                                AccountId = attendance.AccountId,
+                                ScheduleId = attendance.ScheduleId,
                                 staffName = attendance.Account.FullName,
                                 Date = attendance.Schedule.Date,
                                 StartTime = attendance.Schedule.Slot.StartTime,
