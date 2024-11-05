@@ -14,9 +14,9 @@ using MartyrGraveManagement_BAL.ModelViews.MartyrGraveInformationDTOs;
 using MartyrGraveManagement_BAL.ModelViews.OrdersDTOs;
 using MartyrGraveManagement_BAL.ModelViews.PaymentDTOs;
 using MartyrGraveManagement_BAL.ModelViews.ScheduleDetailDTOs;
-using MartyrGraveManagement_BAL.ModelViews.ScheduleDTOs;
 using MartyrGraveManagement_BAL.ModelViews.ServiceCategoryDTOs;
 using MartyrGraveManagement_BAL.ModelViews.ServiceDTOs;
+using MartyrGraveManagement_BAL.ModelViews.SlotDTOs;
 using MartyrGraveManagement_BAL.ModelViews.TaskDTOs;
 using MartyrGraveManagement_BAL.Services.Implements;
 using MartyrGraveManagement_DAL.Entities;
@@ -100,12 +100,6 @@ namespace MartyrGraveManagement_BAL.MappingProfiles
             CreateMap<CreateHistoricalEventDTORequest, HistoricalEvent>().ReverseMap();
             CreateMap<HistoricalEventDTOResponse, HistoricalEvent>().ReverseMap();
 
-            //Schedule mapping
-            CreateMap<CreateScheduleDTORequest, Schedule>().ReverseMap();
-            CreateMap<UpdateScheduleDTORequest, Schedule>().ReverseMap();
-            CreateMap<ScheduleDTOResponse, Schedule>().ReverseMap();
-            CreateMap<CreateScheduleDTORequest, Schedule>().ReverseMap();
-
             //Blog mapping
 
             CreateMap<CreateBlogDTORequest, Blog>().ReverseMap();
@@ -113,6 +107,8 @@ namespace MartyrGraveManagement_BAL.MappingProfiles
             //ScheduleDetail mapping
             CreateMap<ScheduleDetail, ScheduleDetailListDtoResponse>().ReverseMap();
            
+            //Slot mapping
+            CreateMap<Slot, SlotDtoResponse>().ReverseMap();
 
             //Comment mapping
                  CreateMap<CommentDTO, Comment>().ReverseMap();

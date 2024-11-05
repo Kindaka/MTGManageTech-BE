@@ -1,5 +1,4 @@
 ﻿using MartyrGraveManagement_BAL.ModelViews.ScheduleDetailDTOs;
-using MartyrGraveManagement_BAL.ModelViews.ScheduleDTOs;
 using MartyrGraveManagement_BAL.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -58,7 +57,7 @@ namespace MartyrGraveManagement.Controllers
 
         [Authorize(Policy = "RequireStaffRole")]
         [HttpPut("UpdateScheduleDetailForStaff/{Id}")]
-        public async Task<IActionResult> UpdateScheduleDetail(int Id, int scheduleId, int accountId)
+        public async Task<IActionResult> UpdateScheduleDetail(int Id, int slotId, DateTime Date, int accountId)
         {
             var tokenAccountIdClaim = User.FindFirst("AccountId");
             if (tokenAccountIdClaim == null || string.IsNullOrEmpty(tokenAccountIdClaim.Value))
@@ -81,7 +80,7 @@ namespace MartyrGraveManagement.Controllers
 
 
             // Gọi dịch vụ để tạo danh sách lịch trình và nhận danh sách kết quả
-            var result = await _scheduleDetailService.UpdateScheduleDetail(scheduleId, accountId, Id);
+            var result = await _scheduleDetailService.UpdateScheduleDetail(slotId, Date , accountId, Id);
 
             // Kiểm tra nếu có lỗi trong kết quả
             if (!result.Contains("thành công"))
@@ -94,7 +93,7 @@ namespace MartyrGraveManagement.Controllers
 
         [Authorize(Policy = "RequireStaffRole")]
         [HttpGet("GetScheduleDetailForStaff")]
-        public async Task<IActionResult> GetScheduleDetailForStaff(int accountId, int scheduleId)
+        public async Task<IActionResult> GetScheduleDetailForStaff(int accountId, int slotId, DateTime Date)
         {
             try
             {
@@ -116,7 +115,7 @@ namespace MartyrGraveManagement.Controllers
                 {
                     return Forbid("Bạn không có quyền.");
                 }
-                var scheduleList = await _scheduleDetailService.GetScheduleDetailStaff(accountId, scheduleId);
+                var scheduleList = await _scheduleDetailService.GetScheduleDetailStaff(accountId, slotId, Date);
                 return Ok(scheduleList);
             }
             catch (Exception ex) { 

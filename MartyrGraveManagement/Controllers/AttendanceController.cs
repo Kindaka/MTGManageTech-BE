@@ -127,7 +127,7 @@ namespace MartyrGraveManagement.Controllers
 
         [Authorize(Policy = "RequireManagerRole")]
         [HttpGet("GetAttendancesByScheduleId/{scheduleId}")]
-        public async Task<IActionResult> GetAttendanceByScheduleId(int scheduleId, int managerId)
+        public async Task<IActionResult> GetAttendanceByScheduleId(int slotId, DateTime Date, int managerId)
         {
             // Lấy AccountId từ token
             var tokenAccountIdClaim = User.FindFirst("AccountId");
@@ -154,7 +154,7 @@ namespace MartyrGraveManagement.Controllers
             try
             {
                 // Gọi service để lấy danh sách lịch trình
-                var attendances = await _attendanceService.GetAttendancesByScheduleId(scheduleId);
+                var attendances = await _attendanceService.GetAttendancesByScheduleId(slotId, Date);
                 return Ok(attendances);
             }
             catch (KeyNotFoundException ex)

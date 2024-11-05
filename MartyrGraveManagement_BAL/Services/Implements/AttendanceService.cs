@@ -36,11 +36,11 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                             results.Add("Trạng thái không đúng, kiểm tra lại");
                             continue;
                         }
-                        var attendance = await _unitOfWork.AttendanceRepository.GetByIDAsync(checkAttendance.attendanceId);
+                        var attendance = (await _unitOfWork.AttendanceRepository.GetAsync(a => a.AttendanceId == checkAttendance.attendanceId, includeProperties: "Slot")).FirstOrDefault();
                         if (attendance != null)
                         {
-                            var schedule = (await _unitOfWork.ScheduleRepository.GetAsync(s => s.ScheduleId == attendance.ScheduleId, includeProperties:"Slot")).FirstOrDefault();
-                            if (schedule.Date == DateOnly.FromDateTime(DateTime.Now) && schedule.Slot.StartTime <= TimeOnly.FromDateTime(DateTime.Now))
+                            //var schedule = (await _unitOfWork.ScheduleRepository.GetAsync(s => s.ScheduleId == attendance.ScheduleId, includeProperties:"Slot")).FirstOrDefault();
+                            if (attendance.Date == DateOnly.FromDateTime(DateTime.Now) && attendance.Slot.StartTime <= TimeOnly.FromDateTime(DateTime.Now))
                             {
                                 attendance.Status = checkAttendance.statusAttendance; //1 là điểm danh có mặt, 2 là vắng mặt
                                 attendance.UpdatedAt = DateTime.Now;
@@ -77,7 +77,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 var manager = await _unitOfWork.AccountRepository.GetByIDAsync(managerId);
                 var attendanceList = new List<AttendanceDtoResponse>();
                 if (manager != null) {
-                    var attedances = await _unitOfWork.AttendanceRepository.GetAsync(includeProperties: "Schedule.Slot,Account");
+                    var attedances = await _unitOfWork.AttendanceRepository.GetAsync(includeProperties: "Slot,Account");
                     if (attedances != null) {
                         foreach (var attendance in attedances)
                         {
@@ -86,11 +86,11 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                                 {
                                     AttendanceId = attendance.AttendanceId,
                                     AccountId = attendance.AccountId,
-                                    ScheduleId = attendance.ScheduleId,
+                                    SlotId = attendance.SlotId,
                                     staffName = attendance.Account.FullName,
-                                    Date = attendance.Schedule.Date,
-                                    StartTime = attendance.Schedule.Slot.StartTime,
-                                    EndTime = attendance.Schedule.Slot.EndTime,
+                                    Date = attendance.Date,
+                                    StartTime = attendance.Slot.StartTime,
+                                    EndTime = attendance.Slot.EndTime,
                                     status = attendance.Status,
                                 };
                                 attendanceList.Add(attendanceItem);
@@ -114,16 +114,16 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
         }
 
-        public async Task<List<AttendanceDtoResponse>> GetAttendancesByScheduleId(int scheduleId)
+        public async Task<List<AttendanceDtoResponse>> GetAttendancesByScheduleId(int slotId, DateTime Date)
         {
             try
             {
                 var attendanceList = new List<AttendanceDtoResponse>();
-                var schedule = await _unitOfWork.ScheduleRepository.GetByIDAsync(scheduleId);
+                var slot = await _unitOfWork.SlotRepository.GetByIDAsync(slotId);
 
-                if (schedule != null)
+                if (slot != null)
                 {
-                    var attedances = await _unitOfWork.AttendanceRepository.GetAsync(a => a.ScheduleId == scheduleId ,includeProperties: "Schedule.Slot,Account");
+                    var attedances = await _unitOfWork.AttendanceRepository.GetAsync(a => a.SlotId == slotId && a.Date == DateOnly.FromDateTime(Date) ,includeProperties: "Slot,Account");
                     if (attedances != null)
                     {
                         foreach (var attendance in attedances)
@@ -132,11 +132,11 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                             {
                                 AttendanceId = attendance.AttendanceId,
                                 AccountId = attendance.AccountId,
-                                ScheduleId = attendance.ScheduleId,
+                                SlotId = attendance.SlotId,
                                 staffName = attendance.Account.FullName,
-                                Date = attendance.Schedule.Date,
-                                StartTime = attendance.Schedule.Slot.StartTime,
-                                EndTime = attendance.Schedule.Slot.EndTime,
+                                Date = attendance.Date,
+                                StartTime = attendance.Slot.StartTime,
+                                EndTime = attendance.Slot.EndTime,
                                 status = attendance.Status,
                             };
                             attendanceList.Add(attendanceItem);

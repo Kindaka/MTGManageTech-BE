@@ -42,7 +42,6 @@ namespace MartyrGraveManagement_DAL.Entities
         public DbSet<Event_Image> EventImages { get; set; }
         public DbSet<Comment_Report> CommentReports { get; set; }
         public DbSet<Location> Locations { get; set; }
-        public DbSet<Schedule> ScheduleStaffs { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<NotificationAccount> NotificationAccounts { get; set; }
         public DbSet<Slot> Slots { get; set; }
@@ -329,22 +328,14 @@ namespace MartyrGraveManagement_DAL.Entities
             modelBuilder.Entity<Slot>()
                 .HasKey(s => s.SlotId);
 
-            // Schedule Configuration
-            modelBuilder.Entity<Schedule>()
-                .HasKey(ss => ss.ScheduleId);
-            modelBuilder.Entity<Schedule>()
-                .HasOne(ss => ss.Slot)
-                .WithMany(ss => ss.Schedules)
-                .HasForeignKey(ss => ss.SlotId)
-                .OnDelete(DeleteBehavior.Restrict);
 
             // Schedule_Staff Configuration
             modelBuilder.Entity<ScheduleDetail>()
                 .HasKey(st => st.Id);
             modelBuilder.Entity<ScheduleDetail>()
-                .HasOne(st => st.Schedule)
-                .WithMany(st => st.ScheduleTasks)
-                .HasForeignKey(st => st.ScheduleId)
+                .HasOne(st => st.Slot)
+                .WithMany(st => st.ScheduleDetails)
+                .HasForeignKey(st => st.SlotId)
                 .OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<ScheduleDetail>()
                 .HasOne(st => st.StaffTask)
@@ -361,9 +352,9 @@ namespace MartyrGraveManagement_DAL.Entities
             modelBuilder.Entity<Attendance>()
                 .HasKey(st => st.AttendanceId);
             modelBuilder.Entity<Attendance>()
-                .HasOne(st => st.Schedule)
+                .HasOne(st => st.Slot)
                 .WithMany(st => st.Attendances)
-                .HasForeignKey(st => st.ScheduleId)
+                .HasForeignKey(st => st.SlotId)
                 .OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<Attendance>()
                 .HasOne(st => st.Account)

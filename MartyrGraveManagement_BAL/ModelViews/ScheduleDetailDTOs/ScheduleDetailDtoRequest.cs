@@ -9,6 +9,8 @@ namespace MartyrGraveManagement_BAL.ModelViews.ScheduleDetailDTOs
     public class ScheduleDetailDtoRequest
     {
         public int TaskId { get; set; }
-        public int ScheduleId { get; set; }
+        public int SlotId { get; set; }
+        public DateTime Date { get; set; }
+        public string? Description { get; set; }
     }
 }

@@ -16,12 +16,15 @@ namespace MartyrGraveManagement_DAL.Entities
         public int Id { get; set; }
         public int AccountId { get; set; }
         public int TaskId { get; set; }
-        public int ScheduleId { get; set; }
+        public int SlotId { get; set; }
+        public DateOnly Date { get; set; }
+        public string? Description { get; set; }
         public DateTime CreatedAt { get; set; }
+        public DateTime UpdateAt { get; set; }
         public int Status { get; set; }
 
         public Account? Account { get; set; }
         public StaffTask? StaffTask { get; set; }
-        public Schedule? Schedule { get; set; }
+        public Slot? Slot { get; set; }
     }
 }

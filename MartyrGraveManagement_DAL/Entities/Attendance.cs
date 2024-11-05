@@ -14,13 +14,17 @@ namespace MartyrGraveManagement_DAL.Entities
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int AttendanceId { get; set; }   
         public int AccountId { get; set; }
-        public int ScheduleId { get; set; }
+        public int SlotId { get; set; }
+        public DateOnly Date {  get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         public string? Note { get; set; }
+        public string? ImagePath1 { get; set; }
+        public string? ImagePath2 { get; set; }
+        public string? ImagePath3 { get; set; }
         public int Status { get; set; }
 
         public Account? Account { get; set; }
-        public Schedule? Schedule { get; set; }
+        public Slot? Slot { get; set; }
     }
 }

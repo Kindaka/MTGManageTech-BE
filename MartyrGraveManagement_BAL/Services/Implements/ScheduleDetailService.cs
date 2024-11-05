@@ -6,6 +6,7 @@ using MartyrGraveManagement_DAL.UnitOfWorks.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading.Tasks;
 using System.Transactions;
@@ -33,18 +34,22 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
                     foreach (var request in requests)
                     {
-
-                        var schedule = await _unitOfWork.ScheduleRepository.GetByIDAsync(request.ScheduleId);
-                        if (schedule == null)
+                        if (DateOnly.FromDateTime(request.Date) <= DateOnly.FromDateTime(DateTime.Now))
                         {
-                            results.Add($"Schedule ID {request.ScheduleId} không tồn tại.");
+                            results.Add($"Thời gian để tạo lịch này đã quá hạn (Phải tạo lịch 1 ngày trước khi bắt đầu ngày làm việc).");
+                            continue;
+                        }
+                        var slot = await _unitOfWork.SlotRepository.GetByIDAsync(request.SlotId);
+                        if (slot == null)
+                        {
+                            results.Add($"Slot ID {request.SlotId} không tồn tại.");
                             continue;
                         }
 
                         var task = await _unitOfWork.TaskRepository.GetByIDAsync(request.TaskId);
-                        if (task == null || task.Status != 1)
+                        if (task == null)
                         {
-                            results.Add($"Task ID {request.TaskId} không tồn tại hoặc task không đúng trạng thái.");
+                            results.Add($"Task ID {request.TaskId} không tồn tại.");
                             continue;
                         }
                         if (task.AccountId != accountId)
@@ -52,9 +57,14 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                             results.Add($"Task này không phải là của bạn.");
                             continue;
                         }
+                        if (task.Status == 4 || task.Status == 5 || task.Status == 2)
+                        {
+                            results.Add($"Task này đã hoàn thành hoặc đã thất bại hoặc đã hủy.");
+                            continue;
+                        }
 
                         var existingScheduleDetails = await _unitOfWork.ScheduleDetailRepository.GetAsync(
-                            s => s.ScheduleId == request.ScheduleId && s.AccountId == accountId
+                            s => s.SlotId == request.SlotId && s.AccountId == accountId && s.Date == DateOnly.FromDateTime(request.Date)
                         );
                         var checkTaskInSchedule = false;
                         foreach (var existingTaskInSchedule in existingScheduleDetails)
@@ -77,22 +87,25 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                             var newScheduleDetail = new ScheduleDetail
                             {
                                 AccountId = accountId,
-                                ScheduleId = request.ScheduleId,
+                                SlotId = request.SlotId,
                                 TaskId = request.TaskId,
+                                Date = DateOnly.FromDateTime(request.Date),
                                 CreatedAt = DateTime.Now,
+                                UpdateAt = DateTime.Now,
                                 Status = 1,
                             };
                             await _unitOfWork.ScheduleDetailRepository.AddAsync(newScheduleDetail);
 
                             var existingAttendances = (await _unitOfWork.AttendanceRepository.GetAsync(
-                            s => s.ScheduleId == request.ScheduleId && s.AccountId == accountId
+                            s => s.SlotId == request.SlotId && s.AccountId == accountId && s.Date == DateOnly.FromDateTime(request.Date)
                             )).FirstOrDefault();
                             if (existingAttendances == null)
                             {
                                 var attendance = new Attendance
                                 {
                                     AccountId = accountId,
-                                    ScheduleId = request.ScheduleId,
+                                    SlotId = request.SlotId,
+                                    Date = DateOnly.FromDateTime(request.Date),
                                     CreatedAt = DateTime.Now,
                                     UpdatedAt = DateTime.Now,
                                     Status = 0 //Attendance ở trạng thái đang chờ
@@ -120,12 +133,12 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
         }
 
-        public async Task<List<ScheduleDetailListDtoResponse>> GetScheduleDetailStaff(int accountId, int scheduleId)
+        public async Task<List<ScheduleDetailListDtoResponse>> GetScheduleDetailStaff(int accountId, int scheduleId, DateTime Date)
         {
             try
             {
-                var scheduleDetailStaff = await _unitOfWork.ScheduleDetailRepository.GetAsync(sds => sds.ScheduleId == scheduleId && sds.AccountId == accountId, 
-                    includeProperties: "Schedule.Slot,StaffTask.OrderDetail.Service,StaffTask.OrderDetail.MartyrGrave");
+                var scheduleDetailStaff = await _unitOfWork.ScheduleDetailRepository.GetAsync(sds => sds.SlotId == scheduleId && sds.AccountId == accountId && sds.Date == DateOnly.FromDateTime(Date), 
+                    includeProperties: "Slot,StaffTask.OrderDetail.Service,StaffTask.OrderDetail.MartyrGrave");
                 if (scheduleDetailStaff == null)
                 {
                     return null;
@@ -136,10 +149,10 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     var scheduleStaff = new ScheduleDetailListDtoResponse
                     {
                         ScheduleDetailId = scheduleDetail.Id,
-                        Date = scheduleDetail.Schedule.Date,
-                        StartTime = scheduleDetail.Schedule.Slot.StartTime,
-                        EndTime = scheduleDetail.Schedule.Slot.EndTime,
-                        Description = scheduleDetail.Schedule.Description,
+                        Date = scheduleDetail.Date,
+                        StartTime = scheduleDetail.Slot.StartTime,
+                        EndTime = scheduleDetail.Slot.EndTime,
+                        Description = scheduleDetail.Description,
                         ServiceName = scheduleDetail.StaffTask.OrderDetail.Service.ServiceName,
                         MartyrCode = scheduleDetail.StaffTask.OrderDetail.MartyrGrave.MartyrCode
                     };
@@ -157,8 +170,8 @@ namespace MartyrGraveManagement_BAL.Services.Implements
         {
             try
             {
-                var scheduleDetailStaff = await _unitOfWork.ScheduleDetailRepository.GetAsync(sds => sds.AccountId == accountId && sds.Schedule.Date >= DateOnly.FromDateTime(FromDate) && sds.Schedule.Date <= DateOnly.FromDateTime(ToDate),
-                    includeProperties: "Schedule.Slot,StaffTask.OrderDetail.Service,StaffTask.OrderDetail.MartyrGrave");
+                var scheduleDetailStaff = await _unitOfWork.ScheduleDetailRepository.GetAsync(sds => sds.AccountId == accountId && sds.Date >= DateOnly.FromDateTime(FromDate) && sds.Date <= DateOnly.FromDateTime(ToDate),
+                    includeProperties: "Slot,StaffTask.OrderDetail.Service,StaffTask.OrderDetail.MartyrGrave");
                 if (scheduleDetailStaff == null)
                 {
                     return null;
@@ -169,10 +182,10 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     var scheduleStaff = new ScheduleDetailListDtoResponse
                     {
                         ScheduleDetailId = scheduleDetail.Id,
-                        Date = scheduleDetail.Schedule.Date,
-                        StartTime = scheduleDetail.Schedule.Slot.StartTime,
-                        EndTime = scheduleDetail.Schedule.Slot.EndTime,
-                        Description = scheduleDetail.Schedule.Description,
+                        Date = scheduleDetail.Date,
+                        StartTime = scheduleDetail.Slot.StartTime,
+                        EndTime = scheduleDetail.Slot.EndTime,
+                        Description = scheduleDetail.Description,
                         ServiceName = scheduleDetail.StaffTask.OrderDetail.Service.ServiceName,
                         MartyrCode = scheduleDetail.StaffTask.OrderDetail.MartyrGrave.MartyrCode
                     };
@@ -186,74 +199,97 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
         }
 
-        public async Task<string> UpdateScheduleDetail(int scheduleId, int accountId, int Id)
+        public async Task<string> UpdateScheduleDetail(int slotId, DateTime Date, int accountId, int Id)
         {
             using (var transaction = await _unitOfWork.BeginTransactionAsync())
             {
                 try
                 {
-                    var scheduleDetail = await _unitOfWork.ScheduleDetailRepository.GetByIDAsync(Id);
+                    if (DateOnly.FromDateTime(Date) <= DateOnly.FromDateTime(DateTime.Now))
+                    {
+                        return "Thời gian để tạo lịch này đã quá hạn (Phải tạo lịch 1 ngày trước khi bắt đầu ngày làm việc).";
+                    }
+                    var scheduleDetail = (await _unitOfWork.ScheduleDetailRepository.GetAsync(s => s.Id == Id, includeProperties: "StaffTask")).FirstOrDefault();
                     if (scheduleDetail == null) {
                         return "Không tìm thấy task của lịch (Sai Id)";
                     }
-                    var schedule = await _unitOfWork.ScheduleRepository.GetByIDAsync(scheduleId);
-                    if(schedule != null)
+                    if (scheduleDetail.StaffTask.Status == 2 || scheduleDetail.StaffTask.Status == 4 || scheduleDetail.StaffTask.Status == 5) {
+                        return "Task này đã hoàn thành hoặc đã thất bại hoặc đã hủy.";
+                    }
+                    var slot = await _unitOfWork.SlotRepository.GetByIDAsync(slotId);
+                    if(slot != null)
                     {
-                        var checkScheduleDetail = await _unitOfWork.ScheduleDetailRepository.GetAsync(s => s.ScheduleId == scheduleDetail.ScheduleId && s.AccountId == accountId);
-                        if (checkScheduleDetail.Count() > 1)
+                        var checkScheduleDetail = await _unitOfWork.ScheduleDetailRepository.GetAsync(s => s.SlotId == slotId && s.AccountId == accountId && s.Date == DateOnly.FromDateTime(Date));
+                        if (checkScheduleDetail.Count() < 2)
                         {
-                            scheduleDetail.ScheduleId = scheduleId;
-                            scheduleDetail.CreatedAt = DateTime.Now;
-                            await _unitOfWork.ScheduleDetailRepository.UpdateAsync(scheduleDetail);
-
-                            var existingAttendances = (await _unitOfWork.AttendanceRepository.GetAsync(
-                            s => s.ScheduleId == scheduleId && s.AccountId == accountId
+                            var existingAttendance = (await _unitOfWork.AttendanceRepository.GetAsync(
+                            s => s.SlotId == scheduleDetail.SlotId && s.AccountId == accountId && s.Date == scheduleDetail.Date
                             )).FirstOrDefault();
-                            if (existingAttendances == null)
+                            var existingScheduleDetail = (await _unitOfWork.ScheduleDetailRepository.GetAsync(
+                            s => s.SlotId == scheduleDetail.SlotId && s.AccountId == accountId && s.Date == scheduleDetail.Date && s.Id != Id
+                            )).FirstOrDefault();
+                            if (existingScheduleDetail == null && existingAttendance != null && existingAttendance.Status == 0)
                             {
-                                var attendance = new Attendance
-                                {
-                                    AccountId = accountId,
-                                    ScheduleId = scheduleId,
-                                    CreatedAt = DateTime.Now,
-                                    UpdatedAt = DateTime.Now,
-                                    Status = 0 //Attendance ở trạng thái đang chờ
-                                };
-                                await _unitOfWork.AttendanceRepository.AddAsync(attendance);
-                            }                         
-                        }
-                        else
-                        {
-                            var existingAttendances = (await _unitOfWork.AttendanceRepository.GetAsync(
-                            s => s.ScheduleId == scheduleDetail.ScheduleId && s.AccountId == accountId
-                            )).FirstOrDefault();
-                            if (existingAttendances != null && existingAttendances.Status == 0) { 
-                                await _unitOfWork.AttendanceRepository.DeleteAsync(existingAttendances);
-                                scheduleDetail.ScheduleId = scheduleId;
-                                scheduleDetail.CreatedAt = DateTime.Now;
+                                await _unitOfWork.AttendanceRepository.DeleteAsync(existingAttendance);
+                                scheduleDetail.SlotId = slotId;
+                                scheduleDetail.Date = DateOnly.FromDateTime(Date);
+                                scheduleDetail.UpdateAt = DateTime.Now;
                                 await _unitOfWork.ScheduleDetailRepository.UpdateAsync(scheduleDetail);
-
-                                var attendance = new Attendance
+                                var checkExistingAttendances = (await _unitOfWork.AttendanceRepository.GetAsync(
+                           s => s.SlotId == slotId && s.AccountId == accountId && s.Date == DateOnly.FromDateTime(Date)
+                           )).FirstOrDefault();
+                                if (checkExistingAttendances == null)
                                 {
-                                    AccountId = accountId,
-                                    ScheduleId = scheduleId,
-                                    CreatedAt = DateTime.Now,
-                                    UpdatedAt = DateTime.Now,
-                                    Status = 0 //Attendance ở trạng thái đang chờ
-                                };
-                                await _unitOfWork.AttendanceRepository.AddAsync(attendance);
+                                    var attendance = new Attendance
+                                    {
+                                        AccountId = accountId,
+                                        SlotId = slotId,
+                                        Date = DateOnly.FromDateTime(Date),
+                                        CreatedAt = DateTime.Now,
+                                        UpdatedAt = DateTime.Now,
+                                        Status = 0 //Attendance ở trạng thái đang chờ
+                                    };
+                                    await _unitOfWork.AttendanceRepository.AddAsync(attendance);
+                                }
+                            }
+                            else if (existingScheduleDetail != null)
+                            {
+                                scheduleDetail.SlotId = slotId;
+                                scheduleDetail.Date = DateOnly.FromDateTime(Date);
+                                scheduleDetail.UpdateAt = DateTime.Now;
+                                await _unitOfWork.ScheduleDetailRepository.UpdateAsync(scheduleDetail);
+                                var checkExistingAttendances = (await _unitOfWork.AttendanceRepository.GetAsync(
+                            s => s.SlotId == slotId && s.AccountId == accountId && s.Date == DateOnly.FromDateTime(Date)
+                            )).FirstOrDefault();
+                                if (checkExistingAttendances == null)
+                                {
+                                    var attendance = new Attendance
+                                    {
+                                        AccountId = accountId,
+                                        SlotId = slotId,
+                                        Date = DateOnly.FromDateTime(Date),
+                                        CreatedAt = DateTime.Now,
+                                        UpdatedAt = DateTime.Now,
+                                        Status = 0 //Attendance ở trạng thái đang chờ
+                                    };
+                                    await _unitOfWork.AttendanceRepository.AddAsync(attendance);
+                                }
                             }
                             else
                             {
                                 return "Không tìm thấy điểm danh hoặc điểm danh này đã đươc check rồi.";
                             }
                         }
+                        else if (checkScheduleDetail.Count() == 2)
+                        {
+                            return "Đã có tối đa 2 task cho lịch";
+                        }
                         await transaction.CommitAsync();
                         return "Lịch trình đã được cập nhật thành công.";
                     }
                     else
                     {
-                        return "Không tìm thấy lịch";
+                        return "Không tìm thấy slot";
                     }
                 }
                 catch (Exception ex)
