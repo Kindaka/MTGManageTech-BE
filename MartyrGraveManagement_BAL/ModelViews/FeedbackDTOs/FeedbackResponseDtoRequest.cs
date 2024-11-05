@@ -9,13 +9,9 @@ namespace MartyrGraveManagement_BAL.ModelViews.FeedbackDTOs
 {
     public class FeedbackResponseDtoRequest
     {
-        [Required(ErrorMessage = "FeedbackId is required.")]
-        public int FeedbackId { get; set; }
-
-        [Required(ErrorMessage = "AccountId is required.")]
-        public int AccountId { get; set; }
-
-        [Required(ErrorMessage = "Content is required.")]
-        public string ResponseContent { get; set; }
+        public int FeedbackId { get; set; }   
+        public int StaffId { get; set; }
+        [Required]
+        public string? ResponseContent { get; set; }
     }
 }

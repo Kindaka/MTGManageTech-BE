@@ -12,10 +12,14 @@ namespace MartyrGraveManagement_BAL.ModelViews.FeedbackDTOs
         [Required(ErrorMessage = "AccountId is required.")]
         public int AccountId { get; set; }
 
-        [Required(ErrorMessage = "OrderId is required.")]
-        public int OrderId { get; set; }
+        [Required(ErrorMessage = "DetailId is required.")]
+        public int DetailId { get; set; }
 
         [Required(ErrorMessage = "Content is required.")]
         public string Content { get; set; }
+
+        [Range(1, 5, ErrorMessage = "Rating must be between 1 and 5.")]
+        public int Rating { get; set; } // Thêm thuộc tính Rating
     }
+
 }
