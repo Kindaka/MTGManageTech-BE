@@ -15,6 +15,9 @@ namespace MartyrGraveManagement_BAL.ModelViews.AttendanceDTOs
         public DateOnly Date { get; set; } 
         public TimeOnly StartTime { get; set; } 
         public TimeOnly EndTime { get; set; }
+        public string? ImagePath1 { get; set; }
+        public string? ImagePath2 { get; set; }
+        public string? ImagePath3 { get; set; }
         public int status { get; set; }
     }
 }

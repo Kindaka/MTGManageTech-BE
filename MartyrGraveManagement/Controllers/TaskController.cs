@@ -29,7 +29,7 @@ namespace MartyrGraveManagement.Controllers
         [Authorize(Policy = "RequireManagerRole")]
         [HttpGet("tasks")]
         public async Task<IActionResult> GetAllTasks()
-        {
+        {//
             try
             {
                 var tasks = await _taskService.GetAllTasksAsync();
@@ -71,7 +71,7 @@ namespace MartyrGraveManagement.Controllers
         [Authorize(Policy = "RequireStaffRole")]
         [HttpGet("tasks/account/{accountId}")]
         public async Task<IActionResult> GetTasksByAccountId(int accountId)
-        {
+        {//
             try
             {
                 var userId = int.Parse(User.FindFirst("AccountId")?.Value); // Giả sử bạn lưu userId trong token

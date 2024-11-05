@@ -34,7 +34,7 @@ namespace MartyrGraveManagement.Controllers
         [Authorize(Policy = "RequireManagerRole")]
         [HttpGet]
         public async Task<ActionResult<List<OrdersGetAllDTOResponse>>> GetAllOrders()
-        {
+        {//
             try
             {
                 var orders = await _odersService.GetAllOrders();
@@ -77,7 +77,7 @@ namespace MartyrGraveManagement.Controllers
         [Authorize(Policy = "RequireCustomerRole")]
         [HttpGet("account/{customerId}")]
         public async Task<ActionResult<List<OrdersGetAllDTOResponse>>> GetOrderByAccountId(int customerId)
-        {
+        {//
             try
             {
                 var accountId = User.FindFirst("AccountId")?.Value;
@@ -107,7 +107,7 @@ namespace MartyrGraveManagement.Controllers
         [Authorize(Policy = "RequireManagerOrStaffRole")]
         [HttpGet("orders/area/{managerId}")]
         public async Task<IActionResult> GetOrdersByAreaId(int managerId)
-        {
+        {//
             try
             {
                 var accountId = User.FindFirst("AccountId")?.Value;

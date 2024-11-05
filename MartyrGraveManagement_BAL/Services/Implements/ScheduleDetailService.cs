@@ -133,11 +133,11 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
         }
 
-        public async Task<List<ScheduleDetailListDtoResponse>> GetScheduleDetailStaff(int accountId, int scheduleId, DateTime Date)
+        public async Task<List<ScheduleDetailListDtoResponse>> GetScheduleDetailStaff(int accountId, int slotId, DateTime Date)
         {
             try
             {
-                var scheduleDetailStaff = await _unitOfWork.ScheduleDetailRepository.GetAsync(sds => sds.SlotId == scheduleId && sds.AccountId == accountId && sds.Date == DateOnly.FromDateTime(Date), 
+                var scheduleDetailStaff = await _unitOfWork.ScheduleDetailRepository.GetAsync(sds => sds.SlotId == slotId && sds.AccountId == accountId && sds.Date == DateOnly.FromDateTime(Date), 
                     includeProperties: "Slot,StaffTask.OrderDetail.Service,StaffTask.OrderDetail.MartyrGrave");
                 if (scheduleDetailStaff == null)
                 {

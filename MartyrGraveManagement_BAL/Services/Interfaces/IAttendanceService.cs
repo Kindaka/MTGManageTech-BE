@@ -9,8 +9,12 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
 {
     public interface IAttendanceService
     {
-        Task<List<string>> CheckAttendance(List<CheckAttendancesDtoRequest> checkList);
+        Task<List<string>> CheckAttendances(List<CheckAttendancesDtoRequest> checkList, int managerId);
+        Task<(bool status, string responseContent)> CheckAttendanceForStaff(CheckAttendanceForStaffDtoRequest request, int staffId);
+        Task<string> UpdateAttendancStatus(int attendanceId, int status, string? Note, int managerId);
         Task<List<AttendanceDtoResponse>> GetAttendances(int managerId);
-        Task<List<AttendanceDtoResponse>> GetAttendancesByScheduleId(int slotId, DateTime Date);
+        Task<List<AttendanceDtoResponse>> GetAttendancesByStaffId(DateTime Date, int staffId);
+        Task<AttendanceDtoResponse> GetAttendanceByAttendanceId(int attendanceId);
+        Task<List<AttendanceDtoResponse>> GetAttendancesBySchedule(int slotId, DateTime Date, int managerId);
     }
 }
