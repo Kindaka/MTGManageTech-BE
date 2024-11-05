@@ -43,6 +43,10 @@ namespace MartyrGraveManagement_DAL.UnitOfWorks.Implements
         private GenericRepository<Comment> _commentRepository;
         private GenericRepository<Comment_Icon> _commentIconRepository;
         private GenericRepository<Comment_Report> _commentReportRepository;
+        private GenericRepository<Holiday_Event> _holidayEventsRepository;
+        private GenericRepository<Event_Image> _eventImagesRepository;
+        private GenericRepository<Notification> _notificationRepository;
+        private GenericRepository<NotificationAccount> _notificationAccountsRepository;
 
 
         public UnitOfWork(ApplicationDbContext context)
@@ -80,6 +84,10 @@ namespace MartyrGraveManagement_DAL.UnitOfWorks.Implements
         public IGenericRepository<Comment> CommentRepository => _commentRepository ??= new GenericRepository<Comment>(_context);
         public IGenericRepository<Comment_Icon> CommentIconRepository => _commentIconRepository ??= new GenericRepository<Comment_Icon>(_context);
         public IGenericRepository<Comment_Report> CommentReportRepository => _commentReportRepository ??= new GenericRepository<Comment_Report>(_context);
+        public IGenericRepository<Holiday_Event> HolidayEventsRepository => _holidayEventsRepository ??= new GenericRepository<Holiday_Event>(_context);
+        public IGenericRepository<Event_Image> EventImagesRepository => _eventImagesRepository ??= new GenericRepository<Event_Image>(_context);
+        public IGenericRepository<Notification> NotificationRepository => _notificationRepository ??= new GenericRepository<Notification>(_context);
+        public IGenericRepository<NotificationAccount> NotificationAccountsRepository => _notificationAccountsRepository ??= new GenericRepository<NotificationAccount>(_context);
 
 
         public async Task<IDbContextTransaction> BeginTransactionAsync()

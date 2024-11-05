@@ -38,6 +38,10 @@ namespace MartyrGraveManagement_DAL.UnitOfWorks.Interfaces
         public IGenericRepository<Comment> CommentRepository { get; }
         public IGenericRepository<Comment_Icon> CommentIconRepository { get; }
         public IGenericRepository<Comment_Report> CommentReportRepository { get; }
+        public IGenericRepository<Holiday_Event> HolidayEventsRepository { get; }
+        public IGenericRepository<Event_Image> EventImagesRepository { get; }
+        public IGenericRepository<NotificationAccount> NotificationAccountsRepository { get; }
+        public IGenericRepository<Notification> NotificationRepository { get; }
 
 
         Task SaveAsync();

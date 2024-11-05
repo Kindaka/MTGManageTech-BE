@@ -9,6 +9,7 @@ using MartyrGraveManagement_BAL.ModelViews.CommentReportDTOs;
 using MartyrGraveManagement_BAL.ModelViews.CustomerDTOs;
 using MartyrGraveManagement_BAL.ModelViews.FeedbackDTOs;
 using MartyrGraveManagement_BAL.ModelViews.HistoricalEventDTOs;
+using MartyrGraveManagement_BAL.ModelViews.HolidayEventDTOs;
 using MartyrGraveManagement_BAL.ModelViews.MartyrGraveDTOs;
 using MartyrGraveManagement_BAL.ModelViews.MartyrGraveInformationDTOs;
 using MartyrGraveManagement_BAL.ModelViews.OrdersDTOs;
@@ -123,6 +124,8 @@ namespace MartyrGraveManagement_BAL.MappingProfiles
             //CommentReport mapping
             CreateMap<CommentReportDTO, Comment_Report>().ReverseMap();
             CreateMap<CreateCommentReportDTO, Comment_Report>().ReverseMap();
+            // Holiday Event mapping
+            CreateMap<HolidayEventRequestDto, Holiday_Event>().ReverseMap();
         }
     }
 }
