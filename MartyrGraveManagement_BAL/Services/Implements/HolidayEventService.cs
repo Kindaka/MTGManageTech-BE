@@ -53,6 +53,19 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     await _unitOfWork.SaveAsync();
                 }
 
+                // Tạo thông báo mới cho sự kiện đã tạo
+                var notification = new Notification
+                {
+                    Title = $"Sự kiện mới: {holidayEvent.EventName}",
+                    Description = $"Sự kiện '{holidayEvent.EventName}' đã được tạo và sẽ diễn ra vào ngày {holidayEvent.EventDate}.",
+                    CreatedDate = DateTime.Now,
+                    Status = true
+                };
+
+                // Thêm thông báo vào cơ sở dữ liệu
+                await _unitOfWork.NotificationRepository.AddAsync(notification);
+                await _unitOfWork.SaveAsync();
+
                 return true;
             }
             catch
@@ -60,6 +73,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 return false;
             }
         }
+
 
 
         public async Task<bool> UpdateHolidayEventAsync(int eventId, int accountId, HolidayEventRequestDto holidayEventDto)
@@ -86,7 +100,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 var existingImages = await _unitOfWork.EventImagesRepository.GetAsync(img => img.EventId == eventId);
                 if (existingImages != null && existingImages.Any())
                 {
-                   await _unitOfWork.EventImagesRepository.DeleteRangeAsync(existingImages);
+                    await _unitOfWork.EventImagesRepository.DeleteRangeAsync(existingImages);
                 }
 
                 // Thêm danh sách ảnh mới từ ImagePaths
@@ -101,8 +115,21 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     await _unitOfWork.EventImagesRepository.AddRangeAsync(eventImages);
                 }
 
+                // Tạo thông báo cho việc cập nhật sự kiện
+                var notification = new Notification
+                {
+                    Title = $"Cập nhật sự kiện: {existingEvent.EventName}",
+                    Description = $"Sự kiện '{existingEvent.EventName}' đã được cập nhật và sẽ diễn ra vào ngày {existingEvent.EventDate}.",
+                    CreatedDate = DateTime.Now,
+                    Status = true
+                };
+
+                // Thêm thông báo vào cơ sở dữ liệu
+                await _unitOfWork.NotificationRepository.AddAsync(notification);
+
                 // Lưu tất cả thay đổi vào cơ sở dữ liệu
                 await _unitOfWork.SaveAsync();
+
                 return true;
             }
             catch
@@ -111,6 +138,8 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 return false;
             }
         }
+
+
 
         public async Task<bool> UpdateHolidayEventStatusAsync(int eventId, bool status)
         {

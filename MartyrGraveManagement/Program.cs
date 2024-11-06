@@ -128,6 +128,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddScoped<ITaskBackgroundService, TaskBackgroundService>();
 builder.Services.AddScoped<IOrderBackgroundService, OrderBackgroundService>();
 builder.Services.AddScoped<IHolidayEventBackgroundService, HolidayEventBackgroundService>();
+builder.Services.AddScoped<IAttendanceBackgroundService, AttendanceBackgroundService>();
 
 
 // Đăng ký các dịch vụ của bạn
@@ -157,6 +158,8 @@ builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<ICommentIconService, CommentIconService>();
 builder.Services.AddScoped<ICommentReportService, CommentReportService>();
 builder.Services.AddScoped<IHolidayEventService, HolidayEventService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
+
 
 
 
@@ -180,20 +183,27 @@ app.UseHangfireDashboard("/hangfire");
 RecurringJob.AddOrUpdate<ITaskBackgroundService>(
     "check-expired-tasks",
     service => service.CheckExpiredTasks(),
-    Cron.MinuteInterval(1)
+    Cron.Minutely
 );
 
 RecurringJob.AddOrUpdate<IOrderBackgroundService>(
     "check-expired-orders-payment",
     service => service.CheckExpiredOrderPayment(),
-    Cron.MinuteInterval(1)
+    Cron.Minutely
 );
 
 RecurringJob.AddOrUpdate<IHolidayEventBackgroundService>(
     "check-and-send-holiday-event-notifications",
-    service => service.CheckAndSendNotificationsForUpcomingHolidayEvents(),
-    Cron.MinuteInterval(1) // hoặc Cron.Daily để chạy hàng ngày
+    service => service.UpdateNotificationAccountsForUpcomingDay(),
+    Cron.Minutely
 );
+
+RecurringJob.AddOrUpdate<IAttendanceBackgroundService>(
+    "mark-absent-attendance",
+    service => service.MarkAbsentAttendanceAsync(),
+    Cron.Minutely
+);
+
 
 app.MapControllers();
 app.Run();

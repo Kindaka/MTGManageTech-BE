@@ -6,10 +6,8 @@ using System.Threading.Tasks;
 
 namespace MartyrGraveManagement_BAL.BackgroundServices.Interfaces
 {
-    public interface IHolidayEventBackgroundService
+    public interface IAttendanceBackgroundService
     {
-        //Task MarkNotificationsForUpcomingHolidays();
-        Task UpdateNotificationAccountsForUpcomingDay();
+        Task MarkAbsentAttendanceAsync();
     }
-
 }

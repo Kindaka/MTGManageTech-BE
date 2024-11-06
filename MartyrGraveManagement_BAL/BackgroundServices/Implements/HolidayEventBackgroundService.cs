@@ -1,5 +1,4 @@
 ﻿using MartyrGraveManagement_BAL.BackgroundServices.Interfaces;
-using MartyrGraveManagement_DAL.Entities;
 using MartyrGraveManagement_DAL.UnitOfWorks.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -19,54 +18,90 @@ namespace MartyrGraveManagement_BAL.BackgroundServices.Implements
             _unitOfWork = unitOfWork;
         }
 
-        public async Task CheckAndSendNotificationsForUpcomingHolidayEvents()
+        //public async Task MarkNotificationsForUpcomingHolidays()
+        //{
+        //    while (true)
+        //    {
+        //        var today = DateOnly.FromDateTime(DateTime.Today);
+        //        var upcomingEvents = await _unitOfWork.HolidayEventsRepository.GetAsync(
+        //            e => e.EventDate >= today && e.EventDate <= today.AddDays(2) && e.Status == true);
+
+        //        if (upcomingEvents.Any())
+        //        {
+        //            foreach (var holidayEvent in upcomingEvents)
+        //            {
+        //                // Lấy thông báo liên quan dựa trên ID của sự kiện (giả sử có thông báo cho mỗi sự kiện)
+        //                var notification = await _unitOfWork.NotificationRepository
+        //                    .SingleOrDefaultAsync(n => n.Title.Contains(holidayEvent.EventName));
+
+        //                if (notification != null)
+        //                {
+        //                    // Cập nhật trạng thái của NotificationAccount thành true cho tất cả tài khoản khách hàng liên kết
+        //                    var notificationAccounts = await _unitOfWork.NotificationAccountsRepository
+        //                        .GetAsync(na => na.NotificationId == notification.NotificationId && na.Status == false);
+
+        //                    foreach (var notificationAccount in notificationAccounts)
+        //                    {
+        //                        notificationAccount.Status = true; // Đánh dấu là hiển thị cho khách hàng
+        //                        await _unitOfWork.NotificationAccountsRepository.UpdateAsync(notificationAccount);
+        //                    }
+
+        //                    // Lưu thay đổi
+        //                    await _unitOfWork.SaveAsync();
+        //                }
+        //            }
+        //        }
+
+        //        // Thêm delay 10 giây giữa mỗi lần kiểm tra
+        //        await Task.Delay(10000);
+        //    }
+        //}
+
+        public async Task UpdateNotificationAccountsForUpcomingDay()
         {
             while (true)
             {
-                // Lấy các sự kiện diễn ra trong ngày tiếp theo
-                var upcomingEvents = await _unitOfWork.HolidayEventsRepository.GetAsync(e =>
-                    e.EventDate == DateOnly.FromDateTime(DateTime.UtcNow.AddHours(7).AddDays(1)) && e.Status == true);
-
-                if (upcomingEvents.Any())
+                try
                 {
-                    foreach (var holidayEvent in upcomingEvents)
+                    var tomorrow = DateOnly.FromDateTime(DateTime.Today.AddDays(1));
+
+                    // Lấy tất cả các thông báo có ngày tạo bằng ngày mai
+                    var notificationsUpcoming = await _unitOfWork.NotificationRepository
+                        .GetAsync(n => DateOnly.FromDateTime(n.CreatedDate.Date) == tomorrow);
+
+                    if (notificationsUpcoming.Any())
                     {
-                        // Tạo thông báo mới cho sự kiện
-                        var notification = new Notification
+                        foreach (var notification in notificationsUpcoming)
                         {
-                            Title = $"Thông báo sự kiện {holidayEvent.EventName}",
-                            Description = $"Sự kiện {holidayEvent.EventName} sẽ diễn ra vào ngày {holidayEvent.EventDate}.",
-                            CreatedDate = DateTime.UtcNow.AddHours(7),
-                            Status = true
-                        };
-                        await _unitOfWork.NotificationRepository.AddAsync(notification);
-                        await _unitOfWork.SaveAsync();
+                            // Lấy tất cả các NotificationAccount liên quan đến Notification này có status là false
+                            var notificationAccounts = await _unitOfWork.NotificationAccountsRepository
+                                .GetAsync(na => na.NotificationId == notification.NotificationId && na.Status == false);
 
-                        // Lấy danh sách tất cả các khách hàng (RoleId là khách hàng)
-                        var customers = await _unitOfWork.AccountRepository.GetAsync(a => a.RoleId == 4 && a.Status == true);
+                            // Cập nhật status thành true cho tất cả các NotificationAccount liên quan
+                            foreach (var notificationAccount in notificationAccounts)
+                            {
+                                notificationAccount.Status = true;
+                                await _unitOfWork.NotificationAccountsRepository.UpdateAsync(notificationAccount);
+                            }
 
-                        // Chia nhỏ thông báo để lưu theo lô
-                        var notificationAccounts = customers.Select(c => new NotificationAccount
-                        {
-                            AccountId = c.AccountId,
-                            NotificationId = notification.NotificationId,
-                            Status = true // Đánh dấu là thông báo mới
-                        }).ToList();
-
-                        int batchSize = 100; // Số lượng bản ghi mỗi lô
-                        for (int i = 0; i < notificationAccounts.Count; i += batchSize)
-                        {
-                            var batch = notificationAccounts.Skip(i).Take(batchSize).ToList();
-                            await _unitOfWork.NotificationAccountsRepository.AddRangeAsync(batch);
+                            // Lưu thay đổi
                             await _unitOfWork.SaveAsync();
                         }
                     }
                 }
+                catch (Exception ex)
+                {
+                    // Ghi log lỗi
+                    Console.WriteLine($"Error in UpdateNotificationAccountsForUpcomingDay: {ex.Message}");
+                }
 
-                // Đợi 10 giây trước khi kiểm tra lại (dùng cho mục đích test)
+                // Chờ 10 giây trước khi lặp lại lần tiếp theo
                 await Task.Delay(10000);
             }
         }
+
+
+
 
 
     }
