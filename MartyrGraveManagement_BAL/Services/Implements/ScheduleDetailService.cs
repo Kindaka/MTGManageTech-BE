@@ -10,6 +10,7 @@ using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading.Tasks;
 using System.Transactions;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace MartyrGraveManagement_BAL.Services.Implements
 {
@@ -133,6 +134,63 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
         }
 
+        public async Task<string> DeleteScheduleDetail(int accountId, int Id)
+        {
+            using (var transaction = await _unitOfWork.BeginTransactionAsync())
+            {
+                try
+                {
+                    var scheduleDetail = (await _unitOfWork.ScheduleDetailRepository.GetAsync(s => s.Id == Id, includeProperties: "StaffTask,Slot,Account")).FirstOrDefault();
+                    if (scheduleDetail == null)
+                    {
+                        return "Không tìm thấy task của lịch (Sai Id)";
+                    }
+                    if (scheduleDetail.StaffTask.Status == 2 || scheduleDetail.StaffTask.Status == 4 || scheduleDetail.StaffTask.Status == 5)
+                    {
+                        return "Task này đã hoàn thành hoặc đã thất bại hoặc đã hủy.";
+                    }
+
+                    if (scheduleDetail.Date > DateOnly.FromDateTime(DateTime.Now))
+                    {
+                        if (scheduleDetail.AccountId == accountId) {
+                            await _unitOfWork.ScheduleDetailRepository.DeleteAsync(scheduleDetail);
+                            var existingAttendance = (await _unitOfWork.AttendanceRepository.GetAsync(
+                            s => s.SlotId == scheduleDetail.SlotId && s.AccountId == accountId && s.Date == scheduleDetail.Date
+                            )).FirstOrDefault();
+                            var existingScheduleDetail = (await _unitOfWork.ScheduleDetailRepository.GetAsync(
+                            s => s.SlotId == scheduleDetail.SlotId && s.AccountId == accountId && s.Date == scheduleDetail.Date && s.Id != Id
+                            )).FirstOrDefault();
+                            if (existingScheduleDetail == null && existingAttendance != null && existingAttendance.Status == 0)
+                            {
+                                await _unitOfWork.AttendanceRepository.DeleteAsync(existingAttendance);
+                            }
+                            var existingTask = (await _unitOfWork.TaskRepository.GetAsync(t => t.TaskId == scheduleDetail.TaskId)).FirstOrDefault();
+                            if (existingTask != null) { 
+                                existingTask.Status = 1;
+                                await _unitOfWork.TaskRepository.UpdateAsync(existingTask);
+                            }
+                        }
+                        else
+                        {
+                            return "Lịch trình này không phải của bạn";
+                        }
+                    }
+                    else
+                    {
+                        return "Đã quá hạn thời gian để hủy lịch trình (phải cập nhật 1 ngày trước ngày làm việc)";
+                    }
+                    await transaction.CommitAsync();
+                    return "Lịch trình đã được hủy thành công.";
+
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    throw new Exception(ex.Message);
+                }
+            }
+        }
+
         public async Task<List<ScheduleDetailListDtoResponse>> GetScheduleDetailStaff(int accountId, int slotId, DateTime Date)
         {
             try
@@ -149,6 +207,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     var scheduleStaff = new ScheduleDetailListDtoResponse
                     {
                         ScheduleDetailId = scheduleDetail.Id,
+                        SlotId = scheduleDetail.SlotId,
                         Date = scheduleDetail.Date,
                         StartTime = scheduleDetail.Slot.StartTime,
                         EndTime = scheduleDetail.Slot.EndTime,
@@ -182,6 +241,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     var scheduleStaff = new ScheduleDetailListDtoResponse
                     {
                         ScheduleDetailId = scheduleDetail.Id,
+                        SlotId = scheduleDetail.SlotId,
                         Date = scheduleDetail.Date,
                         StartTime = scheduleDetail.Slot.StartTime,
                         EndTime = scheduleDetail.Slot.EndTime,
