@@ -113,7 +113,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                                 };
                                 await _unitOfWork.AttendanceRepository.AddAsync(attendance);
                             }
-                            await transaction.CommitAsync();
+                            //await transaction.CommitAsync();
                             results.Add($"Lịch trình đã được tạo thành công.");
                         }
                         else
@@ -123,7 +123,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         }
 
                     }
-                    
+                    await transaction.CommitAsync();
                     return results;
                 }
                 catch (Exception ex)

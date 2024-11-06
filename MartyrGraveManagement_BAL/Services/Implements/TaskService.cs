@@ -589,7 +589,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 // Đặt EndDate của task bằng với ExpectedCompletionDate của Order
                 DateTime taskEndDate = order.ExpectedCompletionDate;
 
-                // Tạo task mới
+                // Tạo task mới và gắn Note của Order vào Description
                 var taskEntity = new StaffTask
                 {
                     AccountId = taskDto.AccountId,
@@ -597,6 +597,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     DetailId = taskDto.DetailId,
                     StartDate = DateTime.Now,
                     EndDate = taskEndDate,
+                    Description = order.Note,  // Gắn Note của Order vào Description của Task
                     Status = 1  // Trạng thái ban đầu là 'assigned'
                 };
 
@@ -611,6 +612,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
             return taskResponses;
         }
+
 
 
 
@@ -739,6 +741,95 @@ namespace MartyrGraveManagement_BAL.Services.Implements
         //}
 
 
+        //public async Task<TaskDtoResponse> UpdateTaskStatusAsync(int taskId, int newStatus)
+        //{
+        //    using (var transaction = await _unitOfWork.BeginTransactionAsync())
+        //    {
+        //        try
+        //        {
+        //            // 1. Kiểm tra TaskId có tồn tại không
+        //            var task = await _unitOfWork.TaskRepository.GetByIDAsync(taskId);
+        //            if (task == null)
+        //            {
+        //                throw new KeyNotFoundException("TaskId does not exist.");
+        //            }
+
+        //            // 2. Cập nhật trạng thái của Task
+        //            if (task.Status == 1)
+        //            {
+        //                if (newStatus == 2)
+        //                {
+        //                    task.Status = 2;  // Từ chối task
+        //                }
+        //                else if (newStatus == 3)
+        //                {
+        //                    task.Status = 3;  // Nhận task
+
+        //                    //// Lấy tất cả OrderDetail của Order để kiểm tra số lượng Task
+        //                    //var orderDetails = await _unitOfWork.OrderDetailRepository.GetAsync(od => od.OrderId == task.OrderId);
+        //                    //bool allTasksForOrderInProgress = true;
+
+        //                    //foreach (var orderDetail in orderDetails)
+        //                    //{
+        //                    //    // Lấy tất cả các Task của từng OrderDetail
+        //                    //    var tasksForDetail = await _unitOfWork.TaskRepository.GetAsync(t => t.DetailId == orderDetail.DetailId);
+
+        //                    //    // Kiểm tra xem OrderDetail đã có Task nào chưa
+        //                    //    if (!tasksForDetail.Any())
+        //                    //    {
+        //                    //        allTasksForOrderInProgress = false;
+        //                    //        break;
+        //                    //    }
+
+        //                    //    // Kiểm tra nếu tất cả các Task của OrderDetail này có trạng thái là 3
+        //                    //    if (tasksForDetail.Any(t => t.Status != 3))
+        //                    //    {
+        //                    //        allTasksForOrderInProgress = false;
+        //                    //        break;
+        //                    //    }
+        //                    //}
+
+        //                    //if (allTasksForOrderInProgress)
+        //                    //{
+        //                    //    // Chỉ khi tất cả OrderDetail đã có Task và các Task đều có trạng thái là 3 thì mới cập nhật trạng thái của Order
+        //                    //    var order = await _unitOfWork.OrderRepository.GetByIDAsync(task.OrderId);
+        //                    //    if (order != null)
+        //                    //    {
+        //                    //        order.Status = 3;  // Order chuyển sang trạng thái "đang thực hiện"
+        //                    //        await _unitOfWork.OrderRepository.UpdateAsync(order);
+        //                    //    }
+        //                    //}
+        //                }
+        //                else
+        //                {
+        //                    throw new InvalidOperationException("You can only update status to 2 (reject) or 3 (in progress) from status 1.");
+        //                }
+        //            }
+        //            else
+        //            {
+        //                throw new InvalidOperationException("Invalid status transition.");
+        //            }
+
+        //            // 3. Lưu thay đổi vào cơ sở dữ liệu
+        //            await _unitOfWork.TaskRepository.UpdateAsync(task);
+        //            await _unitOfWork.SaveAsync();
+
+        //            // 4. Commit transaction nếu không có lỗi
+        //            await transaction.CommitAsync();
+
+        //            return _mapper.Map<TaskDtoResponse>(task);
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            // Rollback transaction nếu có lỗi
+        //            await transaction.RollbackAsync();
+        //            throw new Exception($"Failed to update task: {ex.Message}");
+        //        }
+        //    }
+        //}
+
+
+
         public async Task<TaskDtoResponse> UpdateTaskStatusAsync(int taskId, int newStatus)
         {
             using (var transaction = await _unitOfWork.BeginTransactionAsync())
@@ -759,48 +850,9 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         {
                             task.Status = 2;  // Từ chối task
                         }
-                        else if (newStatus == 3)
-                        {
-                            task.Status = 3;  // Nhận task
-
-                            //// Lấy tất cả OrderDetail của Order để kiểm tra số lượng Task
-                            //var orderDetails = await _unitOfWork.OrderDetailRepository.GetAsync(od => od.OrderId == task.OrderId);
-                            //bool allTasksForOrderInProgress = true;
-
-                            //foreach (var orderDetail in orderDetails)
-                            //{
-                            //    // Lấy tất cả các Task của từng OrderDetail
-                            //    var tasksForDetail = await _unitOfWork.TaskRepository.GetAsync(t => t.DetailId == orderDetail.DetailId);
-
-                            //    // Kiểm tra xem OrderDetail đã có Task nào chưa
-                            //    if (!tasksForDetail.Any())
-                            //    {
-                            //        allTasksForOrderInProgress = false;
-                            //        break;
-                            //    }
-
-                            //    // Kiểm tra nếu tất cả các Task của OrderDetail này có trạng thái là 3
-                            //    if (tasksForDetail.Any(t => t.Status != 3))
-                            //    {
-                            //        allTasksForOrderInProgress = false;
-                            //        break;
-                            //    }
-                            //}
-
-                            //if (allTasksForOrderInProgress)
-                            //{
-                            //    // Chỉ khi tất cả OrderDetail đã có Task và các Task đều có trạng thái là 3 thì mới cập nhật trạng thái của Order
-                            //    var order = await _unitOfWork.OrderRepository.GetByIDAsync(task.OrderId);
-                            //    if (order != null)
-                            //    {
-                            //        order.Status = 3;  // Order chuyển sang trạng thái "đang thực hiện"
-                            //        await _unitOfWork.OrderRepository.UpdateAsync(order);
-                            //    }
-                            //}
-                        }
                         else
                         {
-                            throw new InvalidOperationException("You can only update status to 2 (reject) or 3 (in progress) from status 1.");
+                            throw new InvalidOperationException("You can only update status to 2 (reject) from status 1.");
                         }
                     }
                     else
@@ -825,6 +877,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 }
             }
         }
+
 
 
 

@@ -161,7 +161,7 @@ namespace MartyrGraveManagement.Controllers
 
 
         /// <summary>
-        /// Update task status (Staff Role). (Status 2 3)
+        /// Update task status (Staff Role). (Status 2 Reject)
         /// </summary>
         [Authorize(Policy = "RequireStaffRole")]
         [HttpPut("tasks/{taskId}/status/{newStatus}")]
