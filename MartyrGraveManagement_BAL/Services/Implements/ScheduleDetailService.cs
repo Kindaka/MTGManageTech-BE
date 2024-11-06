@@ -191,6 +191,49 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
         }
 
+        public async Task<ScheduleDetailDtoResponse> GetScheduleDetailById(int accountId, int scheduleDetailId)
+        {
+            try
+            {
+                var scheduleDetailStaff = (await _unitOfWork.ScheduleDetailRepository.GetAsync(sds => sds.Id == scheduleDetailId,
+                    includeProperties: "Slot,StaffTask.OrderDetail.Service,StaffTask.OrderDetail.MartyrGrave")).FirstOrDefault();
+                if (scheduleDetailStaff == null)
+                {
+                    return null;
+                }
+                if (scheduleDetailStaff.AccountId != accountId)
+                {
+                    return null;
+                }
+
+                    var scheduleStaff = new ScheduleDetailDtoResponse
+                    {
+                        ScheduleDetailId = scheduleDetailStaff.Id,
+                        SlotId = scheduleDetailStaff.SlotId,
+                        Date = scheduleDetailStaff.Date,
+                        StartTime = scheduleDetailStaff.Slot.StartTime,
+                        EndTime = scheduleDetailStaff.Slot.EndTime,
+                        StartDate = DateOnly.FromDateTime(scheduleDetailStaff.StaffTask.StartDate),
+                        EndDate = DateOnly.FromDateTime(scheduleDetailStaff.StaffTask.EndDate),
+                        Description = scheduleDetailStaff.Description,
+                        ServiceName = scheduleDetailStaff.StaffTask.OrderDetail.Service.ServiceName,
+                        MartyrCode = scheduleDetailStaff.StaffTask.OrderDetail.MartyrGrave.MartyrCode,
+                        TaskId = scheduleDetailStaff.TaskId,
+                        ImagePath1 = scheduleDetailStaff.StaffTask.ImagePath1,
+                        ImagePath2 = scheduleDetailStaff.StaffTask.ImagePath2,
+                        ImagePath3 = scheduleDetailStaff.StaffTask.ImagePath3,
+                        Status = scheduleDetailStaff.StaffTask.Status,
+                    };
+
+
+                return scheduleStaff;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
         public async Task<List<ScheduleDetailListDtoResponse>> GetScheduleDetailStaff(int accountId, int slotId, DateTime Date)
         {
             try
