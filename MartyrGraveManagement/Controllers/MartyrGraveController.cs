@@ -83,10 +83,10 @@ namespace MartyrGraveManagement.Controllers
         /// <param name="id">The customerCode of the martyr grave.</param>
         /// <returns>Returns the martyr grave with the specified customerCode.</returns>
         [Authorize(Policy = "RequireCustomerRole")]
-        [HttpGet("getMartyrGraveByCustomerCode/{customerCode}")]
-        public async Task<ActionResult<IEnumerable<MartyrGraveDtoResponse>>> GetMartyrGraveByMartyrCode(string customerCode)
+        [HttpGet("getMartyrGraveByCustomerId/{customerId}")]
+        public async Task<ActionResult<IEnumerable<MartyrGraveDtoResponse>>> GetMartyrGraveByCustomerId(int customerId)
         {
-            var graves = await _martyrGraveService.GetMartyrGraveByCustomerCode(customerCode);
+            var graves = await _martyrGraveService.GetMartyrGraveByCustomerId(customerId);
             if (graves == null)
             {
                 return NotFound();

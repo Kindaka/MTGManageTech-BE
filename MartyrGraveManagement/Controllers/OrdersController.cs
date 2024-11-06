@@ -218,9 +218,9 @@ namespace MartyrGraveManagement.Controllers
         }
 
 
-        [Authorize(Policy = "RequireManagerOrStaffRole")]
+        [AllowAnonymous]
         [HttpGet("order-detail/{detailId}")]
-        public async Task<IActionResult> GetOrderDetailById(int detailId, int managerId)
+        public async Task<IActionResult> GetOrderDetailById(int detailId, int myAccountId)
         {
             try
             {
@@ -230,7 +230,7 @@ namespace MartyrGraveManagement.Controllers
                     return Forbid();
                 }
 
-                var checkMatchedId = await _authorizeService.CheckAuthorizeStaffOrManager(managerId, int.Parse(accountId));
+                var checkMatchedId = await _authorizeService.CheckAuthorizeStaffOrManager(myAccountId, int.Parse(accountId));
                 if (!checkMatchedId.isMatchedStaffOrManager)
                 {
                     return Forbid();
