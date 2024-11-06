@@ -3,6 +3,7 @@ using MartyrGraveManagement_BAL.ModelViews.TaskDTOs;
 using MartyrGraveManagement_BAL.Services.Interfaces;
 using MartyrGraveManagement_DAL.Entities;
 using MartyrGraveManagement_DAL.UnitOfWorks.Interfaces;
+using Microsoft.Identity.Client;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -63,7 +64,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
 
 
-        public async Task<IEnumerable<TaskDtoResponse>> GetTasksByAccountIdAsync(int accountId)
+        public async Task<(IEnumerable<TaskDtoResponse> taskList, int totalPage)> GetTasksByAccountIdAsync(int accountId, int pageIndex, int pageSize, DateTime Date)
         {
             // Kiểm tra xem AccountId có tồn tại không
             var account = await _unitOfWork.AccountRepository.GetByIDAsync(accountId);
@@ -72,8 +73,29 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 throw new KeyNotFoundException("Account not found.");
             }
 
+            int totalPage = 0;
+            int totalTask = 0;
+            IEnumerable<StaffTask> tasks = new List<StaffTask>();
+            if (Date == DateTime.MinValue)
+            {
+                totalTask = (await _unitOfWork.TaskRepository.GetAsync(s => s.AccountId == accountId)).Count();
+                totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
+                // Lấy tất cả các đơn hàng dựa trên AccountId và bao gồm các chi tiết đơn hàng
+                tasks = await _unitOfWork.TaskRepository.GetAsync(t => t.AccountId == accountId, includeProperties: "OrderDetail.Service,OrderDetail.MartyrGrave",
+                pageIndex: pageIndex, pageSize: pageSize);
+            }
+            else
+            {
+                totalTask = (await _unitOfWork.TaskRepository.GetAsync(s => s.AccountId == accountId && s.StartDate.Date == Date.Date)).Count();
+                totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
+                // Lấy tất cả các đơn hàng dựa trên AccountId và bao gồm các chi tiết đơn hàng
+                tasks = await _unitOfWork.TaskRepository.GetAsync(t => t.AccountId == accountId && t.StartDate.Date == Date.Date, includeProperties: "OrderDetail.Service,OrderDetail.MartyrGrave",
+                pageIndex: pageIndex, pageSize: pageSize);
+            }
+
+
             // Lấy danh sách các Task thuộc về account, bao gồm các bảng liên quan
-            var tasks = await _unitOfWork.TaskRepository.GetAsync(t => t.AccountId == accountId, includeProperties: "OrderDetail.Service,OrderDetail.MartyrGrave");
+            
 
             if (!tasks.Any())
             {
@@ -102,7 +124,76 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 taskResponses.Add(taskDto);
             }
 
-            return taskResponses;
+            return (taskResponses, totalPage);
+        }
+
+        public async Task<(IEnumerable<TaskDtoResponse> taskList, int totalPage)> GetTasksForManager(int managerId, int pageIndex, int pageSize, DateTime Date)
+        {
+            try
+            {
+                // Kiểm tra xem AccountId có tồn tại không
+                var account = await _unitOfWork.AccountRepository.GetByIDAsync(managerId);
+                if (account == null)
+                {
+                    throw new KeyNotFoundException("Account not found.");
+                }
+
+                int totalPage = 0;
+                int totalTask = 0;
+                IEnumerable<StaffTask> tasks = new List<StaffTask>();
+                if (Date == DateTime.MinValue)
+                {
+                    totalTask = (await _unitOfWork.TaskRepository.GetAsync(s => s.OrderDetail.MartyrGrave.AreaId == account.AreaId, includeProperties: "OrderDetail.MartyrGrave")).Count();
+                    totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
+                    // Lấy tất cả các đơn hàng dựa trên AccountId và bao gồm các chi tiết đơn hàng
+                    tasks = await _unitOfWork.TaskRepository.GetAsync(s => s.OrderDetail.MartyrGrave.AreaId == account.AreaId, includeProperties: "OrderDetail.Service,OrderDetail.MartyrGrave",
+                    pageIndex: pageIndex, pageSize: pageSize);
+                }
+                else
+                {
+                    totalTask = (await _unitOfWork.TaskRepository.GetAsync(s => s.OrderDetail.MartyrGrave.AreaId == account.AreaId && s.StartDate.Date == Date.Date, includeProperties: "OrderDetail.MartyrGrave")).Count();
+                    totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
+                    // Lấy tất cả các đơn hàng dựa trên AccountId và bao gồm các chi tiết đơn hàng
+                    tasks = await _unitOfWork.TaskRepository.GetAsync(t => t.OrderDetail.MartyrGrave.AreaId == account.AreaId && t.StartDate.Date == Date.Date, includeProperties: "OrderDetail.Service,OrderDetail.MartyrGrave",
+                    pageIndex: pageIndex, pageSize: pageSize);
+                }
+
+
+                // Lấy danh sách các Task thuộc về account, bao gồm các bảng liên quan
+
+
+                if (!tasks.Any())
+                {
+                    throw new InvalidOperationException("This account does not have any tasks.");
+                }
+
+                // Ánh xạ FullName từ Account và các thông tin khác
+                var taskResponses = new List<TaskDtoResponse>();
+                foreach (var task in tasks)
+                {
+                    var taskDto = _mapper.Map<TaskDtoResponse>(task);
+                    taskDto.Fullname = account?.FullName;  // Ánh xạ FullName từ Account
+
+                    // Lấy thông tin từ OrderDetail, Service, và MartyrGrave
+                    taskDto.ServiceName = task.OrderDetail?.Service?.ServiceName;
+                    taskDto.ServiceDescription = task.OrderDetail?.Service?.Description;
+
+                    // Ghép vị trí mộ từ AreaNumber, RowNumber, và MartyrNumber
+                    var martyrGrave = task.OrderDetail?.MartyrGrave;
+                    if (martyrGrave != null)
+                    {
+                        var location = await _unitOfWork.LocationRepository.GetByIDAsync(martyrGrave.LocationId);
+                        taskDto.GraveLocation = $"K{location.AreaNumber}-R{location.RowNumber}-{location.MartyrNumber}";
+                    }
+
+                    taskResponses.Add(taskDto);
+                }
+
+                return (taskResponses, totalPage);
+            }catch(Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
 
 

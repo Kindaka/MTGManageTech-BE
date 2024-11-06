@@ -70,26 +70,54 @@ namespace MartyrGraveManagement.Controllers
         /// </summary>
         [Authorize(Policy = "RequireStaffRole")]
         [HttpGet("tasks/account/{accountId}")]
-        public async Task<IActionResult> GetTasksByAccountId(int accountId)
+        public async Task<IActionResult> GetTasksByAccountId(int accountId, DateTime Date, int pageIndex = 1, int pageSize = 5)
         {//
             try
             {
                 var userId = int.Parse(User.FindFirst("AccountId")?.Value); // Giả sử bạn lưu userId trong token
 
                 // Kiểm tra quyền truy cập bằng authorizeService
-                var (isMatchedCustomer, isAuthorizedAccount) = await _authorizeService.CheckAuthorizeByAccountId(userId, accountId);
-                if (!isAuthorizedAccount && !isMatchedCustomer)
+                var (isMatchedStaff, isAuthorizedAccount) = await _authorizeService.CheckAuthorizeStaffByAccountId(userId, accountId);
+                if (!isMatchedStaff)
                 {
                     return Forbid("You do not have permission to access tasks for this account.");
                 }
 
-                var tasks = await _taskService.GetTasksByAccountIdAsync(accountId);
-                if (tasks == null || !tasks.Any())
+                var tasks = await _taskService.GetTasksByAccountIdAsync(accountId, pageIndex, pageSize, Date);
+
+
+                return Ok(new {tasks = tasks.taskList, totalPage = tasks.totalPage});
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Get tasks for manager.
+        /// </summary>
+        [Authorize(Policy = "RequireManagerRole")]
+        [HttpGet("tasks/manager/{managerId}")]
+        public async Task<IActionResult> GetTasksBymanagerId(int managerId, DateTime Date, int pageIndex = 1, int pageSize = 5)
+        {//
+            try
+            {
+                var accountId = User.FindFirst("AccountId")?.Value;
+                if (accountId == null)
                 {
-                    return NotFound("No tasks found for the specified account.");
+                    return Forbid();
+                }
+                var checkMatchedId = await _authorizeService.CheckAuthorizeManagerByAccountId(managerId, int.Parse(accountId));
+                if (!checkMatchedId.isMatchedAccountManager)
+                {
+                    return Forbid();
                 }
 
-                return Ok(tasks);
+                var tasks = await _taskService.GetTasksForManager(managerId, pageIndex, pageSize, Date);
+
+
+                return Ok(new { tasks = tasks.taskList, totalPage = tasks.totalPage });
             }
             catch (Exception ex)
             {

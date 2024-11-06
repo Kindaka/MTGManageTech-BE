@@ -10,7 +10,8 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
     public interface ITaskService
     {
         Task<IEnumerable<TaskDtoResponse>> GetAllTasksAsync();
-        Task<IEnumerable<TaskDtoResponse>> GetTasksByAccountIdAsync(int accountId);
+        Task<(IEnumerable<TaskDtoResponse> taskList, int totalPage)> GetTasksByAccountIdAsync(int accountId, int pageIndex, int pageSize, DateTime Date);
+        Task<(IEnumerable<TaskDtoResponse> taskList, int totalPage)> GetTasksForManager(int managerId, int pageIndex, int pageSize, DateTime Date);
         Task<TaskDtoResponse> GetTaskByIdAsync(int taskId);
         //Task<TaskDtoResponse> CreateTaskAsync(TaskDtoRequest newTask);
         //Task<TaskDtoResponse> CreateTaskAsync(TaskDtoRequest newTask, int managerId);

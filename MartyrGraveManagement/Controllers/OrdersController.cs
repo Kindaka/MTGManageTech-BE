@@ -47,8 +47,8 @@ namespace MartyrGraveManagement.Controllers
         }
 
         [Authorize(Policy = "RequireManagerRole")]
-        [HttpGet("{id}")]
-        public async Task<ActionResult<OrdersGetAllDTOResponse>> GetOrderById(int id, int managerId)
+        [HttpGet("GetOrderByIdForManager/{id}")]
+        public async Task<ActionResult<OrdersGetAllDTOResponse>> GetOrderByIdForManager(int id, int managerId)
         {
             try
             {
@@ -71,12 +71,37 @@ namespace MartyrGraveManagement.Controllers
             }
         }
 
+        [Authorize(Policy = "RequireCustomerRole")]
+        [HttpGet("GetOrderByIdForCustomer/{id}")]
+        public async Task<ActionResult<OrdersGetAllDTOResponse>> GetOrderByIdForCustomer(int id, int customerId)
+        {
+            try
+            {
+                var accountId = User.FindFirst("AccountId")?.Value;
+                if (accountId == null)
+                {
+                    return Forbid();
+                }
+                var checkMatchedId = await _authorizeService.CheckAuthorizeByCustomerId(customerId, int.Parse(accountId));
+                if (!checkMatchedId.isMatchedCustomer)
+                {
+                    return Forbid();
+                }
+                var order = await _odersService.GetOrderByIdForCustomer(id, customerId);
+                return Ok(order);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An unexpected error occurred.", details = ex.Message });
+            }
+        }
+
 
 
 
         [Authorize(Policy = "RequireCustomerRole")]
         [HttpGet("account/{customerId}")]
-        public async Task<ActionResult<List<OrdersGetAllDTOResponse>>> GetOrderByAccountId(int customerId)
+        public async Task<ActionResult<List<OrdersGetAllDTOResponse>>> GetOrderByAccountId(int customerId, DateTime Date, int pageIndex = 1, int pageSize = 5)
         {//
             try
             {
@@ -90,8 +115,8 @@ namespace MartyrGraveManagement.Controllers
                 {
                     return Forbid();
                 }
-                var orders = await _odersService.GetOrderByAccountId(customerId);
-                return Ok(orders);
+                var orders = await _odersService.GetOrderByAccountId(customerId, pageIndex, pageSize, Date);
+                return Ok(new {orders = orders.orderList, totalPage = orders.totalPage});
             }
             catch (Exception ex)
             {
@@ -106,7 +131,7 @@ namespace MartyrGraveManagement.Controllers
         /// </summary>
         [Authorize(Policy = "RequireManagerOrStaffRole")]
         [HttpGet("orders/area/{managerId}")]
-        public async Task<IActionResult> GetOrdersByAreaId(int managerId)
+        public async Task<IActionResult> GetOrdersByAreaId(int managerId, DateTime Date, int pageIndex = 1, int pageSize = 5)
         {//
             try
             {
@@ -120,8 +145,8 @@ namespace MartyrGraveManagement.Controllers
                 {
                     return Forbid();
                 }
-                var orders = await _odersService.GetOrderByAreaId(managerId);
-                return Ok(orders);
+                var orderDetails = await _odersService.GetOrderByAreaId(managerId, pageIndex, pageSize, Date);
+                return Ok(new {orderDetails = orderDetails.orderDetailList, totalPage = orderDetails.totalPage});
             }
             catch (Exception ex)
             {

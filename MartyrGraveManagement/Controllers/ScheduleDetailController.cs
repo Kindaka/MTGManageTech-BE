@@ -56,8 +56,8 @@ namespace MartyrGraveManagement.Controllers
         }
 
         [Authorize(Policy = "RequireStaffRole")]
-        [HttpPut("UpdateScheduleDetailForStaff/{Id}")]
-        public async Task<IActionResult> UpdateScheduleDetail(int Id, int slotId, DateTime Date, int accountId)
+        [HttpPut("UpdateScheduleDetailForStaff/{ScheduleDetailId}")]
+        public async Task<IActionResult> UpdateScheduleDetail([Required] int ScheduleDetailId, [Required] int slotId, [Required] DateTime Date, int accountId)
         {
             var tokenAccountIdClaim = User.FindFirst("AccountId");
             if (tokenAccountIdClaim == null || string.IsNullOrEmpty(tokenAccountIdClaim.Value))
@@ -80,7 +80,7 @@ namespace MartyrGraveManagement.Controllers
 
 
             // Gọi dịch vụ để tạo danh sách lịch trình và nhận danh sách kết quả
-            var result = await _scheduleDetailService.UpdateScheduleDetail(slotId, Date , accountId, Id);
+            var result = await _scheduleDetailService.UpdateScheduleDetail(slotId, Date , accountId, ScheduleDetailId);
 
             // Kiểm tra nếu có lỗi trong kết quả
             if (!result.Contains("thành công"))
