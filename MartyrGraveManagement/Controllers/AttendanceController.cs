@@ -315,8 +315,8 @@ namespace MartyrGraveManagement.Controllers
         }
 
         [Authorize(Policy = "RequireManagerRole")]
-        [HttpGet("GetAttendancesWithSlotAndDate")]
-        public async Task<IActionResult> GetAttendanceWithSLotAndDate(int slotId, DateTime Date, int managerId)
+        [HttpGet("GetAttendancesWithSlotAndDateForManager")]
+        public async Task<IActionResult> GetAttendanceWithSLotAndDateForManager(int slotId, DateTime Date, int managerId)
         {
             // Lấy AccountId từ token
             var tokenAccountIdClaim = User.FindFirst("AccountId");
@@ -359,6 +359,52 @@ namespace MartyrGraveManagement.Controllers
                 return StatusCode(500, new { message = $"Internal server error: {ex.Message}" });
             }
         }
+
+        //[Authorize(Policy = "RequireStaffRole")]
+        //[HttpGet("GetAttendancesWithSlotAndDateForStaff")]
+        //public async Task<IActionResult> GetAttendanceWithSLotAndDateForStaff(int slotId, DateTime Date, int staffId)
+        //{
+        //    // Lấy AccountId từ token
+        //    var tokenAccountIdClaim = User.FindFirst("AccountId");
+        //    if (tokenAccountIdClaim == null || string.IsNullOrEmpty(tokenAccountIdClaim.Value))
+        //    {
+        //        return Forbid("Không tìm thấy AccountId trong token.");
+        //    }
+
+        //    var tokenAccountId = int.Parse(tokenAccountIdClaim.Value);
+
+        //    // Kiểm tra nếu AccountId trong URL có khớp với AccountId trong token không
+        //    if (tokenAccountId != staffId)
+        //    {
+        //        return Forbid("Bạn không có quyền.");
+        //    }
+
+        //    // Sử dụng hàm mới để kiểm tra quyền của nhân viên hoặc quản lý
+        //    var checkAuthorize = await _authorizeService.CheckAuthorizeStaffByAccountId(tokenAccountId, staffId);
+        //    if (!checkAuthorize.isMatchedAccountStaff || !checkAuthorize.isAuthorizedAccount)
+        //    {
+        //        return Forbid();
+        //    }
+
+        //    try
+        //    {
+        //        // Gọi service để lấy danh sách lịch trình
+        //        var attendances = await _attendanceService.GetAttendancesByScheduleForStaff(slotId, Date, staffId);
+        //        return Ok(attendances);
+        //    }
+        //    catch (KeyNotFoundException ex)
+        //    {
+        //        return NotFound(new { message = ex.Message });
+        //    }
+        //    catch (UnauthorizedAccessException ex)
+        //    {
+        //        return StatusCode(403, new { message = ex.Message });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, new { message = $"Internal server error: {ex.Message}" });
+        //    }
+        //}
 
     }
 }

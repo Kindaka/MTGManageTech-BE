@@ -161,7 +161,7 @@ namespace MartyrGraveManagement.Controllers
 
         [Authorize(Policy = "RequireStaffRole")]
         [HttpGet("GetByScheduleDetailId")]
-        public async Task<IActionResult> GetScheduleDetailById(int accountId, int scheduleDuleDetailId)
+        public async Task<IActionResult> GetScheduleDetailById(int accountId, int scheduleDetailId)
         {
             try
             {
@@ -183,8 +183,8 @@ namespace MartyrGraveManagement.Controllers
                 {
                     return Forbid("Bạn không có quyền.");
                 }
-                var scheduleDetail = await _scheduleDetailService.GetScheduleDetailById(accountId, scheduleDuleDetailId);
-                return Ok(scheduleDetail);
+                var scheduleDetail = await _scheduleDetailService.GetScheduleDetailById(accountId, scheduleDetailId);
+                return Ok(new {scheduleDetail = scheduleDetail.scheduleDetail, attendanceStaff = scheduleDetail.attendance});
             }
             catch (Exception ex)
             {

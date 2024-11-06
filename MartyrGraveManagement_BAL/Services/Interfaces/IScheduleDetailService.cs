@@ -1,4 +1,5 @@
-﻿using MartyrGraveManagement_BAL.ModelViews.ScheduleDetailDTOs;
+﻿using MartyrGraveManagement_BAL.ModelViews.AttendanceDTOs;
+using MartyrGraveManagement_BAL.ModelViews.ScheduleDetailDTOs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +14,7 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
         Task<string> UpdateScheduleDetail(int slotId, DateTime Date, int accountId, int Id);
         Task<string> DeleteScheduleDetail(int accountId, int Id);
         Task<List<ScheduleDetailListDtoResponse>> GetScheduleDetailStaff(int accountId, int slotId, DateTime Date);
-        Task<ScheduleDetailDtoResponse> GetScheduleDetailById(int accountId, int scheduleDetailId);
+        Task<(ScheduleDetailDtoResponse scheduleDetail, AttendanceDtoResponse attendance)> GetScheduleDetailById(int accountId, int scheduleDetailId);
         Task<List<ScheduleDetailListDtoResponse>> GetSchedulesStaff(int accountId, DateTime FromDate, DateTime ToDate);
     }
 }

@@ -258,6 +258,11 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
         }
 
+        //public Task<AttendanceDtoResponse> GetAttendancesByScheduleForStaff(int slotId, DateTime Date, int staffId)
+        //{
+        //    throw new NotImplementedException();
+        //}
+
         public async Task<List<AttendanceDtoResponse>> GetAttendancesByStaffId(DateTime Date, int staffId)
         {
             try

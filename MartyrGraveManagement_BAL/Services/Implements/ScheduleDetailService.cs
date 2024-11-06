@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using MartyrGraveManagement_BAL.ModelViews.AttendanceDTOs;
 using MartyrGraveManagement_BAL.ModelViews.ScheduleDetailDTOs;
 using MartyrGraveManagement_BAL.Services.Interfaces;
 using MartyrGraveManagement_DAL.Entities;
@@ -76,7 +77,8 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                                 break;
                             }
                         }
-                        if (checkTaskInSchedule) {
+                        if (checkTaskInSchedule)
+                        {
                             results.Add($"Task này đã tồn tại trong schedule của bạn rồi.");
                             continue;
                         }
@@ -113,7 +115,6 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                                 };
                                 await _unitOfWork.AttendanceRepository.AddAsync(attendance);
                             }
-                            //await transaction.CommitAsync();
                             results.Add($"Lịch trình đã được tạo thành công.");
                         }
                         else
@@ -152,7 +153,8 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
                     if (scheduleDetail.Date > DateOnly.FromDateTime(DateTime.Now))
                     {
-                        if (scheduleDetail.AccountId == accountId) {
+                        if (scheduleDetail.AccountId == accountId)
+                        {
                             await _unitOfWork.ScheduleDetailRepository.DeleteAsync(scheduleDetail);
                             var existingAttendance = (await _unitOfWork.AttendanceRepository.GetAsync(
                             s => s.SlotId == scheduleDetail.SlotId && s.AccountId == accountId && s.Date == scheduleDetail.Date
@@ -165,7 +167,8 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                                 await _unitOfWork.AttendanceRepository.DeleteAsync(existingAttendance);
                             }
                             var existingTask = (await _unitOfWork.TaskRepository.GetAsync(t => t.TaskId == scheduleDetail.TaskId)).FirstOrDefault();
-                            if (existingTask != null) { 
+                            if (existingTask != null)
+                            {
                                 existingTask.Status = 1;
                                 await _unitOfWork.TaskRepository.UpdateAsync(existingTask);
                             }
@@ -191,42 +194,69 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
         }
 
-        public async Task<ScheduleDetailDtoResponse> GetScheduleDetailById(int accountId, int scheduleDetailId)
+        public async Task<(ScheduleDetailDtoResponse scheduleDetail, AttendanceDtoResponse attendance)> GetScheduleDetailById(int accountId, int scheduleDetailId)
         {
             try
             {
                 var scheduleDetailStaff = (await _unitOfWork.ScheduleDetailRepository.GetAsync(sds => sds.Id == scheduleDetailId,
-                    includeProperties: "Slot,StaffTask.OrderDetail.Service,StaffTask.OrderDetail.MartyrGrave")).FirstOrDefault();
+                    includeProperties: "Account,Slot,StaffTask.OrderDetail.Service,StaffTask.OrderDetail.MartyrGrave.Location")).FirstOrDefault();
+
+
                 if (scheduleDetailStaff == null)
                 {
-                    return null;
+                    return (null, null);
                 }
                 if (scheduleDetailStaff.AccountId != accountId)
                 {
-                    return null;
+                    return (null, null);
                 }
 
-                    var scheduleStaff = new ScheduleDetailDtoResponse
-                    {
-                        ScheduleDetailId = scheduleDetailStaff.Id,
-                        SlotId = scheduleDetailStaff.SlotId,
-                        Date = scheduleDetailStaff.Date,
-                        StartTime = scheduleDetailStaff.Slot.StartTime,
-                        EndTime = scheduleDetailStaff.Slot.EndTime,
-                        StartDate = DateOnly.FromDateTime(scheduleDetailStaff.StaffTask.StartDate),
-                        EndDate = DateOnly.FromDateTime(scheduleDetailStaff.StaffTask.EndDate),
-                        Description = scheduleDetailStaff.Description,
-                        ServiceName = scheduleDetailStaff.StaffTask.OrderDetail.Service.ServiceName,
-                        MartyrCode = scheduleDetailStaff.StaffTask.OrderDetail.MartyrGrave.MartyrCode,
-                        TaskId = scheduleDetailStaff.TaskId,
-                        ImagePath1 = scheduleDetailStaff.StaffTask.ImagePath1,
-                        ImagePath2 = scheduleDetailStaff.StaffTask.ImagePath2,
-                        ImagePath3 = scheduleDetailStaff.StaffTask.ImagePath3,
-                        Status = scheduleDetailStaff.StaffTask.Status,
-                    };
+                var attendanceStaff = (await _unitOfWork.AttendanceRepository.GetAsync(a => a.SlotId == scheduleDetailStaff.SlotId && a.Date == scheduleDetailStaff.Date && a.AccountId == scheduleDetailStaff.AccountId,
+                includeProperties: "Account,Slot")).FirstOrDefault();
+                if (attendanceStaff == null)
+                {
+                    return (null, null);
+                }
 
+                var scheduleStaff = new ScheduleDetailDtoResponse
+                {
+                    ScheduleDetailId = scheduleDetailStaff.Id,
+                    SlotId = scheduleDetailStaff.SlotId,
+                    StaffName = scheduleDetailStaff.Account.FullName,
+                    Date = scheduleDetailStaff.Date,
+                    StartTime = scheduleDetailStaff.Slot.StartTime,
+                    EndTime = scheduleDetailStaff.Slot.EndTime,
+                    StartDate = DateOnly.FromDateTime(scheduleDetailStaff.StaffTask.StartDate),
+                    EndDate = DateOnly.FromDateTime(scheduleDetailStaff.StaffTask.EndDate),
+                    Description = scheduleDetailStaff.StaffTask.Description,
+                    ServiceName = scheduleDetailStaff.StaffTask.OrderDetail.Service.ServiceName,
+                    ServiceDescription = scheduleDetailStaff.StaffTask.OrderDetail.Service.Description,
+                    MartyrCode = scheduleDetailStaff.StaffTask.OrderDetail.MartyrGrave.MartyrCode,
+                    TaskId = scheduleDetailStaff.TaskId,
+                    ImagePath1 = scheduleDetailStaff.StaffTask.ImagePath1,
+                    ImagePath2 = scheduleDetailStaff.StaffTask.ImagePath2,
+                    ImagePath3 = scheduleDetailStaff.StaffTask.ImagePath3,
+                    AreaNumber = scheduleDetailStaff.StaffTask.OrderDetail.MartyrGrave.Location.AreaNumber,
+                    RowNumber = scheduleDetailStaff.StaffTask.OrderDetail.MartyrGrave.Location.RowNumber,
+                    MartyrNumber = scheduleDetailStaff.StaffTask.OrderDetail.MartyrGrave.Location.MartyrNumber,
+                    Status = scheduleDetailStaff.StaffTask.Status,
+                };
+                var attedance = new AttendanceDtoResponse
+                {
+                    AttendanceId = attendanceStaff.AttendanceId,
+                    SlotId = attendanceStaff.SlotId,
+                    AccountId = attendanceStaff.AccountId,
+                    staffName = attendanceStaff.Account.FullName,
+                    Date = attendanceStaff.Date,
+                    StartTime = attendanceStaff.Slot.StartTime,
+                    EndTime = attendanceStaff.Slot.EndTime,
+                    ImagePath1 = attendanceStaff.ImagePath1,
+                    ImagePath2 = attendanceStaff.ImagePath2,
+                    ImagePath3 = attendanceStaff.ImagePath3,
+                    status = attendanceStaff.Status,
+                };
 
-                return scheduleStaff;
+                return (scheduleStaff, attedance);
             }
             catch (Exception ex)
             {
@@ -238,14 +268,14 @@ namespace MartyrGraveManagement_BAL.Services.Implements
         {
             try
             {
-                var scheduleDetailStaff = await _unitOfWork.ScheduleDetailRepository.GetAsync(sds => sds.SlotId == slotId && sds.AccountId == accountId && sds.Date == DateOnly.FromDateTime(Date), 
+                var scheduleDetailStaff = await _unitOfWork.ScheduleDetailRepository.GetAsync(sds => sds.SlotId == slotId && sds.AccountId == accountId && sds.Date == DateOnly.FromDateTime(Date),
                     includeProperties: "Slot,StaffTask.OrderDetail.Service,StaffTask.OrderDetail.MartyrGrave");
                 if (scheduleDetailStaff == null)
                 {
                     return null;
                 }
                 var scheduleDetailList = new List<ScheduleDetailListDtoResponse>();
-                foreach(var scheduleDetail in scheduleDetailStaff)
+                foreach (var scheduleDetail in scheduleDetailStaff)
                 {
                     var scheduleStaff = new ScheduleDetailListDtoResponse
                     {
@@ -313,14 +343,16 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         return "Thời gian để tạo lịch này đã quá hạn (Phải tạo lịch 1 ngày trước khi bắt đầu ngày làm việc).";
                     }
                     var scheduleDetail = (await _unitOfWork.ScheduleDetailRepository.GetAsync(s => s.Id == Id, includeProperties: "StaffTask")).FirstOrDefault();
-                    if (scheduleDetail == null) {
+                    if (scheduleDetail == null)
+                    {
                         return "Không tìm thấy task của lịch (Sai Id)";
                     }
-                    if (scheduleDetail.StaffTask.Status == 2 || scheduleDetail.StaffTask.Status == 4 || scheduleDetail.StaffTask.Status == 5) {
+                    if (scheduleDetail.StaffTask.Status == 2 || scheduleDetail.StaffTask.Status == 4 || scheduleDetail.StaffTask.Status == 5)
+                    {
                         return "Task này đã hoàn thành hoặc đã thất bại hoặc đã hủy.";
                     }
                     var slot = await _unitOfWork.SlotRepository.GetByIDAsync(slotId);
-                    if(slot != null)
+                    if (slot != null)
                     {
                         var checkScheduleDetail = await _unitOfWork.ScheduleDetailRepository.GetAsync(s => s.SlotId == slotId && s.AccountId == accountId && s.Date == DateOnly.FromDateTime(Date));
                         if (checkScheduleDetail.Count() < 2)
