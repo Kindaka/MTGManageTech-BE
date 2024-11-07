@@ -340,7 +340,7 @@ namespace MartyrGraveManagement_DAL.Migrations
                 columns: table => new
                 {
                     OrderId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
+                        .Annotation("SqlServer:Identity", "200, 1"),
                     AccountId = table.Column<int>(type: "int", nullable: false),
                     OrderDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     ExpectedCompletionDate = table.Column<DateTime>(type: "datetime2", nullable: false),

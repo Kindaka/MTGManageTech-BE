@@ -148,10 +148,13 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             //return _mapper.Map<MartyrGraveDtoResponse>(grave);
             try
             {
-                var grave = (await _unitOfWork.MartyrGraveRepository.GetAsync(g => g.MartyrId == id)).FirstOrDefault();
+                var grave = (await _unitOfWork.MartyrGraveRepository.GetAsync(g => g.MartyrId == id, includeProperties: "MartyrGraveInformations,Location")).FirstOrDefault();
                 if (grave != null)
                 {
                     var graveView = _mapper.Map<MartyrGraveDtoResponse>(grave);
+                    graveView.AreaNumber = grave.Location.AreaNumber;
+                    graveView.RowNumber = grave.Location.RowNumber;
+                    graveView.MartyrNumber = grave.Location.MartyrNumber;
                     var graveInformations = await _unitOfWork.MartyrGraveInformationRepository.GetAsync(g => g.MartyrId == grave.MartyrId);
                     if (graveInformations.Any())
                     {
@@ -240,7 +243,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
                 // Lấy dữ liệu mộ liệt sĩ với phân trang
                 var martyrGraves = await _unitOfWork.MartyrGraveRepository.GetAsync(
-                    includeProperties: "MartyrGraveInformations,Accounts,Locations",
+                    includeProperties: "MartyrGraveInformations,Accounts,Location",
                     pageIndex: page,
                     pageSize: pageSize
                 );
