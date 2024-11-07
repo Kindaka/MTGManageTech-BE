@@ -98,8 +98,8 @@ namespace MartyrGraveManagement_BAL.MappingProfiles
             CreateMap<Feedback, FeedbackResponseDtoRequest>().ReverseMap();
 
             //HistoricalEvent mapping
-            CreateMap<CreateHistoricalEventDTORequest, HistoricalEvent>().ReverseMap();
-            CreateMap<HistoricalEventDTOResponse, HistoricalEvent>().ReverseMap();
+            CreateMap<CreateHistoricalEventDTORequest, BlogCategory>().ReverseMap();
+            CreateMap<HistoricalEventDTOResponse, BlogCategory>().ReverseMap();
 
             //Blog mapping
 

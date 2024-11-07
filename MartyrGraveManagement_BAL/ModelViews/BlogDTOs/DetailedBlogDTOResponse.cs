@@ -18,7 +18,7 @@ namespace MartyrGraveManagement_BAL.ModelViews.BlogDTOs
         public DateTime UpdateDate { get; set; }
         public bool Status { get; set; }
         public string FullName { get; set; } // From Account
-        public string HistoryEventName { get; set; } // From HistoricalEvent
+        public string BlogCategoryName { get; set; } // From HistoricalEvent
         public IEnumerable<string>? HistoricalImages { get; set; } // Assuming HistoricalImage has a URL or Path
         public IEnumerable<string>? Comments { get; set; } // Assuming Comment has a Text property
         public IEnumerable<int>? HistoricalRelatedMartyrs { get; set; } // Assuming a property to identify Martyrs

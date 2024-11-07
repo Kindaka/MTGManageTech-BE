@@ -30,6 +30,6 @@ namespace MartyrGraveManagement_DAL.Entities
         public IEnumerable<Comment>? Comments { get; set; }
         public IEnumerable<HistoricalRelatedMartyr>? HistoricalRelatedMartyrs { get; set; }
         public Account? Account { get; set; }
-        public HistoricalEvent? HistoricalEvent { get; set; }
+        public BlogCategory? HistoricalEvent { get; set; }
     }
 }

@@ -51,7 +51,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 UpdateDate = blog.UpdateDate,
                 Status = blog.Status,
                 FullName = blog.Account?.FullName, // Tên đầy đủ từ Account
-                HistoryEventName = blog.HistoricalEvent?.HistoryEventName, // Tên sự kiện lịch sử từ HistoricalEvent
+                BlogCategoryName = blog.HistoricalEvent?.BlogCategoryName, // Tên sự kiện lịch sử từ HistoricalEvent
                 HistoricalImages = blog.HistoricalImages?.Select(img => img.ImagePath) // Các đường dẫn hình ảnh từ HistoricalImages
             }).ToList();
 
@@ -167,7 +167,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     AccountId = blog.AccountId,
                     FullName = blog.Account?.FullName,
                     HistoryId = blog.HistoryId,
-                    HistoryEventName = blog.HistoricalEvent?.HistoryEventName,
+                    BlogCategoryName = blog.HistoricalEvent?.BlogCategoryName,
                     CreateDate = blog.CreateDate,
                     UpdateDate = blog.UpdateDate,
                     Status = blog.Status
@@ -195,7 +195,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 AccountId = blog.AccountId,
                 FullName = blog.Account?.FullName,
                 HistoryId = blog.HistoryId,
-                HistoryEventName = blog.HistoricalEvent?.HistoryEventName,
+                BlogCategoryName = blog.HistoricalEvent?.BlogCategoryName,
                 CreateDate = blog.CreateDate,
                 UpdateDate = blog.UpdateDate,
                 Status = blog.Status,
@@ -229,7 +229,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 AccountId = blogEntity.AccountId,
                 FullName = blogEntity.Account?.FullName,
                 HistoryId = blogEntity.HistoryId,
-                HistoryEventName = blogEntity.HistoricalEvent?.HistoryEventName,
+                BlogCategoryName = blogEntity.HistoricalEvent?.BlogCategoryName,
                 CreateDate = blogEntity.CreateDate,
                 UpdateDate = blogEntity.UpdateDate,
                 Status = blogEntity.Status,

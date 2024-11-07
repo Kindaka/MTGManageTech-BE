@@ -10,10 +10,10 @@ namespace MartyrGraveManagement_BAL.ModelViews.HistoricalEventDTOs
     public class HistoricalEventDTOResponse
     {
         public int HistoryId { get; set; }
-        public string? HistoryEventName { get; set; }
+        public string? BlogCategoryName { get; set; }
         public string? Description { get; set; }
-        public DateTime StartTime { get; set; }
-        public DateTime EndTime { get; set; }
+        public DateTime CreatedDate { get; set; }
+        public DateTime UpdatedDate { get; set; }
         public bool Status { get; set; }
 
         public List<BlogDTOResponse> Blogs { get; set; } = new List<BlogDTOResponse>();

@@ -34,6 +34,7 @@ namespace MartyrGraveManagement_DAL.Entities
         public DbSet<GraveService> GraveServices { get; set; }
         public DbSet<Blog> Blogs { get; set; }
         public DbSet<HistoricalImage> HistoricalImages { get; set; }
+        public DbSet<BlogCategory> BlogCategory { get; set; }
         public DbSet<HistoricalRelatedMartyr> HistoricalRelatedMartyrs { get; set; }
         public DbSet<Holiday_Event> HolidayEvents { get; set; }
         public DbSet<Icon> Icons { get; set; }

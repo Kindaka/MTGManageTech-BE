@@ -8,17 +8,17 @@ using System.Threading.Tasks;
 
 namespace MartyrGraveManagement_DAL.Entities
 {
-    public class HistoricalEvent
+    public class BlogCategory
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int HistoryId { get; set; }
         [Column(TypeName = "nvarchar(500)")]
-        public string HistoryEventName { get; set; }
+        public string BlogCategoryName { get; set; }
         [Column(TypeName = "nvarchar(MAX)")]
         public string Description { get; set; }
-        public DateTime StartTime { get; set; }
-        public DateTime EndTime { get; set; }
+        public DateTime CreatedDate { get; set; }
+        public DateTime UpdatedDate { get; set; }
         public bool Status { get; set; }
 
         public IEnumerable<Blog>? Blogs { get; set; }

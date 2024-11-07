@@ -37,10 +37,10 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 var historicalEventResponse = new HistoricalEventDTOResponse
                 {
                     HistoryId = historicalEvent.HistoryId,
-                    HistoryEventName = historicalEvent.HistoryEventName,
+                    BlogCategoryName = historicalEvent.BlogCategoryName,
                     Description = historicalEvent.Description,
-                    StartTime = historicalEvent.StartTime,
-                    EndTime = historicalEvent.EndTime,
+                    CreatedDate = historicalEvent.CreatedDate,
+                    UpdatedDate = historicalEvent.UpdatedDate,
                     Status = historicalEvent.Status,
                     Blogs = new List<BlogDTOResponse>()
                 };
@@ -100,7 +100,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             if (account == null)
                 throw new Exception("Account not found");
 
-            List<HistoricalEvent> historicalEvents = new List<HistoricalEvent>();
+            List<BlogCategory> historicalEvents = new List<BlogCategory>();
 
             // Nếu là Manager
             if (account.RoleId == 2)
@@ -136,10 +136,10 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 var historicalEventResponse = new HistoricalEventDTOResponse
                 {
                     HistoryId = historicalEvent.HistoryId,
-                    HistoryEventName = historicalEvent.HistoryEventName,
+                    BlogCategoryName = historicalEvent.BlogCategoryName,
                     Description = historicalEvent.Description,
-                    StartTime = historicalEvent.StartTime,
-                    EndTime = historicalEvent.EndTime,
+                    CreatedDate = historicalEvent.CreatedDate,
+                    UpdatedDate = historicalEvent.UpdatedDate,
                     Status = historicalEvent.Status,
                     Blogs = new List<BlogDTOResponse>()
                 };
@@ -193,10 +193,10 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             var historicalEventResponse = new HistoricalEventDTOResponse
             {
                 HistoryId = historicalEvent.HistoryId,
-                HistoryEventName = historicalEvent.HistoryEventName,
+                BlogCategoryName = historicalEvent.BlogCategoryName,
                 Description = historicalEvent.Description,
-                StartTime = historicalEvent.StartTime,
-                EndTime = historicalEvent.EndTime,
+                CreatedDate = historicalEvent.CreatedDate,
+                UpdatedDate = historicalEvent.UpdatedDate,
                 Status = historicalEvent.Status,
                 Blogs = new List<BlogDTOResponse>()
             };
@@ -246,9 +246,11 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
         public async Task<HistoricalEventDTOResponse> CreateHistoricalEvent(CreateHistoricalEventDTORequest newEventRequest)
         {
-            var historicalEvent = _mapper.Map<HistoricalEvent>(newEventRequest);
+            var historicalEvent = _mapper.Map<BlogCategory>(newEventRequest);
 
             historicalEvent.Status = true;
+            historicalEvent.CreatedDate = DateTime.Now;
+            historicalEvent.UpdatedDate = DateTime.Now;
 
             await _unitOfWork.HistoricalEventRepository.AddAsync(historicalEvent);
             await _unitOfWork.SaveAsync();
@@ -268,7 +270,8 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
 
             // Cập nhật thông tin sự kiện bằng dữ liệu từ DTO
-            _mapper.Map(updateRequest, existingEvent);
+            var historical = _mapper.Map(updateRequest, existingEvent);
+            historical.UpdatedDate = DateTime.Now;
 
             // Lưu thay đổi
             await _unitOfWork.HistoricalEventRepository.UpdateAsync(existingEvent);

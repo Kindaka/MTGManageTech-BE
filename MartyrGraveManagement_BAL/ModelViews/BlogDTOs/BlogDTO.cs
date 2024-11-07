@@ -15,7 +15,7 @@ namespace MartyrGraveManagement_BAL.ModelViews.BlogDTOs
         public int AccountId { get; set; }
         public string FullName { get; set; }
         public int HistoryId { get; set; }
-        public string HistoryEventName { get; set; }
+        public string BlogCategoryName { get; set; }
         public DateTime CreateDate { get; set; }
         public DateTime UpdateDate { get; set; }
         public bool Status { get; set; }
