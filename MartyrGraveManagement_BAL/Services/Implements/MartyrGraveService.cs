@@ -703,20 +703,27 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
         public async Task<List<MartyrGraveSearchDtoResponse>> SearchMartyrGravesAsync(MartyrGraveSearchDtoRequest searchCriteria)
         {
-            // Tạo điều kiện tìm kiếm linh hoạt
-            Expression<Func<MartyrGraveInformation, bool>> filter = m =>
-                (string.IsNullOrEmpty(searchCriteria.Name) || m.Name.Contains(searchCriteria.Name)) &&
-                (!searchCriteria.YearOfBirth.HasValue || m.DateOfBirth.HasValue && m.DateOfBirth.Value.Year == searchCriteria.YearOfBirth.Value) &&
-                (!searchCriteria.YearOfSacrifice.HasValue || m.DateOfSacrifice.Year == searchCriteria.YearOfSacrifice.Value) &&
-                (string.IsNullOrEmpty(searchCriteria.HomeTown) || m.HomeTown.Contains(searchCriteria.HomeTown));
+            // Lấy tất cả dữ liệu trước khi xử lý
+            var martyrGraves = await _unitOfWork.MartyrGraveInformationRepository
+                .GetAsync(includeProperties: "MartyrGrave");
 
-            // Sử dụng GenericRepository để lấy danh sách MartyrGraveInformation
-            var martyrGraves = await _unitOfWork.MartyrGraveInformationRepository.GetAsync(filter, includeProperties: "MartyrGrave");
+            // Nếu tên tìm kiếm không trống, chuyển đổi sang dạng không dấu và chữ thường
+            string unaccentedSearchName = string.IsNullOrEmpty(searchCriteria.Name)
+                ? string.Empty
+                : ConvertToUnaccentedLowercaseString(searchCriteria.Name);
+
+            var filteredMartyrGraves = martyrGraves
+                .AsEnumerable() // Thực hiện xử lý phía client
+                .Where(m =>
+                    (string.IsNullOrEmpty(searchCriteria.Name) || ConvertToUnaccentedLowercaseString(m.Name).Contains(unaccentedSearchName)) &&
+                    (!searchCriteria.YearOfBirth.HasValue || m.DateOfBirth.HasValue && m.DateOfBirth.Value.Year == searchCriteria.YearOfBirth.Value) &&
+                    (!searchCriteria.YearOfSacrifice.HasValue || m.DateOfSacrifice.Year == searchCriteria.YearOfSacrifice.Value) &&
+                    (string.IsNullOrEmpty(searchCriteria.HomeTown) || ConvertToUnaccentedLowercaseString(m.HomeTown).Contains(ConvertToUnaccentedLowercaseString(searchCriteria.HomeTown)))
+                );
 
             // Ánh xạ từ entity sang DTO
             var result = new List<MartyrGraveSearchDtoResponse>();
-
-            foreach (var m in martyrGraves)
+            foreach (var m in filteredMartyrGraves)
             {
                 var graveDto = new MartyrGraveSearchDtoResponse
                 {
@@ -730,17 +737,8 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     ImageUrls = new List<GraveImageDtoResponse>() // Khởi tạo danh sách cho URL ảnh
                 };
 
-                // Ghép vị trí mộ từ AreaNumber, RowNumber, và MartyrNumber
-                var martyrGrave = m.MartyrGrave;
-                if (martyrGrave != null)
-                {
-                    //graveDto.GraveLocation = $"K{martyrGrave.AreaNumber}-R{martyrGrave.RowNumber}-{martyrGrave.MartyrNumber}";
-                }
-
                 // Lấy tất cả ảnh liên quan đến MartyrGrave này
                 var graveImages = await _unitOfWork.GraveImageRepository.GetAsync(g => g.MartyrId == m.MartyrId);
-
-                // Thêm URL dưới dạng đối tượng với khóa "Image" vào danh sách ImageUrls của DTO
                 foreach (var image in graveImages)
                 {
                     if (!string.IsNullOrEmpty(image.UrlPath))
@@ -757,6 +755,28 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
             return result;
         }
+
+        private string ConvertToUnaccentedLowercaseString(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return string.Empty;
+
+            var normalizedString = input.Normalize(NormalizationForm.FormD);
+            var stringBuilder = new StringBuilder();
+
+            foreach (var c in normalizedString)
+            {
+                var unicodeCategory = System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c);
+                if (unicodeCategory != System.Globalization.UnicodeCategory.NonSpacingMark)
+                {
+                    stringBuilder.Append(c);
+                }
+            }
+
+            return stringBuilder.ToString().Normalize(NormalizationForm.FormC).ToLowerInvariant();
+        }
+
+
 
 
 
