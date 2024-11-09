@@ -160,6 +160,10 @@ builder.Services.AddScoped<ICommentReportService, CommentReportService>();
 builder.Services.AddScoped<IHolidayEventService, HolidayEventService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 
+// Đăng ký ML
+builder.Services.AddScoped<ITrendingRecommendationService, TrendingRecommendationService>();
+
+
 
 
 

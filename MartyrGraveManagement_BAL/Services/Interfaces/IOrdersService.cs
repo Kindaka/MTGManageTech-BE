@@ -1,5 +1,6 @@
 ﻿using MartyrGraveManagement_BAL.ModelViews.OrdersDetailDTOs;
 using MartyrGraveManagement_BAL.ModelViews.OrdersDTOs;
+using MartyrGraveManagement_DAL.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;

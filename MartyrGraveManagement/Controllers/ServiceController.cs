@@ -14,9 +14,12 @@ namespace MartyrGraveManagement.Controllers
     public class ServiceController : ControllerBase
     {
         private readonly IService_Service _service;
-        public ServiceController(IService_Service service)
+        private readonly ITrendingRecommendationService _trendingService;
+
+        public ServiceController(IService_Service service, ITrendingRecommendationService trendingService)
         {
             _service = service;
+            _trendingService = trendingService;
         }
 
         /// <summary>
@@ -158,5 +161,41 @@ namespace MartyrGraveManagement.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+
+
+        [AllowAnonymous]
+        [HttpGet("trending-services")]
+        public async Task<IActionResult> GetTrendingServices(int topN = 5)
+        {
+            try
+            {
+                // Gọi phương thức RecommendTopTrendingServices từ TrendingRecommendationService
+                var trendingServices = await _trendingService.RecommendTopTrendingServices(topN);
+
+                // Kiểm tra nếu không có dịch vụ nào được trả về
+                if (trendingServices == null || trendingServices.Count == 0)
+                {
+                    return NotFound(new { message = "Không tìm thấy dịch vụ phổ biến nào." });
+                }
+
+                return Ok(trendingServices);
+            }
+            catch (InvalidOperationException ex) // Bắt InvalidOperationException từ Service
+            {
+                // Log lỗi
+                Console.WriteLine($"Lỗi: {ex.Message}");
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                // Log lỗi chi tiết
+                Console.WriteLine($"Lỗi không mong muốn: {ex}");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+
+
+
     }
 }
