@@ -17,5 +17,6 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
         Task<bool> ToggleStatusArea(int id);
         Task<bool> DeleteArea(int id);
         Task<List<AreaDTOResponse>> GetAllAreasForStaffOrManager();
+        Task<(bool status, string message)> ImportAreasFromExcelAsync(string excelFilePath);
     }
 }

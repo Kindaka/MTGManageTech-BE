@@ -1,10 +1,12 @@
 ﻿using MartyrGraveManagement_BAL.ModelViews.AccountDTOs;
 using MartyrGraveManagement_BAL.ModelViews.CustomerDTOs;
+using MartyrGraveManagement_BAL.Services.Implements;
 using MartyrGraveManagement_BAL.Services.Interfaces;
 using MartyrGraveManagement_DAL.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Identity.Client;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Win32;
 using System.Security.Principal;
@@ -17,10 +19,12 @@ namespace MartyrGraveManagement.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
+        private readonly IAuthorizeService _authorizeService;
 
-        public AuthController(IAuthService authService)
+        public AuthController(IAuthService authService, IAuthorizeService authorizeService)
         {
             _authService = authService;
+            _authorizeService = authorizeService;
         }
 
         /// <summary>
@@ -70,34 +74,52 @@ namespace MartyrGraveManagement.Controllers
         /// </returns>
         [Authorize(Policy = "RequireManagerOrAdminRole")]
         [HttpPost("register-account-martyrGrave")]
-        public async Task<IActionResult> Register([FromBody] UserRegisterDtoRequest newAccount)
+        public async Task<IActionResult> Register([FromBody] UserRegisterDtoRequest newAccount, int accountId)
         {
             try
             {
-                if(newAccount.RoleId == 4)
+                if (newAccount.RoleId != 2 && newAccount.RoleId != 3)
                 {
-                    return BadRequest("Role của bạn không có quyền");
+                    return BadRequest("Role không hợp lệ (2 là manager, 3 là staff)");
                 }
+
                 if (!newAccount.Password.Equals(newAccount.ConfirmPassword))
                 {
-                    return BadRequest("Not matching password");
+                    return BadRequest("Password không trùng nhau");
                 }
-                if (!(await _authService.GetAccountByPhoneNumber(newAccount.PhoneNumber)).status)
+                // Lấy AccountId từ token
+                var tokenAccountIdClaim = User.FindFirst("AccountId");
+                if (tokenAccountIdClaim == null || string.IsNullOrEmpty(tokenAccountIdClaim.Value))
                 {
-                    bool checkRegister = await _authService.CreateAccount(newAccount);
-                    if (checkRegister)
-                    {
-                        return Ok("Create success");
-                    }
-                    else
-                    {
-                        return BadRequest("Cannot create account");
-                    }
+                    return Forbid("Không tìm thấy AccountId trong token.");
+                }
+
+                var tokenAccountId = int.Parse(tokenAccountIdClaim.Value);
+
+                // Kiểm tra nếu AccountId trong URL có khớp với AccountId trong token không
+                if (tokenAccountId != accountId)
+                {
+                    return Forbid("Bạn không có quyền cập nhật thông tin của tài khoản này.");
+                }
+
+                // Sử dụng hàm mới để kiểm tra quyền của nhân viên hoặc quản lý
+                var checkAuthorize = await _authorizeService.CheckAuthorizeManagerOrAdmin(tokenAccountId, accountId);
+                if (!checkAuthorize.isMatchedAccount || !checkAuthorize.isAuthorizedAccount)
+                {
+                    return Forbid();
+                }
+
+                var checkRegister = await _authService.CreateAccount(newAccount);
+                if (checkRegister.status)
+                {
+                    return Ok(checkRegister.response);
                 }
                 else
                 {
-                    return BadRequest("Existed phonenumber");
+                    return BadRequest(checkRegister.response);
                 }
+
+
             }
             catch (Exception ex)
             {

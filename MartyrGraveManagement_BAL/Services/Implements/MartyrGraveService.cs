@@ -14,6 +14,8 @@ using MartyrGraveManagement_BAL.ModelViews.MartyrGraveInformationDTOs;
 using MartyrGraveManagement_BAL.ModelViews.EmailDTOs;
 using MartyrGraveManagement_BAL.ModelViews.CustomerDTOs;
 using System.Linq.Expressions;
+using OfficeOpenXml;
+using Microsoft.VisualBasic;
 
 namespace MartyrGraveManagement_BAL.Services.Implements
 {
@@ -47,57 +49,57 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             return $"Customer-{lastName}-{phone}";
         }
 
-        public async Task<MartyrGraveDtoResponse> CreateMartyrGraveAsync(MartyrGraveDtoRequest martyrGraveDto)
-        {//
-            // Kiểm tra AreaId có tồn tại không
-            var area = await _unitOfWork.AreaRepository.GetByIDAsync(martyrGraveDto.AreaId);
-            if (area == null)
-            {
-                throw new KeyNotFoundException("AreaId does not exist.");
-            }
+        //public async Task<MartyrGraveDtoResponse> CreateMartyrGraveAsync(MartyrGraveDtoRequest martyrGraveDto)
+        //{//
+        //    // Kiểm tra AreaId có tồn tại không
+        //    var area = await _unitOfWork.AreaRepository.GetByIDAsync(martyrGraveDto.AreaId);
+        //    if (area == null)
+        //    {
+        //        throw new KeyNotFoundException("AreaId does not exist.");
+        //    }
 
-            // Tạo thực thể từ DTO
-            var martyrGrave = _mapper.Map<MartyrGrave>(martyrGraveDto);
+        //    // Tạo thực thể từ DTO
+        //    var martyrGrave = _mapper.Map<MartyrGrave>(martyrGraveDto);
 
-            // Gọi hàm GenerateMartyrCode để tạo mã MartyrCode
-            //martyrGrave.MartyrCode = GenerateMartyrCode(martyrGrave.AreaNumber, martyrGrave.RowNumber, martyrGrave.MartyrNumber);
+        //    // Gọi hàm GenerateMartyrCode để tạo mã MartyrCode
+        //    //martyrGrave.MartyrCode = GenerateMartyrCode(martyrGrave.AreaNumber, martyrGrave.RowNumber, martyrGrave.MartyrNumber);
 
-            // Thêm MartyrGrave vào cơ sở dữ liệu
-            await _unitOfWork.MartyrGraveRepository.AddAsync(martyrGrave);
-            await _unitOfWork.SaveAsync();
+        //    // Thêm MartyrGrave vào cơ sở dữ liệu
+        //    await _unitOfWork.MartyrGraveRepository.AddAsync(martyrGrave);
+        //    await _unitOfWork.SaveAsync();
 
-            // Trả về DTO response
-            return _mapper.Map<MartyrGraveDtoResponse>(martyrGrave);
-        }
+        //    // Trả về DTO response
+        //    return _mapper.Map<MartyrGraveDtoResponse>(martyrGrave);
+        //}
 
-        public async Task<MartyrGraveDtoResponse> UpdateMartyrGraveAsync(int id, MartyrGraveDtoRequest martyrGraveDto)
-        {//
-            // Kiểm tra AreaId có tồn tại không
-            var area = await _unitOfWork.AreaRepository.GetByIDAsync(martyrGraveDto.AreaId);
-            if (area == null)
-            {
-                throw new KeyNotFoundException("AreaId does not exist.");
-            }
+        //public async Task<MartyrGraveDtoResponse> UpdateMartyrGraveAsync(int id, MartyrGraveDtoRequest martyrGraveDto)
+        //{//
+        //    // Kiểm tra AreaId có tồn tại không
+        //    var area = await _unitOfWork.AreaRepository.GetByIDAsync(martyrGraveDto.AreaId);
+        //    if (area == null)
+        //    {
+        //        throw new KeyNotFoundException("AreaId does not exist.");
+        //    }
 
-            var martyrGrave = await _unitOfWork.MartyrGraveRepository.GetByIDAsync(id);
-            if (martyrGrave == null)
-            {
-                return null;
-            }
+        //    var martyrGrave = await _unitOfWork.MartyrGraveRepository.GetByIDAsync(id);
+        //    if (martyrGrave == null)
+        //    {
+        //        return null;
+        //    }
 
-            // Cập nhật các thuộc tính từ DTO sang thực thể
-            _mapper.Map(martyrGraveDto, martyrGrave);
+        //    // Cập nhật các thuộc tính từ DTO sang thực thể
+        //    _mapper.Map(martyrGraveDto, martyrGrave);
 
-            // Tạo lại MartyrCode dựa trên các thông tin mới
-            //martyrGrave.MartyrCode = GenerateMartyrCode(martyrGrave.AreaNumber, martyrGrave.RowNumber, martyrGrave.MartyrNumber);
+        //    // Tạo lại MartyrCode dựa trên các thông tin mới
+        //    //martyrGrave.MartyrCode = GenerateMartyrCode(martyrGrave.AreaNumber, martyrGrave.RowNumber, martyrGrave.MartyrNumber);
 
-            // Cập nhật thông tin vào cơ sở dữ liệu
-            await _unitOfWork.MartyrGraveRepository.UpdateAsync(martyrGrave);
-            await _unitOfWork.SaveAsync();
+        //    // Cập nhật thông tin vào cơ sở dữ liệu
+        //    await _unitOfWork.MartyrGraveRepository.UpdateAsync(martyrGrave);
+        //    await _unitOfWork.SaveAsync();
 
-            // Trả về kết quả cập nhật
-            return _mapper.Map<MartyrGraveDtoResponse>(martyrGrave);
-        }
+        //    // Trả về kết quả cập nhật
+        //    return _mapper.Map<MartyrGraveDtoResponse>(martyrGrave);
+        //}
 
 
         public async Task<(List<MartyrGraveGetAllDtoResponse> matyrGraveList, int totalPage)> GetAllMartyrGravesAsync(int page, int pageSize)
@@ -290,9 +292,9 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 try
                 {
                     // Kiểm tra AreaId có tồn tại không
-                    var area = await _unitOfWork.AreaRepository.GetByIDAsync(martyrGraveDto.AreaId);
+                    var area = (await _unitOfWork.AreaRepository.GetAsync(a => a.AreaNumber == martyrGraveDto.AreaNumber)).FirstOrDefault();
 
-                    var location = await _unitOfWork.LocationRepository.GetByIDAsync(martyrGraveDto.LocationId);
+                    var location = (await _unitOfWork.LocationRepository.GetAsync(l => l.AreaNumber == martyrGraveDto.AreaNumber && l.MartyrNumber == martyrGraveDto.MartyrNumber && l.RowNumber == martyrGraveDto.RowNumber)).FirstOrDefault();
                     if (area == null || location == null)
                     {
                         return (false, "Khu vực hoặc vị trí không tìm thấy", null, null);
@@ -309,7 +311,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                             await _unitOfWork.AccountRepository.UpdateAsync(existedCustomer);
                             await _unitOfWork.SaveAsync();
                             // Tạo thực thể từ DTO
-                            var martyrGrave = _mapper.Map<MartyrGrave>(martyrGraveDto);
+                            var martyrGrave = new MartyrGrave();
 
                             string martyrCode = GenerateMartyrCode(location.AreaNumber, location.RowNumber, location.MartyrNumber);
                             var existedMartyrGrave = (await _unitOfWork.MartyrGraveRepository.FindAsync(m => m.MartyrCode == martyrCode)).FirstOrDefault();
@@ -320,6 +322,8 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                             }
 
                             // Gọi hàm GenerateMartyrCode để tạo mã MartyrCode
+                            martyrGrave.AreaId = area.AreaId;
+                            martyrGrave.LocationId = location.LocationId;
                             martyrGrave.MartyrCode = martyrCode;
                             martyrGrave.Status = 1; //Trạng thái 1 là mộ trạng thái đang tốt, 2 là khá, 3 là xuống cấp
                             martyrGrave.AccountId = existedCustomer.AccountId;
@@ -401,7 +405,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         if (insertedAccount != null)
                         {
                             // Tạo MartyrGrave
-                            var martyrGrave = _mapper.Map<MartyrGrave>(martyrGraveDto);
+                            var martyrGrave = new MartyrGrave();
                             string martyrCode = GenerateMartyrCode(location.AreaNumber, location.RowNumber, location.MartyrNumber);
 
                             var existedMartyrGrave = (await _unitOfWork.MartyrGraveRepository.FindAsync(m => m.MartyrCode == martyrCode)).FirstOrDefault();
@@ -411,6 +415,8 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                             }
 
                             // Gọi hàm GenerateMartyrCode để tạo mã MartyrCode
+                            martyrGrave.AreaId = area.AreaId;
+                            martyrGrave.LocationId = location.LocationId;
                             martyrGrave.MartyrCode = martyrCode;
                             martyrGrave.Status = 1;
                             martyrGrave.AccountId = insertedAccount.AccountId;
@@ -776,10 +782,247 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             return stringBuilder.ToString().Normalize(NormalizationForm.FormC).ToLowerInvariant();
         }
 
+        private async Task<(bool status, string result, List<(string? phone, string? password)> outputList)> CreateMartyrGraveListAsyncV3(List<MartyrGraveDtoRequest> martyrGraveList)
+        {
+            var outputList = new List<(string? phone, string? password)>();
+
+            using (var transaction = await _unitOfWork.BeginTransactionAsync())
+            {
+                try
+                {
+                    foreach (var martyrGraveDto in martyrGraveList)
+                    {
+                        // Perform validation and retrieve Area and Location
+                        var area = (await _unitOfWork.AreaRepository.GetAsync(a => a.AreaNumber == martyrGraveDto.AreaNumber)).FirstOrDefault();
+                        var location = (await _unitOfWork.LocationRepository.GetAsync(l =>
+                            l.AreaNumber == martyrGraveDto.AreaNumber &&
+                            l.RowNumber == martyrGraveDto.RowNumber &&
+                            l.MartyrNumber == martyrGraveDto.MartyrNumber)).FirstOrDefault();
+
+                        if (area == null || location == null)
+                        {
+                            // Log issue or add error handling for missing Area/Location
+                            continue;
+                        }
+
+                        var customerPhone = martyrGraveDto.Customer.Phone;
+                        var customerUserName = martyrGraveDto.Customer.UserName;
+                        if (string.IsNullOrEmpty(customerPhone) || string.IsNullOrEmpty(customerUserName))
+                        {
+                            // Log issue or skip record if mandatory customer data is missing
+                            continue;
+                        }
+
+                        var customerCode = GenerateCustomerCode(customerUserName, customerPhone);
+                        var existingCustomer = (await _unitOfWork.AccountRepository.FindAsync(c => c.PhoneNumber == customerPhone)).FirstOrDefault();
+                        string? password = null;
+
+                        // If customer does not exist, create new account
+                        if (existingCustomer == null)
+                        {
+                            // Generate a random password
+                            password = CreateRandomPassword(8);
+
+                            var account = new Account
+                            {
+                                FullName = customerUserName,
+                                PhoneNumber = customerPhone,
+                                Address = martyrGraveDto.Customer.Address,
+                                EmailAddress = martyrGraveDto.Customer.EmailAddress,
+                                DateOfBirth = martyrGraveDto.Customer.Dob,
+                                RoleId = 4,
+                                Status = true,
+                                CustomerCode = customerCode,
+                                CreateAt = DateTime.Now,
+                                HashedPassword = await HashPassword(password)
+                            };
+
+                            await _unitOfWork.AccountRepository.AddAsync(account);
+                            await _unitOfWork.SaveAsync();
+                            existingCustomer = account;
+                        }
+
+                        // Proceed to add MartyrGrave
+                        var martyrCode = GenerateMartyrCode(location.AreaNumber, location.RowNumber, location.MartyrNumber);
+                        if ((await _unitOfWork.MartyrGraveRepository.FindAsync(m => m.MartyrCode == martyrCode)).Any())
+                        {
+                            // Log or skip if martyr code already exists
+                            continue;
+                        }
+
+                        var martyrGrave = new MartyrGrave
+                        {
+                            AreaId = area.AreaId,
+                            LocationId = location.LocationId,
+                            MartyrCode = martyrCode,
+                            Status = 1,
+                            AccountId = existingCustomer.AccountId
+                        };
+
+                        await _unitOfWork.MartyrGraveRepository.AddAsync(martyrGrave);
+                        await _unitOfWork.SaveAsync();
+
+                        var insertedGrave = (await _unitOfWork.MartyrGraveRepository.FindAsync(m => m.MartyrCode == martyrGrave.MartyrCode)).FirstOrDefault();
+
+                        if (insertedGrave != null)
+                        {
+                            // Thêm thông tin MartyrGraveInformations
+                            if (martyrGraveDto.Informations.Any())
+                            {
+                                foreach (var martyrGraveInformation in martyrGraveDto.Informations)
+                                {
+                                    var information = new MartyrGraveInformation
+                                    {
+                                        MartyrId = insertedGrave.MartyrId,
+                                        Name = martyrGraveInformation.Name,
+                                        NickName = martyrGraveInformation.NickName,
+                                        Position = martyrGraveInformation.Position,
+                                        Medal = martyrGraveInformation.Medal,
+                                        HomeTown = martyrGraveInformation.HomeTown,
+                                        DateOfBirth = martyrGraveInformation.DateOfBirth,
+                                        DateOfSacrifice = martyrGraveInformation.DateOfSacrifice
+                                    };
+                                    await _unitOfWork.MartyrGraveInformationRepository.AddAsync(information);
+                                }
+                                await _unitOfWork.SaveAsync();
+                            }
+
+                            // Thêm hình ảnh GraveImages
+                            if (martyrGraveDto.Image.Any())
+                            {
+                                foreach (var imageDto in martyrGraveDto.Image)
+                                {
+                                    var graveImage = new GraveImage
+                                    {
+                                        MartyrId = insertedGrave.MartyrId,
+                                        UrlPath = imageDto.UrlPath
+                                    };
+                                    await _unitOfWork.GraveImageRepository.AddAsync(graveImage);
+                                }
+                                await _unitOfWork.SaveAsync();
+                            }
+                        }
+
+
+                        // Save details for output and email notifications
+                        outputList.Add((existingCustomer.PhoneNumber, password));
+
+                        // Optionally send emails here or collect emails to send after batch processing
+                    }
+
+                    await transaction.CommitAsync();
+                    return (true, "All records processed successfully", outputList);
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    throw new Exception("Error during bulk insertion: " + ex.Message);
+                }
+            }
+        }
 
 
 
 
+        public async Task<(bool status, string message)> ImportMartyrGraves(string excelFilePath, string filePath)
+        {
+            var outputList = new List<(string PhoneNumber, string Password)>();
+            var martyrGraveList = new List<MartyrGraveDtoRequest>();
 
+            // Set ExcelPackage License
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+            try
+            {
+                using (var package = new ExcelPackage(new FileInfo(excelFilePath)))
+                {
+                    var worksheet = package.Workbook.Worksheets[0]; // Assuming data is in the first sheet
+
+                    // Loop through the rows and create MartyrGraveDtoRequest objects
+                    for (int row = 2; row <= worksheet.Dimension.End.Row; row++) // Start at row 2 to skip headers
+                    {
+                        // Map data from the Excel sheet to the DTO
+                        var martyrGraveDto = new MartyrGraveDtoRequest
+                        {
+                            AreaNumber = int.Parse(worksheet.Cells[row, 8].Text),
+                            RowNumber = int.Parse(worksheet.Cells[row, 9].Text),
+                            MartyrNumber = int.Parse(worksheet.Cells[row, 10].Text),
+                            Customer = new CustomerDtoRequest
+                            {
+                                UserName = worksheet.Cells[row, 11].Text,
+                                Phone = worksheet.Cells[row, 12].Text,
+                                Address = worksheet.Cells[row, 13].Text,
+                                Dob = DateTime.Parse(worksheet.Cells[row, 14].Text)
+                            },
+                            Informations = new List<MartyrGraveInformationDtoRequest>
+                            {
+                                new MartyrGraveInformationDtoRequest
+                                {
+                                    Name = worksheet.Cells[row, 1].Text,
+                                    NickName = worksheet.Cells[row, 2].Text,
+                                    Position = worksheet.Cells[row, 3].Text,
+                                    Medal = worksheet.Cells[row, 4].Text,
+                                    HomeTown = worksheet.Cells[row, 5].Text,
+                                    DateOfBirth = DateTime.Parse(worksheet.Cells[row, 6].Text),
+                                    DateOfSacrifice = DateTime.Parse(worksheet.Cells[row, 7].Text)
+                                }
+                            },
+                        };
+
+                        martyrGraveList.Add(martyrGraveDto);
+                    }
+
+                    // Now pass the entire list to CreateMartyrGraveAsyncV3 in one batch
+                    var (status, result, phonePasswordPairs) = await CreateMartyrGraveListAsyncV3(martyrGraveList);
+
+                    if (status)
+                    {
+                        outputList.AddRange(phonePasswordPairs);
+                        // Commit the transaction after processing all records
+                        await _unitOfWork.SaveAsync();
+                    }
+                    else
+                    {
+                        // Handle failure if needed
+                        return (false, "Failed to process all martyr graves: " + result);
+                    }
+                }
+
+                // Export the phone and password data to an output Excel file
+                var outputFilePath = ExportPhoneAndPasswordsToExcel(outputList, filePath);
+                return (true, $"Data processed successfully. Exported to {outputFilePath}");
+            }
+            catch (Exception ex)
+            {
+                return (false, "Error reading or processing the Excel file: " + ex.Message);
+            }
+        }
+
+
+        private string ExportPhoneAndPasswordsToExcel(List<(string PhoneNumber, string Password)> phonePasswordList, string filePath)
+        {
+            var outputFilePath = filePath; 
+
+            using (var package = new ExcelPackage())
+            {
+                var worksheet = package.Workbook.Worksheets.Add("Accounts");
+
+                // Define headers for the export file
+                worksheet.Cells[1, 1].Value = "PhoneNumber";
+                worksheet.Cells[1, 2].Value = "Password";
+
+                // Populate the worksheet with phone and password data
+                for (int i = 0; i < phonePasswordList.Count; i++)
+                {
+                    worksheet.Cells[i + 2, 1].Value = phonePasswordList[i].PhoneNumber;
+                    worksheet.Cells[i + 2, 2].Value = phonePasswordList[i].Password;
+                }
+
+                // Save the file to the specified output path
+                package.SaveAs(new FileInfo(outputFilePath));
+            }
+
+            return outputFilePath;
+        }
     }
 }

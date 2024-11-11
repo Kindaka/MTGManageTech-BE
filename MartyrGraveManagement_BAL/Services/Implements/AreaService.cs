@@ -4,6 +4,7 @@ using MartyrGraveManagement_BAL.ModelViews.AreaDTOs;
 using MartyrGraveManagement_BAL.Services.Interfaces;
 using MartyrGraveManagement_DAL.Entities;
 using MartyrGraveManagement_DAL.UnitOfWorks.Interfaces;
+using OfficeOpenXml;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -148,6 +149,75 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             catch (Exception ex)
             {
                 throw new Exception(ex.Message);
+            }
+        }
+
+        public async Task<(bool status, string message)> ImportAreasFromExcelAsync(string excelFilePath)
+        {
+            try
+            {
+                // Set the license context
+                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+                using (var package = new ExcelPackage(new FileInfo(excelFilePath)))
+                {
+                    var worksheet = package.Workbook.Worksheets[1];
+                    if (worksheet == null)
+                        return (false, "Worksheet not found in Excel file.");
+
+                    var areasToAdd = new List<Area>();
+                    int row = 2; // Start at row 2 to skip headers
+
+                    // Step 1: Gather all areas from the Excel file
+                    var excelAreas = new List<(string AreaName, int AreaNumber, string? Description)>();
+                    while (worksheet.Cells[row, 1].Value != null)
+                    {
+                        var areaName = (worksheet.Cells[row, 1].Value).ToString();
+                        var areaNumber = Convert.ToInt32(worksheet.Cells[row, 2].Value);
+                        var description = (worksheet.Cells[row, 3].Value).ToString();
+
+
+                        excelAreas.Add((AreaName: areaName, AreaNumber: areaNumber, Description: description));
+                        row++;
+                    }
+
+                    // Step 2: Load existing areas in bulk
+                    var areaNumbers = excelAreas.Select(e => e.AreaNumber).Distinct();
+                    var existingAreas = await _unitOfWork.AreaRepository.FindAsync(
+                        l => areaNumbers.Contains(l.AreaNumber));
+
+                    // Step 3: Use a HashSet for fast existence checking
+                    var existingAreaKeys = new HashSet<(string AreaName, int AreaNumber, string? Description)>(
+                        existingAreas.Select(l => (l.AreaName, l.AreaNumber, l.Description)));
+
+                    // Step 4: Add only new locations to the list
+                    foreach (var (areaName, areaNumber, description) in excelAreas)
+                    {
+                        if (!existingAreaKeys.Contains((areaName, areaNumber, description)))
+                        {
+                            areasToAdd.Add(new Area
+                            {
+                                AreaName = areaName,
+                                Description = description,
+                                AreaNumber = areaNumber,
+                                Status = true
+                            });
+                        }
+                    }
+
+                    // Step 5: Save new locations in bulk if any
+                    if (areasToAdd.Any())
+                    {
+                        await _unitOfWork.AreaRepository.AddRangeAsync(areasToAdd);
+                        await _unitOfWork.SaveAsync();
+                    }
+
+                    return (true, $"{areasToAdd.Count} khu vực đã được thêm thành công.");
+                }
+            }
+            catch (Exception ex)
+            {
+                return (false, $"Error importing locations: {ex.Message}");
             }
         }
     }

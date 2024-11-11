@@ -14,9 +14,10 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
         Task<(List<MartyrGraveGetAllDtoResponse> matyrGraveList, int totalPage)> GetAllMartyrGravesAsync(int page, int pageSize);
         Task<MartyrGraveDtoResponse> GetMartyrGraveByIdAsync(int id);
         Task<List<MartyrGraveDtoResponse>> GetMartyrGraveByCustomerId(int customerId);
-        Task<MartyrGraveDtoResponse> CreateMartyrGraveAsync(MartyrGraveDtoRequest martyrGraveDto);
+        //Task<MartyrGraveDtoResponse> CreateMartyrGraveAsync(MartyrGraveDtoRequest martyrGraveDto);
         Task<(bool status, string result, string? phone, string? password)> CreateMartyrGraveAsyncV2(MartyrGraveDtoRequest martyrGraveDto);
-        Task<MartyrGraveDtoResponse> UpdateMartyrGraveAsync(int id, MartyrGraveDtoRequest martyrGraveDto);
+        Task<(bool status, string message)> ImportMartyrGraves(string excelFilePath, string outputFilePath);
+        //Task<MartyrGraveDtoResponse> UpdateMartyrGraveAsync(int id, MartyrGraveDtoRequest martyrGraveDto);
         Task<bool> UpdateStatusMartyrGraveAsync(int id, int status);
         Task<(List<MartyrGraveGetAllForAdminDtoResponse> response, int totalPage)> GetAllMartyrGravesForManagerAsync(int page, int pageSize);
 

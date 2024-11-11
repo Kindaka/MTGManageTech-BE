@@ -1,5 +1,6 @@
 ﻿using MartyrGraveManagement_BAL.ModelViews.CustomerDTOs;
 using MartyrGraveManagement_BAL.ModelViews.MartyrGraveDTOs;
+using MartyrGraveManagement_BAL.Services.Implements;
 using MartyrGraveManagement_BAL.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -113,6 +114,57 @@ namespace MartyrGraveManagement.Controllers
         //    }
         //}
 
+
+        /// <summary>
+        /// Import excel file to add martyr graves.
+        /// </summary>
+        /// <param name="excelFile">The excel file.</param>
+        /// <returns>Returns file path that stores customer phone number and password.</returns>
+        //[Authorize(Policy = "RequireManagerRole")]
+        [HttpPost("import-graves")]
+        public async Task<ActionResult<MartyrGraveDtoResponse>> ImportMartyrGraves(IFormFile file, [FromQuery] string folderPath)
+        {
+            if (file == null || file.Length == 0 || folderPath == null)
+                return BadRequest("No file uploaded.");
+
+            var filePath = Path.GetTempFileName(); // Temporary file path for processing
+
+            try
+            {
+                // Save the file temporarily
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+                // Create the full output file path by appending a filename to the selected folder path
+                var outputFilePath = Path.Combine(folderPath, "MartyrGrave_Accounts.xlsx");
+                // Import locations from the Excel file
+                var (status, message) = await _martyrGraveService.ImportMartyrGraves(filePath, outputFilePath);
+
+                if (status)
+                {
+                    return Ok(new { message = "File imported successfully.", details = message });
+                }
+                else
+                {
+                    return BadRequest(new { message = "Error importing file.", details = message });
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Internal server error.", details = ex.Message });
+            }
+            finally
+            {
+                // Delete the temporary file
+                if (System.IO.File.Exists(filePath))
+                {
+                    System.IO.File.Delete(filePath);
+                }
+            }
+        }
+    
+
         /// <summary>
         /// Creates a new martyr grave version 2.
         /// </summary>
@@ -148,24 +200,24 @@ namespace MartyrGraveManagement.Controllers
         /// <param name="id">The ID of the martyr grave to update.</param>
         /// <param name="martyrGraveDto">The updated details of the martyr grave.</param>
         /// <returns>Returns no content if the update is successful.</returns>
-        [Authorize(Policy = "RequireManagerRole")]
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateMartyrGrave(int id, MartyrGraveDtoRequest martyrGraveDto)
-        {
-            try
-            {
-                var updatedGrave = await _martyrGraveService.UpdateMartyrGraveAsync(id, martyrGraveDto);
-                if (updatedGrave == null)
-                {
-                    return NotFound();
-                }
-                return Ok("Update Successfully");
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-        }
+        //[Authorize(Policy = "RequireManagerRole")]
+        //[HttpPut("{id}")]
+        //public async Task<IActionResult> UpdateMartyrGrave(int id, MartyrGraveDtoRequest martyrGraveDto)
+        //{
+        //    try
+        //    {
+        //        var updatedGrave = await _martyrGraveService.UpdateMartyrGraveAsync(id, martyrGraveDto);
+        //        if (updatedGrave == null)
+        //        {
+        //            return NotFound();
+        //        }
+        //        return Ok("Update Successfully");
+        //    }
+        //    catch (KeyNotFoundException ex)
+        //    {
+        //        return NotFound(new { message = ex.Message });
+        //    }
+        //}
 
         /// <summary>
         /// Update a martyr grave status with the specified ID.

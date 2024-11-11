@@ -43,6 +43,7 @@ namespace MartyrGraveManagement_BAL.ModelViews.AccountDTOs
         public string Address { get; set; }
         public DateTime DateOfBirth { get; set; }
         public int RoleId { get; set; }
-        public int? AreaId { get; set; }
+        [Required]
+        public int AreaId { get; set; }
     }
 }

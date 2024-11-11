@@ -97,7 +97,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
         }
 
-        public async Task<bool> CreateAccount(UserRegisterDtoRequest newAccount)
+        public async Task<(bool status, string response)> CreateAccount(UserRegisterDtoRequest newAccount)
         {
             try
             {
@@ -106,7 +106,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     .FindAsync(a => a.PhoneNumber == newAccount.PhoneNumber);
                 if (existingAccount.Any())
                 {
-                    throw new Exception("Phone đã tồn tại.");
+                    return (false, "Số điện thoại đã tồn tại.");
                 }
 
                 // Hash mật khẩu
@@ -115,42 +115,27 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 var existingRole = await _unitOfWork.RoleRepository.GetByIDAsync(newAccount.RoleId);
                 if (existingRole == null)
                 {
-                    return false;
+                    return (false, "Role này không tồn tại");
                 }
 
-                if (existingRole.RoleId == 3)
+                if (newAccount.RoleId == 2)
                 {
-                    if (newAccount.AreaId == null)
+                    var existingManager = (await _unitOfWork.AccountRepository.GetAsync(m => m.RoleId == 2 && m.AreaId == newAccount.AreaId)).FirstOrDefault();
+                    if (existingManager != null)
                     {
-                        return false;
+                        return (false, "Manager của khu này đã tồn tại (chỉ 1 người manager quản lý 1 khu)");
                     }
                 }
-
-                if (newAccount.RoleId == 3)
-                {
-                    var account = _mapper.Map<Account>(newAccount);
-                    account.Status = true;
-                    account.CreateAt = DateTime.Now;
+                var account = _mapper.Map<Account>(newAccount);
+                account.Status = true;
+                account.CreateAt = DateTime.Now;
 
                     // Lưu tài khoản vào cơ sở dữ liệu
-                    await _unitOfWork.AccountRepository.AddAsync(account);
-                    await _unitOfWork.SaveAsync();
+                await _unitOfWork.AccountRepository.AddAsync(account);
+                await _unitOfWork.SaveAsync();
 
-                    return true; // Lưu thành công
-                }
-                else
-                {
-                    var account = _mapper.Map<Account>(newAccount);
-                    account.Status = true;
-                    account.AreaId = null;
-                    account.CreateAt = DateTime.Now;
-
-                    // Lưu tài khoản vào cơ sở dữ liệu
-                    await _unitOfWork.AccountRepository.AddAsync(account);
-                    await _unitOfWork.SaveAsync();
-
-                    return true; // Lưu thành công
-                }
+                return (true, "Tài khoản đã được tạo thành công"); // Lưu thành công
+                
             }
             catch (Exception ex)
             {
@@ -211,10 +196,6 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             {
                 var account = (await _unitOfWork.AccountRepository.GetAsync(c => c.PhoneNumber == phone)).FirstOrDefault();
                 if (account == null)
-                {
-                    return (false, null);
-                }
-                if (account.RoleId != 4)
                 {
                     return (false, null);
                 }

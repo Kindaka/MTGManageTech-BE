@@ -24,7 +24,7 @@ namespace MartyrGraveManagement.Controllers
         [Authorize(Policy = "RequireManagerRole")]
         [HttpPost]
         public async Task<IActionResult> CreateServiceGrave(GraveServiceDtoRequest graveServiceDTO)
-        {
+        {//
             try
             {
                 var accountId = User.FindFirst("AccountId")?.Value;
@@ -56,7 +56,7 @@ namespace MartyrGraveManagement.Controllers
         [Authorize(Policy = "RequireManagerRole")]
         [HttpPut]
         public async Task<IActionResult> UpdateServiceGrave(int martyrId, UpdateServiceForGraveDtoRequest graveServiceDTO)
-        {
+        {//
             try
             {
                 var accountId = User.FindFirst("AccountId")?.Value;

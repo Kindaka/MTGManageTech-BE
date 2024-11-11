@@ -159,6 +159,7 @@ builder.Services.AddScoped<ICommentIconService, CommentIconService>();
 builder.Services.AddScoped<ICommentReportService, CommentReportService>();
 builder.Services.AddScoped<IHolidayEventService, HolidayEventService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<ILocationService, LocationService>();
 
 // Đăng ký ML
 builder.Services.AddScoped<ITrendingRecommendationService, TrendingRecommendationService>();

@@ -11,18 +11,12 @@ using System.Threading.Tasks;
 namespace MartyrGraveManagement_BAL.ModelViews.MartyrGraveDTOs
 {
     public class MartyrGraveDtoRequest
-    {     
+    {
+        public int RowNumber { get; set; }
+        public int MartyrNumber { get; set; }
+        public int AreaNumber { get; set; }
 
-        [Required(ErrorMessage = "AreaId is required.")]
-        public int AreaId { get; set; }
-
-        public int LocationId { get; set; }
-
-
-
-
-
-        public CustomerDtoRequest Customer { get; set; } = new CustomerDtoRequest();
+         public CustomerDtoRequest Customer { get; set; } = new CustomerDtoRequest();
 
         public List<MartyrGraveInformationDtoRequest> Informations { get; set; } = new List<MartyrGraveInformationDtoRequest>();
 
