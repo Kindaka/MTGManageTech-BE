@@ -13,6 +13,7 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
         Task<(IEnumerable<TaskDtoResponse> taskList, int totalPage)> GetTasksByAccountIdAsync(int accountId, int pageIndex, int pageSize, DateTime Date);
         Task<(IEnumerable<TaskDtoResponse> taskList, int totalPage)> GetTasksForManager(int managerId, int pageIndex, int pageSize, DateTime Date);
         Task<TaskDtoResponse> GetTaskByIdAsync(int taskId);
+        Task<IEnumerable<TaskDtoResponse>> GetTasksByMartyrGraveId(int martyrGraveId);
         //Task<TaskDtoResponse> CreateTaskAsync(TaskDtoRequest newTask);
         //Task<TaskDtoResponse> CreateTaskAsync(TaskDtoRequest newTask, int managerId);
         //Task<List<TaskDtoResponse>> CreateTaskAsync(TaskBatchCreateRequest newTaskBatch, int managerId);

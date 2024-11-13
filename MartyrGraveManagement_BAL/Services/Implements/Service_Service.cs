@@ -29,9 +29,30 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             {
                 try
                 {
+                    if (!service.materialIds.Any()) {
+                        return (false, "Phải thêm ít nhất 1 vật liệu vào dịch vụ");
+                    }
                     var existedCategory = await _unitOfWork.ServiceCategoryRepository.GetByIDAsync(service.CategoryId);
                     if (existedCategory != null)
                     {
+                        List<int> checkMaterial = new List<int>();
+                        foreach (var materialItem in service.materialIds)
+                        {
+
+                            var material = await _unitOfWork.MaterialRepository.GetByIDAsync(materialItem);
+                            if (material != null)
+                            {
+                                if (!checkMaterial.Contains(materialItem))
+                                {
+                                    checkMaterial.Add(materialItem);
+                                }
+                            }
+                            else
+                            {
+                                return (false, "Có material không tìm thấy, kiểm tra lại");
+                            }
+
+                        }
                         double totalPrice = 0;
                         var newService = new Service
                         {
@@ -44,25 +65,31 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         };
                         await _unitOfWork.ServiceRepository.AddAsync(newService);
                         await _unitOfWork.SaveAsync();
-                        if (service.Materials.Any())
+                        if (checkMaterial.Any())
                         {
-                            foreach (var material in service.Materials)
+                            foreach (var materialId in checkMaterial)
                             {
-                                var insertMaterial = new Material
+                                var existingMaterial = await _unitOfWork.MaterialRepository.GetByIDAsync(materialId);
+                                if (existingMaterial != null)
                                 {
-                                    ServiceId = newService.ServiceId,
-                                    MaterialName = material.MaterialName,
-                                    Description = material.Description,
-                                    Price = material.Price
-                                };
-                                await _unitOfWork.MaterialRepository.AddAsync(insertMaterial);
-                                await _unitOfWork.SaveAsync();
-                                totalPrice += material.Price;
+                                    var insertMaterialService = new Material_Service
+                                    {
+                                        ServiceId = newService.ServiceId,
+                                        MaterialId = materialId,
+                                        CreateAt = DateTime.Now,
+                                    };
+                                    await _unitOfWork.MaterialServiceRepository.AddAsync(insertMaterialService);
+                                    await _unitOfWork.SaveAsync();
+                                    totalPrice += existingMaterial.Price;
+                                }
                             }
                         }
-                        newService.Price = totalPrice + (totalPrice * 0.05);
-                        await _unitOfWork.ServiceRepository.UpdateAsync(newService);
-                        await _unitOfWork.SaveAsync();
+                        if (totalPrice > 0)
+                        {
+                            newService.Price = totalPrice + (totalPrice * 0.05);
+                            await _unitOfWork.ServiceRepository.UpdateAsync(newService);
+                            await _unitOfWork.SaveAsync();
+                        }
                         await transaction.CommitAsync();
                         return (true, "Add successfully");
                     }
@@ -73,7 +100,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
 
                 }
-                catch (Exception ex) 
+                catch (Exception ex)
                 {
                     await transaction.RollbackAsync();
                     throw new Exception(ex.Message);
@@ -152,23 +179,28 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             try
             {
                 var service = await _unitOfWork.ServiceRepository.GetByIDAsync(serviceId);
-                if (service != null) {
+                if (service != null)
+                {
                     double wage = 0;
                     var serviceView = _mapper.Map<ServiceDetailDtoResponse>(service);
-                    var materials = await _unitOfWork.MaterialRepository.GetAsync(m => m.ServiceId == service.ServiceId);
-                    if(materials.Any())
+                    var materials = await _unitOfWork.MaterialServiceRepository.GetAsync(m => m.ServiceId == service.ServiceId);
+                    if (materials.Any())
                     {
-                        foreach( var material in materials)
+                        foreach (var material in materials)
                         {
-                            var materialView = new MaterialDtoResponse
+                            var existingMaterial = await _unitOfWork.MaterialRepository.GetByIDAsync(material.MaterialId);
+                            if (existingMaterial != null)
                             {
-                                MaterialId = material.MaterialId,
-                                MaterialName = material.MaterialName,
-                                Description = material.Description,
-                                Price = material.Price
-                            };
-                            serviceView.Materials.Add(materialView);
-                            wage += material.Price;
+                                var materialView = new MaterialDtoResponse
+                                {
+                                    MaterialId = material.MaterialId,
+                                    MaterialName = existingMaterial.MaterialName,
+                                    Description = existingMaterial.Description,
+                                    Price = existingMaterial.Price
+                                };
+                                serviceView.Materials.Add(materialView);
+                                wage += existingMaterial.Price;
+                            }
                         }
                     }
                     serviceView.wage = wage * 0.05;
@@ -184,7 +216,6 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             {
                 throw new Exception(ex.Message);
             }
-
         }
 
         public async Task<(List<ServiceDtoResponse> serviceList, int totalPage)> GetServicesForAdmin(int? categoryId, int page, int pageSize)
@@ -228,6 +259,10 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             {
                 try
                 {
+                    if (!service.materialIds.Any())
+                    {
+                        return (false, "Phải thêm ít nhất 1 vật liệu vào dịch vụ");
+                    }
                     var existedCategory = await _unitOfWork.ServiceCategoryRepository.GetByIDAsync(service.CategoryId);
                     if (existedCategory == null)
                     {
@@ -247,35 +282,57 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         await _unitOfWork.ServiceRepository.UpdateAsync(existedService);
                         await _unitOfWork.SaveAsync();
 
-                        var currentMaterials = await _unitOfWork.MaterialRepository.GetAsync(p => p.ServiceId == existedService.ServiceId);
+                        List<int> checkMaterial = new List<int>();
+                        foreach (var materialItem in service.materialIds)
+                        {
+                            var material = await _unitOfWork.MaterialRepository.GetByIDAsync(materialItem);
+                            if (material != null) 
+                            { 
+                                if (!checkMaterial.Contains(materialItem))
+                                {
+                                    checkMaterial.Add(materialItem);
+                                }
+                            }
+                            else
+                            {
+                                return (false, "Có material không tìm thấy, kiểm tra lại");
+                            }
+                        }
+                        var currentMaterials = await _unitOfWork.MaterialServiceRepository.GetAsync(p => p.ServiceId == existedService.ServiceId);
                         if (currentMaterials.Any())
                         {
                             foreach (var material in currentMaterials)
                             {
-                                await _unitOfWork.MaterialRepository.DeleteAsync(material);
+                                await _unitOfWork.MaterialServiceRepository.DeleteAsync(material);
                                 await _unitOfWork.SaveAsync();
                             }
                         }
 
-                        if (service.Materials.Any())
+                        if (checkMaterial.Any())
                         {
-                            foreach (var material in service.Materials)
+                            foreach (var materialId in service.materialIds)
                             {
-                                var insertMaterial = new Material
+                                var existingMaterial = await _unitOfWork.MaterialRepository.GetByIDAsync(materialId);
+                                if (existingMaterial != null)
                                 {
-                                    ServiceId = existedService.ServiceId,
-                                    MaterialName = material.MaterialName,
-                                    Description = material.Description,
-                                    Price = material.Price
-                                };
-                                await _unitOfWork.MaterialRepository.AddAsync(insertMaterial);
-                                await _unitOfWork.SaveAsync();
-                                totalPrice += material.Price;
+                                    var insertMaterialService = new Material_Service
+                                    {
+                                        ServiceId = existedService.ServiceId,
+                                        MaterialId = materialId,
+                                        CreateAt = DateTime.Now,
+                                    };
+                                    await _unitOfWork.MaterialServiceRepository.AddAsync(insertMaterialService);
+                                    await _unitOfWork.SaveAsync();
+                                    totalPrice += existingMaterial.Price;
+                                }
                             }
                         }
-                        existedService.Price = totalPrice + (totalPrice * 0.05);
-                        await _unitOfWork.ServiceRepository.UpdateAsync(existedService);
-                        await _unitOfWork.SaveAsync();
+                        if (totalPrice > 0)
+                        {
+                            existedService.Price = totalPrice + (totalPrice * 0.05);
+                            await _unitOfWork.ServiceRepository.UpdateAsync(existedService);
+                            await _unitOfWork.SaveAsync();
+                        }
                         await transaction.CommitAsync();
                         return (true, "Update successfully");
                     }

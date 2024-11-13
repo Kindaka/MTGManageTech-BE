@@ -104,8 +104,6 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
         public async Task<(List<MartyrGraveGetAllDtoResponse> matyrGraveList, int totalPage)> GetAllMartyrGravesAsync(int page, int pageSize)
         {
-            //var graves = await _unitOfWork.MartyrGraveRepository.GetAllAsync();
-            //return _mapper.Map<IEnumerable<MartyrGraveDtoResponse>>(graves);
             try
             {
                 var totalMatyrGrave = await _unitOfWork.MartyrGraveRepository.CountAsync();
@@ -150,13 +148,16 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             //return _mapper.Map<MartyrGraveDtoResponse>(grave);
             try
             {
-                var grave = (await _unitOfWork.MartyrGraveRepository.GetAsync(g => g.MartyrId == id, includeProperties: "MartyrGraveInformations,Location")).FirstOrDefault();
+                var grave = (await _unitOfWork.MartyrGraveRepository.GetAsync(g => g.MartyrId == id, includeProperties: "MartyrGraveInformations,Location,Account")).FirstOrDefault();
                 if (grave != null)
                 {
                     var graveView = _mapper.Map<MartyrGraveDtoResponse>(grave);
                     graveView.AreaNumber = grave.Location.AreaNumber;
                     graveView.RowNumber = grave.Location.RowNumber;
                     graveView.MartyrNumber = grave.Location.MartyrNumber;
+                    graveView.CustomerName = grave.Account.FullName ?? "Unknown";
+                    graveView.CustomerEmail = grave.Account.EmailAddress ?? "Unknown";
+                    graveView.CustomerPhone = grave.Account.PhoneNumber ?? "Unknown";
                     var graveInformations = await _unitOfWork.MartyrGraveInformationRepository.GetAsync(g => g.MartyrId == grave.MartyrId);
                     if (graveInformations.Any())
                     {
@@ -233,19 +234,22 @@ namespace MartyrGraveManagement_BAL.Services.Implements
         }
 
 
-        public async Task<(List<MartyrGraveGetAllForAdminDtoResponse> response, int totalPage)> GetAllMartyrGravesForManagerAsync(int page, int pageSize)
+        public async Task<(List<MartyrGraveGetAllForAdminDtoResponse> response, int totalPage)> GetAllMartyrGravesForManagerAsync(int page, int pageSize, int managerId)
         {
             try
             {
+                var manager = await _unitOfWork.AccountRepository.GetByIDAsync(managerId);
                 // Tính tổng số mộ liệt sĩ
-                var totalMartyrGraves = await _unitOfWork.MartyrGraveRepository.CountAsync();
+                var totalMartyrGraves = (await _unitOfWork.MartyrGraveRepository.GetAsync(t => t.AreaId == manager.AreaId)).Count();
 
                 // Tính toán tổng số trang
                 var totalPage = (int)Math.Ceiling(totalMartyrGraves / (double)pageSize);
 
+
+
                 // Lấy dữ liệu mộ liệt sĩ với phân trang
-                var martyrGraves = await _unitOfWork.MartyrGraveRepository.GetAsync(
-                    includeProperties: "MartyrGraveInformations,Accounts,Location",
+                var martyrGraves = await _unitOfWork.MartyrGraveRepository.GetAsync(g => g.AreaId == manager.AreaId,
+                    includeProperties: "MartyrGraveInformations,Account,Location,Area,GraveImages",
                     pageIndex: page,
                     pageSize: pageSize
                 );
@@ -265,6 +269,9 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     {
                          Code = m.MartyrCode,
                          Name = m.MartyrGraveInformations.FirstOrDefault()?.Name, // Lấy tên từ MartyrGraveInformation
+                         martyrCode = m.MartyrCode,
+                         AreaDescription = m.Area.Description,
+                         GraveImage = m.GraveImages.FirstOrDefault()?.UrlPath ?? "Unknown",
                          Location = $"{m.Location.AreaNumber}-{m.Location.RowNumber}-{m.Location.MartyrNumber}", // Định dạng vị trí
                          RelativeName = m.Account?.FullName, // Lấy tên người thân từ Account
                          RelativePhone = m.Account?.PhoneNumber, // Lấy số điện thoại người thân từ Account

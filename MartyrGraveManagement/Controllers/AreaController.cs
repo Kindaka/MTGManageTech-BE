@@ -171,6 +171,7 @@ namespace MartyrGraveManagement.Controllers
             }
         }
 
+        [Authorize(Policy = "RequireAdminRole")]
         [HttpPost("import-areas")]
         public async Task<IActionResult> ImportAreas(IFormFile file)
         {

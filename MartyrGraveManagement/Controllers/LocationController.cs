@@ -16,7 +16,7 @@ namespace MartyrGraveManagement.Controllers
             _locationService = locationService;
         }
 
-        //[Authorize(Policy = "RequireAdminRole")]
+        [Authorize(Policy = "RequireAdminRole")]
         [HttpPost("import-locations")]
         public async Task<IActionResult> ImportLocations(IFormFile file)
         {

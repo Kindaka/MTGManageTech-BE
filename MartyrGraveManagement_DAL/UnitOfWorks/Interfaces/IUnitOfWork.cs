@@ -42,6 +42,7 @@ namespace MartyrGraveManagement_DAL.UnitOfWorks.Interfaces
         public IGenericRepository<Event_Image> EventImagesRepository { get; }
         public IGenericRepository<NotificationAccount> NotificationAccountsRepository { get; }
         public IGenericRepository<Notification> NotificationRepository { get; }
+        public IGenericRepository<Material_Service> MaterialServiceRepository { get; }
 
 
         Task SaveAsync();

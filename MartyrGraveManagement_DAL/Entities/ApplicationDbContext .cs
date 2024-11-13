@@ -48,6 +48,7 @@ namespace MartyrGraveManagement_DAL.Entities
         public DbSet<Slot> Slots { get; set; }
         public DbSet<ScheduleDetail> ScheduleTasks { get; set; }
         public DbSet<Attendance> Attendances { get; set; }
+        public DbSet<Material_Service> Material_Services { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -403,10 +404,19 @@ namespace MartyrGraveManagement_DAL.Entities
             // Material Configuration
             modelBuilder.Entity<Material>()
                 .HasKey(t => t.MaterialId);
-            modelBuilder.Entity<Material>()
-                .HasOne(t => t.Service)
-                .WithMany(a => a.Materials)
-                .HasForeignKey(t => t.ServiceId)
+
+            //Material_Service Configuration
+            modelBuilder.Entity<Material_Service>()
+                .HasKey(m => m.Id);
+            modelBuilder.Entity<Material_Service>()
+                .HasOne(m => m.Material)
+                .WithMany(m => m.Material_Services)
+                .HasForeignKey(m => m.MaterialId)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Material_Service>()
+                .HasOne(m => m.Service)
+                .WithMany(m => m.Material_Services)
+                .HasForeignKey(m => m.ServiceId)
                 .OnDelete(DeleteBehavior.Restrict);
 
         }

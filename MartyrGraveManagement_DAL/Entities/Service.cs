@@ -23,7 +23,7 @@ namespace MartyrGraveManagement_DAL.Entities
         public bool Status { get; set; }
 
         public ServiceCategory? ServiceCategory { get; set; }
-        public IEnumerable<Material>? Materials { get; set; }
+        public IEnumerable<Material_Service>? Material_Services { get; set; }
         public IEnumerable<OrderDetail>? OrderDetails { get; set; }
         public IEnumerable<CartItemCustomer>? CartItems { get; set; }
         public IEnumerable<GraveService>? GraveServices { get; set; }

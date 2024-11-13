@@ -14,10 +14,12 @@ namespace MartyrGraveManagement.Controllers
     public class MartyrGraveController : ControllerBase
     {
         private readonly IMartyrGraveService _martyrGraveService;
+        private readonly IAuthorizeService _authorizeService;
 
-        public MartyrGraveController(IMartyrGraveService martyrGraveService)
+        public MartyrGraveController(IMartyrGraveService martyrGraveService, IAuthorizeService authorizeService)
         {
             _martyrGraveService = martyrGraveService;
+            _authorizeService = authorizeService;
         }
 
         [AllowAnonymous]
@@ -120,7 +122,7 @@ namespace MartyrGraveManagement.Controllers
         /// </summary>
         /// <param name="excelFile">The excel file.</param>
         /// <returns>Returns file path that stores customer phone number and password.</returns>
-        //[Authorize(Policy = "RequireManagerRole")]
+        [Authorize(Policy = "RequireAdminRole")]
         [HttpPost("import-graves")]
         public async Task<ActionResult<MartyrGraveDtoResponse>> ImportMartyrGraves(IFormFile file, [FromQuery] string folderPath)
         {
@@ -248,12 +250,33 @@ namespace MartyrGraveManagement.Controllers
         /// <response code="500">If there was an internal server error</response>
         [Authorize(Policy = "RequireManagerRole")]
         [HttpGet("GetAllForManager")]
-        public async Task<IActionResult> GetAllMartyrGraves([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetAllMartyrGraves(int managerId, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             try
             {
+                // Lấy AccountId từ token
+                var tokenAccountIdClaim = User.FindFirst("AccountId");
+                if (tokenAccountIdClaim == null || string.IsNullOrEmpty(tokenAccountIdClaim.Value))
+                {
+                    return Forbid("Không tìm thấy AccountId trong token.");
+                }
+
+                var tokenAccountId = int.Parse(tokenAccountIdClaim.Value);
+
+                // Kiểm tra nếu AccountId trong URL có khớp với AccountId trong token không
+                if (tokenAccountId != managerId)
+                {
+                    return Forbid("Bạn không có quyền.");
+                }
+
+                // Sử dụng hàm mới để kiểm tra quyền của nhân viên hoặc quản lý
+                var checkAuthorize = await _authorizeService.CheckAuthorizeManagerByAccountId(tokenAccountId, managerId);
+                if (!checkAuthorize.isMatchedAccountManager || !checkAuthorize.isAuthorizedAccount)
+                {
+                    return Forbid();
+                }
                 // Gọi phương thức từ service để lấy danh sách mộ liệt sĩ có phân trang
-                var graves = await _martyrGraveService.GetAllMartyrGravesForManagerAsync(page, pageSize);
+                var graves = await _martyrGraveService.GetAllMartyrGravesForManagerAsync(page, pageSize, managerId);
 
                 // Kiểm tra nếu dữ liệu không rỗng và trả về kết quả
                 if (graves.response != null && graves.response.Any())

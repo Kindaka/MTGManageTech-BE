@@ -66,6 +66,36 @@ namespace MartyrGraveManagement.Controllers
         }
 
         /// <summary>
+        /// Get all tasks for a specific martyr grave
+        /// </summary>
+        [HttpGet("martyr-grave/{martyrGraveId}")]
+        public async Task<IActionResult> GetTasksByMartyrGraveId(int martyrGraveId)
+        {
+            try
+            {
+                var tasks = await _taskService.GetTasksByMartyrGraveId(martyrGraveId);
+                if (!tasks.Any())
+                    return NotFound($"No tasks found for martyr grave ID: {martyrGraveId}");
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Tasks retrieved successfully",
+                    data = tasks
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "Error retrieving tasks",
+                    error = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
         /// Get tasks by AccountId.
         /// </summary>
         [Authorize(Policy = "RequireStaffRole")]

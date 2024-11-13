@@ -1146,6 +1146,35 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
         }
 
-
+        public async Task<IEnumerable<TaskDtoResponse>> GetTasksByMartyrGraveId(int martyrGraveId)
+        {
+            try
+            {
+                var taskResponse = new List<TaskDtoResponse>();
+                var tasks = await _unitOfWork.TaskRepository.GetAsync(t => t.OrderDetail.MartyrGrave.MartyrId == martyrGraveId, includeProperties: "OrderDetail.Service.ServiceCategory,OrderDetail.MartyrGrave,Account");
+                if(tasks != null)
+                {
+                    foreach (var task in tasks) {
+                        var taskItem = new TaskDtoResponse
+                        {
+                            TaskId = task.TaskId,
+                            Fullname = task.Account.FullName,
+                            StartDate = task.StartDate,
+                            EndDate = task.EndDate,
+                            Status = task.Status,
+                            ServiceName = task.OrderDetail.Service.ServiceName,
+                            ServiceDescription = task.OrderDetail.Service.Description,
+                            CategoryName = task.OrderDetail.Service.ServiceCategory.CategoryName
+                        };
+                        taskResponse.Add(taskItem);
+                    }
+                }
+                return taskResponse;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
     }
 }

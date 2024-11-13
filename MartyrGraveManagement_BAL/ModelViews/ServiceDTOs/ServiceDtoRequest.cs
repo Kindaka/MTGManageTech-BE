@@ -14,6 +14,6 @@ namespace MartyrGraveManagement_BAL.ModelViews.ServiceDTOs
         public string? Description { get; set; }
         public string? ImagePath { get; set; }
 
-        public List<MaterialDtoRequest> Materials { get; set; } = new List<MaterialDtoRequest>();
+        public List<int> materialIds { get; set; } = new List<int>();
     }
 }
