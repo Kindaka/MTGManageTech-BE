@@ -48,6 +48,7 @@ namespace MartyrGraveManagement_DAL.UnitOfWorks.Implements
         private GenericRepository<Notification> _notificationRepository;
         private GenericRepository<NotificationAccount> _notificationAccountsRepository;
         private GenericRepository<Material_Service> _materialServiceRepository;
+        private GenericRepository<BlogCategory> _blogCategoryRepository;
 
 
         public UnitOfWork(ApplicationDbContext context)
@@ -90,6 +91,7 @@ namespace MartyrGraveManagement_DAL.UnitOfWorks.Implements
         public IGenericRepository<Notification> NotificationRepository => _notificationRepository ??= new GenericRepository<Notification>(_context);
         public IGenericRepository<NotificationAccount> NotificationAccountsRepository => _notificationAccountsRepository ??= new GenericRepository<NotificationAccount>(_context);
         public IGenericRepository<Material_Service> MaterialServiceRepository => _materialServiceRepository ??= new GenericRepository<Material_Service>(_context);
+        public IGenericRepository<BlogCategory> BlogCategoryRepository => _blogCategoryRepository ??= new GenericRepository<BlogCategory>(_context);
 
 
         public async Task<IDbContextTransaction> BeginTransactionAsync()

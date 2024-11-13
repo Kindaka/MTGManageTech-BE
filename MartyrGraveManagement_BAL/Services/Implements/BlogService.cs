@@ -72,11 +72,11 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         throw new KeyNotFoundException("Account không tồn tại.");
                     }
 
-                    // Kiểm tra xem HistoryId có tồn tại không
-                    var historicalEventExists = await _unitOfWork.HistoricalEventRepository.GetByIDAsync(request.HistoryId);
-                    if (historicalEventExists == null)
+                    // Kiểm tra xem HistoryId có tồn tại và có trạng thái là true không
+                    var blogCategory = await _unitOfWork.BlogCategoryRepository.GetByIDAsync(request.HistoryId);
+                    if (blogCategory == null || !blogCategory.Status)
                     {
-                        throw new KeyNotFoundException("HistoricalEvent không tồn tại.");
+                        throw new KeyNotFoundException("BlogCategory không tồn tại hoặc không hợp lệ (trạng thái không phải là true).");
                     }
 
                     // Kiểm tra tính hợp lệ của các RelatedMartyrIds (nếu có)
@@ -87,7 +87,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                             var martyrExists = await _unitOfWork.MartyrGraveInformationRepository.GetByIDAsync(martyrId);
                             if (martyrExists == null)
                             {
-                                throw new KeyNotFoundException($"Martyr with ID {martyrId} không tồn tại.");
+                                throw new KeyNotFoundException($"Martyr với ID {martyrId} không tồn tại.");
                             }
                         }
                     }
@@ -147,6 +147,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 }
             }
         }
+
 
 
 

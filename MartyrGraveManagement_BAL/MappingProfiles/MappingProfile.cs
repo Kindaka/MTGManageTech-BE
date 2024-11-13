@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using MartyrGraveManagement_BAL.ModelViews.AccountDTOs;
 using MartyrGraveManagement_BAL.ModelViews.AreaDTOs;
+using MartyrGraveManagement_BAL.ModelViews.BlogCategoryDTOs;
 using MartyrGraveManagement_BAL.ModelViews.BlogDTOs;
 using MartyrGraveManagement_BAL.ModelViews.CartItemsDTOs;
 using MartyrGraveManagement_BAL.ModelViews.CommentDTOs;
@@ -126,6 +127,12 @@ namespace MartyrGraveManagement_BAL.MappingProfiles
             CreateMap<CreateCommentReportDTO, Comment_Report>().ReverseMap();
             // Holiday Event mapping
             CreateMap<HolidayEventRequestDto, Holiday_Event>().ReverseMap();
+            
+            // BlogCategory mapping
+            CreateMap<BlogCategoryDtoResponse, BlogCategory>().ReverseMap();
+            CreateMap<BlogCategoryDtoRequest, BlogCategory>().ReverseMap();
+            CreateMap<BlogDtoResponse, Blog>().ReverseMap();
+
         }
     }
 }
