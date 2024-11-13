@@ -270,20 +270,17 @@ namespace MartyrGraveManagement_BAL.Services.Implements
         {
             try
             {
-                // Lấy đơn hàng dựa trên OrderId và bao gồm các chi tiết liên quan
+                // Fetch order including related entities
                 var order = (await _unitOfWork.OrderRepository.GetAsync(
                     filter: o => o.OrderId == orderId,
                     includeProperties: "OrderDetails,OrderDetails.Service,OrderDetails.MartyrGrave.MartyrGraveInformations,OrderDetails.MartyrGrave"
                 )).FirstOrDefault();
 
-                if(order == null)
+                if (order == null || order.AccountId != customerId)
                 {
                     return null;
                 }
-                if (order.AccountId != customerId) {
-                    return null;
-                }
-                // Ánh xạ từ Order sang DTO
+
                 var orderDto = new OrdersGetAllDTOResponse
                 {
                     OrderId = order.OrderId,
@@ -295,7 +292,10 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     Status = order.Status
                 };
 
-                // Ánh xạ chi tiết đơn hàng
+                // Fetch StaffTask separately and join with OrderDetails
+                var staffTasks = await _unitOfWork.TaskRepository.GetAsync(t => t.OrderId == orderId, includeProperties: "Account");
+
+                // Map order details and associate Staff data if available
                 foreach (var orderDetail in order.OrderDetails)
                 {
                     var martyrGraveInfo = orderDetail.MartyrGrave?.MartyrGraveInformations?.FirstOrDefault();
@@ -313,11 +313,23 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         OrderPrice = orderDetail.OrderPrice
                     };
 
-                    var taskStatus = (await _unitOfWork.TaskRepository.GetAsync(t => t.DetailId == orderDetail.DetailId)).FirstOrDefault();
-                    if (taskStatus != null)
+                    // Find related task for this OrderDetail
+                    var relatedTask = staffTasks.FirstOrDefault(t => t.DetailId == orderDetail.DetailId);
+                    if (relatedTask != null)
                     {
-                        orderDetailDto.StatusTask = taskStatus.Status;
+                        orderDetailDto.StatusTask = relatedTask.Status;
+
+                        // Map Staff information
+                        if (relatedTask.Account != null)
+                        {
+                            orderDetailDto.Staffs.Add(new StaffDtoResponse
+                            {
+                                AccountId = relatedTask.Account.AccountId,
+                                StaffFullName = relatedTask.Account.FullName
+                            });
+                        }
                     }
+
                     orderDto.OrderDetails.Add(orderDetailDto);
                 }
 
