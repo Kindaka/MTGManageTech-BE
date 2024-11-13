@@ -701,22 +701,39 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 StatusTask = orderDetail.StaffTask?.Status ?? 0
             };
 
-            // Lấy danh sách nhân viên thuộc cùng AreaId
-            var accountStaffs = await _unitOfWork.AccountRepository.GetAsync(
+            if(orderDetailDto.StatusTask == 1 || orderDetailDto.StatusTask == 2 || orderDetailDto.StatusTask == 3 || orderDetailDto.StatusTask == 4 || orderDetailDto.StatusTask == 5)
+            {
+                // Lấy danh sách nhân viên thuộc cùng AreaId và task của detail đó
+                var taskStaff = (await _unitOfWork.TaskRepository.GetAsync(t => t.DetailId == orderDetailDto.DetailId, includeProperties: "Account")).FirstOrDefault();
+                if (taskStaff != null) {
+                    var orderDetailStaff = new StaffDtoResponse
+                    {
+                        AccountId = taskStaff.AccountId,
+                        StaffFullName = taskStaff.Account.FullName
+                    };
+                    orderDetailDto.Staffs.Add(orderDetailStaff);
+                }
+            }
+            else {
+                // Lấy danh sách nhân viên thuộc cùng AreaId
+                var accountStaffs = await _unitOfWork.AccountRepository.GetAsync(
                 s => s.AreaId == orderDetail.MartyrGrave.AreaId && s.RoleId == 3 && s.Status == true
             );
 
-            // Thêm danh sách nhân viên vào DTO
-            if (accountStaffs != null && accountStaffs.Any())
-            {
-                orderDetailDto.Staffs = accountStaffs.Select(accountStaff => new StaffDtoResponse
+
+                // Thêm danh sách nhân viên vào DTO
+                if (accountStaffs != null && accountStaffs.Any())
                 {
-                    AccountId = accountStaff.AccountId,
-                    StaffFullName = accountStaff.FullName
-                }).ToList();
+                    orderDetailDto.Staffs = accountStaffs.Select(accountStaff => new StaffDtoResponse
+                    {
+                        AccountId = accountStaff.AccountId,
+                        StaffFullName = accountStaff.FullName
+                    }).ToList();
+                }
             }
 
             return orderDetailDto;
+            
         }
 
 

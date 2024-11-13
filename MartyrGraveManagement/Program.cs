@@ -123,6 +123,8 @@ builder.Services.AddCors(options =>
         });
 });
 
+// Add Memory Cache
+builder.Services.AddMemoryCache();
 
 // Đăng ký TaskBackgroundService
 builder.Services.AddScoped<ITaskBackgroundService, TaskBackgroundService>();
@@ -160,6 +162,8 @@ builder.Services.AddScoped<ICommentReportService, CommentReportService>();
 builder.Services.AddScoped<IHolidayEventService, HolidayEventService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<ILocationService, LocationService>();
+builder.Services.AddScoped<IOtpService, OtpService>();
+builder.Services.AddScoped<ISmsService, TwillioService>();
 
 // Đăng ký ML
 builder.Services.AddScoped<ITrendingRecommendationService, TrendingRecommendationService>();
