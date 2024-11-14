@@ -121,22 +121,23 @@ namespace MartyrGraveManagement.Controllers
         }
 
         /// <summary>
-        /// View All Blog (Customer)
+        /// View All Blogs with status true and pagination (Customer)
         /// </summary>
         [AllowAnonymous]
         [HttpGet("GetAllBlogsForCustomer")]
-        public async Task<IActionResult> GetAllBlogsWithStatusTrue()
+        public async Task<IActionResult> GetAllBlogsWithStatusTrueAsync(int pageIndex = 1, int pageSize = 5)
         {
             try
             {
-                var blogs = await _blogService.GetAllBlogsWithStatusTrueAsync();
-                return Ok(new { message = "Blogs retrieved successfully.", data = blogs });
+                var (blogs, totalPage) = await _blogService.GetAllBlogsWithStatusTrueAsync(pageIndex, pageSize);
+                return Ok(new { message = "Blogs retrieved successfully.", data = blogs, totalPage = totalPage });
             }
             catch (Exception ex)
             {
                 return StatusCode(500, new { message = $"Lỗi khi lấy danh sách Blogs: {ex.Message}" });
             }
         }
+
 
         /// <summary>
         /// View Detail Blog 

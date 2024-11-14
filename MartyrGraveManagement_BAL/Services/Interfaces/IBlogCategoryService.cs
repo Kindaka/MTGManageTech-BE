@@ -14,7 +14,7 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
         Task<List<BlogCategoryDtoResponse>> GetAllBlogCategoriesAsync();
         Task<BlogCategoryDtoResponse> GetBlogCategoryByIdAsync(int id);
         Task<(bool status, string message)> CreateBlogCategoryAsync(BlogCategoryDtoRequest blogCategoryDto);
-        Task<List<BlogCategoryDtoResponse>> GetAllBlogCategoriesByStatusTrueAsync();
+        Task<(List<BlogCategoryDtoResponse> blogCategoryList, int totalPage)> GetAllBlogCategoriesByStatusTrueAsync(int pageIndex = 1, int pageSize = 5);
         Task<bool> UpdateBlogCategoryStatusAsync(int historyId, bool newStatus);
 
 

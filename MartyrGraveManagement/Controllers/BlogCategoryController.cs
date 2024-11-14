@@ -43,14 +43,23 @@ namespace MartyrGraveManagement.Controllers
         }
 
         /// <summary>
-        /// Get All BlogCategory with status true (Customer/Guest)
+        /// Get all BlogCategories with status true and pagination
         /// </summary>
-        [HttpGet("status")]
-        public async Task<IActionResult> GetAllByStatusTrue()
+        [AllowAnonymous]
+        [HttpGet("GetAllBlogCategoriesWithStatusTrue")]
+        public async Task<IActionResult> GetAllBlogCategoriesByStatusTrueAsync(int pageIndex = 1, int pageSize = 5)
         {
-            var result = await _blogCategoryService.GetAllBlogCategoriesByStatusTrueAsync();
-            return Ok(result);
+            try
+            {
+                var (blogCategories, totalPage) = await _blogCategoryService.GetAllBlogCategoriesByStatusTrueAsync(pageIndex, pageSize);
+                return Ok(new { message = "Blog Categories retrieved successfully.", data = blogCategories, totalPage = totalPage });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = $"Lỗi khi lấy danh sách Blog Categories: {ex.Message}" });
+            }
         }
+
 
         /// <summary>
         /// Create a new BlogCategory (Manager)

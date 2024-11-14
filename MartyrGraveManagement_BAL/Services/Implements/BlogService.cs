@@ -3,6 +3,7 @@ using MartyrGraveManagement_BAL.ModelViews.BlogDTOs;
 using MartyrGraveManagement_BAL.Services.Interfaces;
 using MartyrGraveManagement_DAL.Entities;
 using MartyrGraveManagement_DAL.UnitOfWorks.Interfaces;
+using Microsoft.Identity.Client;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -178,13 +179,22 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             return blogDtos;
         }
 
-        public async Task<List<BlogDTO>> GetAllBlogsWithStatusTrueAsync()
+        public async Task<(List<BlogDTO> blogList, int totalPage)> GetAllBlogsWithStatusTrueAsync(int pageIndex = 1, int pageSize = 5)
         {
-            // Lấy tất cả các blog có status = true
+            // Lấy tất cả các blog có status = true với phân trang
             var blogs = await _unitOfWork.BlogRepository.GetAsync(
                 filter: b => b.Status == true,
-                includeProperties: "Account,HistoricalEvent,HistoricalImages"
+                includeProperties: "Account,HistoricalEvent,HistoricalImages",
+                pageIndex: pageIndex,
+                pageSize: pageSize
             );
+
+            // Đếm tổng số lượng blog có status = true
+            var totalBlogs = (await _unitOfWork.BlogRepository.GetAsync(
+                filter: b => b.Status == true)).Count();
+
+            // Tính tổng số trang
+            var totalPage = (int)Math.Ceiling(totalBlogs / (double)pageSize);
 
             // Chuyển đổi dữ liệu sang danh sách BlogDTO
             var blogDTOs = blogs.Select(blog => new BlogDTO
@@ -205,8 +215,9 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 HistoricalImages = blog.HistoricalImages?.Select(img => img.ImagePath).ToList()
             }).ToList();
 
-            return blogDTOs;
+            return (blogDTOs, totalPage);
         }
+
 
 
 
@@ -241,6 +252,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     .Where(hrm => hrm.MartyrGraveInformation != null)
                     .Select(hrm => new MartyrDetailDTO
                     {
+                        MartyrGraveId = hrm.InformationId,
                         Name = hrm.MartyrGraveInformation.Name,
                         Images = hrm.MartyrGraveInformation.MartyrGrave?.GraveImages?.Select(img => img.UrlPath).ToList()
                     })
@@ -254,6 +266,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         Content = comment.Content,
                         CreatedDate = comment.CreatedDate,
                         UpdatedDate = comment.UpdatedDate,
+                        AccountId = comment.Account.AccountId,
                         AccountName = comment.Account?.FullName,
 
                         CommentIcons = comment.Comment_Icons

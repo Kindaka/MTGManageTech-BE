@@ -160,14 +160,25 @@ namespace MartyrGraveManagement_BAL.Services.Implements
         }
 
 
-        public async Task<List<BlogCategoryDtoResponse>> GetAllBlogCategoriesByStatusTrueAsync()
+        public async Task<(List<BlogCategoryDtoResponse> blogCategoryList, int totalPage)> GetAllBlogCategoriesByStatusTrueAsync(int pageIndex = 1, int pageSize = 5)
         {
+            // Lấy tất cả các BlogCategory có Status = true với phân trang
             var blogCategories = await _unitOfWork.BlogCategoryRepository.GetAsync(
-                filter: b => b.Status == true, // Lọc các BlogCategory có Status == true
-                includeProperties: "Blogs,Blogs.Account"
+                filter: b => b.Status == true,
+                includeProperties: "Blogs,Blogs.Account",
+                pageIndex: pageIndex,
+                pageSize: pageSize
             );
 
-            return blogCategories.Select(b => new BlogCategoryDtoResponse
+            // Đếm tổng số BlogCategory có Status = true
+            var totalBlogCategories = (await _unitOfWork.BlogCategoryRepository.GetAsync(
+                filter: b => b.Status == true)).Count();
+
+            // Tính tổng số trang
+            var totalPage = (int)Math.Ceiling(totalBlogCategories / (double)pageSize);
+
+            // Chuyển đổi dữ liệu sang danh sách BlogCategoryDtoResponse
+            var blogCategoryDtos = blogCategories.Select(b => new BlogCategoryDtoResponse
             {
                 HistoryId = b.HistoryId,
                 BlogCategoryName = b.BlogCategoryName,
@@ -187,7 +198,10 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     Status = blog.Status
                 }).ToList()
             }).ToList();
+
+            return (blogCategoryDtos, totalPage);
         }
+
 
         public async Task<bool> UpdateBlogCategoryStatusAsync(int historyId, bool newStatus)
         {

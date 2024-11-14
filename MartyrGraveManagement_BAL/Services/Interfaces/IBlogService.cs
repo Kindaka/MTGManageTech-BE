@@ -12,7 +12,7 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
         Task<List<DetailedBlogResponseDTO>> GetBlogByAccountId(int accountId);
         Task<string> CreateBlogAsync(CreateBlogDTORequest request, int accountId);
         Task<List<BlogDTO>> GetAllBlogsAsync();
-        Task<List<BlogDTO>> GetAllBlogsWithStatusTrueAsync();
+        Task<(List<BlogDTO> blogList, int totalPage)> GetAllBlogsWithStatusTrueAsync(int pageIndex = 1, int pageSize = 5);
         Task<BlogDTO> GetBlogByIdAsync(int blogId);
         Task<string> UpdateBlogAsync(int blogId, CreateBlogDTORequest request);
         Task<string> UpdateBlogStatusAsync(int blogId, bool status);

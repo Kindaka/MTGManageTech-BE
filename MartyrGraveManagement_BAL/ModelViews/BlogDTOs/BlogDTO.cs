@@ -27,6 +27,7 @@ namespace MartyrGraveManagement_BAL.ModelViews.BlogDTOs
 
     public class MartyrDetailDTO
     {
+        public int MartyrGraveId { get; set; }
         public string Name { get; set; }
         public List<string> Images { get; set; }
     }
@@ -34,6 +35,7 @@ namespace MartyrGraveManagement_BAL.ModelViews.BlogDTOs
     public class CommentDetailDTO
     {
         public int CommentId { get; set; }
+        public int AccountId { get; set; }
         public string Content { get; set; }
         public DateTime CreatedDate { get; set; }
         public DateTime UpdatedDate { get; set; }
