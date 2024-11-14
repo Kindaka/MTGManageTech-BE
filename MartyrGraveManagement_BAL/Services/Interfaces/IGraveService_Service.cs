@@ -12,6 +12,6 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
     {
         Task<(bool check, string response)> CreateServiceForGrave(GraveServiceDtoRequest request);
         Task<(bool check, string response)> UpdateServiceForGrave(int graveServiceId, UpdateServiceForGraveDtoRequest request);
-        Task<List<ServiceDtoResponse>> GetAllServicesForGrave(int martyrId);
+        Task<List<ServiceDtoResponse>> GetAllServicesForGrave(int martyrId, int? categoryId);
     }
 }

@@ -11,6 +11,7 @@ namespace MartyrGraveManagement_BAL.ModelViews.MartyrGraveDTOs
     {
         public int MartyrId { get; set; }
         public int AreaId { get; set; }
+        public string AreaName { get; set; }
         public string MartyrCode { get; set; }
         public int RowNumber { get; set; }
         public int MartyrNumber { get; set; }

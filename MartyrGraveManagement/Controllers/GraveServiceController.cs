@@ -87,11 +87,11 @@ namespace MartyrGraveManagement.Controllers
 
         [AllowAnonymous]
         [HttpGet("grave-services")]
-        public async Task<IActionResult> GetServicesInGrave(int martyrId)
+        public async Task<IActionResult> GetServicesInGrave(int martyrId, int categoryId)
         {
             try
             {
-                var services = await _serviceOfGrave.GetAllServicesForGrave(martyrId);
+                var services = await _serviceOfGrave.GetAllServicesForGrave(martyrId, categoryId);
                 return Ok(services);
             }
             catch (Exception ex)

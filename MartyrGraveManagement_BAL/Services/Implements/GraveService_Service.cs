@@ -154,16 +154,32 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
         }
 
-        public async Task<List<ServiceDtoResponse>> GetAllServicesForGrave(int martyrId)
+        public async Task<List<ServiceDtoResponse>> GetAllServicesForGrave(int martyrId, int? categoryId)
         {
             try
             {
                 List<ServiceDtoResponse> serviceList = new List<ServiceDtoResponse>();
-                var listGraveService = await _unitOfWork.GraveServiceRepository.GetAsync(gs => gs.MartyrId == martyrId);
-                if (listGraveService != null)
+                List<GraveService> listGraveServices = new List<GraveService>();
+                if (categoryId == 0)
+                {
+                    listGraveServices = (await _unitOfWork.GraveServiceRepository.GetAsync(gs => gs.MartyrId == martyrId)).ToList();
+                }
+                else
+                {
+                    var category = await _unitOfWork.ServiceCategoryRepository.GetByIDAsync(categoryId);
+                    if (category != null)
+                    {
+                        listGraveServices = (await _unitOfWork.GraveServiceRepository.GetAsync(gs => gs.MartyrId == martyrId && gs.Service.ServiceCategory.CategoryId == categoryId, includeProperties: "Service.ServiceCategory")).ToList();
+                    }
+                    else
+                    {
+                        throw new Exception("Không tìm thấy loại dịch vụ");
+                    }
+                }
+                if (listGraveServices != null)
                 {
                     List<Service> services = new List<Service>();
-                    foreach(var graveService in listGraveService)
+                    foreach(var graveService in listGraveServices)
                     {
                         var service = await _unitOfWork.ServiceRepository.GetByIDAsync(graveService.ServiceId);
                         if(service != null)

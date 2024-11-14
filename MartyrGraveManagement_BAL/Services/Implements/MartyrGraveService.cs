@@ -148,10 +148,11 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             //return _mapper.Map<MartyrGraveDtoResponse>(grave);
             try
             {
-                var grave = (await _unitOfWork.MartyrGraveRepository.GetAsync(g => g.MartyrId == id, includeProperties: "MartyrGraveInformations,Location,Account")).FirstOrDefault();
+                var grave = (await _unitOfWork.MartyrGraveRepository.GetAsync(g => g.MartyrId == id, includeProperties: "MartyrGraveInformations,Location,Account,Area")).FirstOrDefault();
                 if (grave != null)
                 {
                     var graveView = _mapper.Map<MartyrGraveDtoResponse>(grave);
+                    graveView.AreaName = grave.Area.AreaName;
                     graveView.AreaNumber = grave.Location.AreaNumber;
                     graveView.RowNumber = grave.Location.RowNumber;
                     graveView.MartyrNumber = grave.Location.MartyrNumber;
@@ -267,6 +268,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
                     var mapping = new MartyrGraveGetAllForAdminDtoResponse
                     {
+                         martyrId = m.MartyrId,
                          Code = m.MartyrCode,
                          Name = m.MartyrGraveInformations.FirstOrDefault()?.Name, // Lấy tên từ MartyrGraveInformation
                          martyrCode = m.MartyrCode,

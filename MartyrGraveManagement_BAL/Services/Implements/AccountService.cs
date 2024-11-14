@@ -55,11 +55,12 @@ namespace MartyrGraveManagement_BAL.Services.Implements
         {
             try
             {
-                var account = await _unitOfWork.AccountRepository.GetByIDAsync(accountId);
+                var account = (await _unitOfWork.AccountRepository.GetAsync(a => a.AccountId == accountId, includeProperties: "Role")).FirstOrDefault();
                 if (account != null) {
                     var accountResponse = new AccountDtoResponse()
                     {
                         AccountId = account.AccountId,
+                        RoleName = account.Role.RoleName,
                         AreaId = account.AreaId,
                         FullName = account.FullName,
                         DateOfBirth = account.DateOfBirth,
