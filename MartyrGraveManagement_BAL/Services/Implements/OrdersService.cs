@@ -12,6 +12,7 @@ using Microsoft.Identity.Client;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -31,38 +32,36 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             _configuration = configuration;
         }
 
-        public async Task<(List<OrdersGetAllDTOResponse> orderList, int totalPage)> GetOrderByAccountId(int accountId, int pageIndex, int pageSize, DateTime Date)
+        public async Task<(List<OrdersGetAllDTOResponse> orderList, int totalPage)> GetOrderByAccountId(int accountId, int pageIndex, int pageSize, DateTime? date, int? status)
         {
             try
             {
                 int totalPage = 0;
                 int totalOrder = 0;
                 IEnumerable<Order> orders = new List<Order>();
-                if (Date == DateTime.MinValue)
-                {
-                    totalOrder = (await _unitOfWork.OrderRepository.GetAsync(s => s.AccountId == accountId)).Count();
-                    totalPage = (int)Math.Ceiling(totalOrder / (double)pageSize);
-                    // Lấy tất cả các đơn hàng dựa trên AccountId và bao gồm các chi tiết đơn hàng
-                    orders = await _unitOfWork.OrderRepository.GetAsync(
-                        filter: o => o.AccountId == accountId,
-                        includeProperties: "OrderDetails,OrderDetails.Service,OrderDetails.MartyrGrave.MartyrGraveInformations", pageIndex: pageIndex, pageSize: pageSize
-                    );
-                }
-                else
-                {
-                    totalOrder = (await _unitOfWork.OrderRepository.GetAsync(s => s.AccountId == accountId && s.OrderDate.Date == Date.Date)).Count();
-                    totalPage = (int)Math.Ceiling(totalOrder / (double)pageSize);
-                    // Lấy tất cả các đơn hàng dựa trên AccountId và bao gồm các chi tiết đơn hàng
-                    orders = await _unitOfWork.OrderRepository.GetAsync(
-                        filter: o => o.AccountId == accountId && o.OrderDate.Date == Date.Date,
-                        includeProperties: "OrderDetails,OrderDetails.Service,OrderDetails.MartyrGrave.MartyrGraveInformations", pageIndex: pageIndex, pageSize: pageSize
-                    );
-                }
 
-                // Kiểm tra nếu không có đơn hàng nào cho AccountId này
+                // Áp dụng bộ lọc với cả Date và Status
+                Expression<Func<Order, bool>> filter = o => o.AccountId == accountId
+                    && (!date.HasValue || o.OrderDate.Date == date.Value.Date)
+                    && (!status.HasValue || o.Status == status);
+
+                // Đếm tổng số đơn hàng phù hợp với bộ lọc
+                totalOrder = (await _unitOfWork.OrderRepository.GetAsync(filter)).Count();
+                totalPage = (int)Math.Ceiling(totalOrder / (double)pageSize);
+
+                // Lấy danh sách đơn hàng với phân trang
+                orders = await _unitOfWork.OrderRepository.GetAsync(
+                    filter: filter,
+                    includeProperties: "OrderDetails,OrderDetails.Service,OrderDetails.MartyrGrave.MartyrGraveInformations",
+                    orderBy: o => o.OrderByDescending(x => x.OrderDate), // Sắp xếp theo ngày mới nhất
+                    pageIndex: pageIndex,
+                    pageSize: pageSize
+                );
+
+                // Kiểm tra nếu không có đơn hàng nào
                 if (orders == null || !orders.Any())
                 {
-                    return (new List<OrdersGetAllDTOResponse>(), 0);  // Trả về danh sách rỗng nếu không có đơn hàng
+                    return (new List<OrdersGetAllDTOResponse>(), 0);
                 }
 
                 // Ánh xạ từng đơn hàng và chi tiết đơn hàng sang DTO
@@ -86,11 +85,8 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     {
                         var martyrGraveInfo = orderDetail.MartyrGrave?.MartyrGraveInformations?.FirstOrDefault();
                         var task = (await _unitOfWork.TaskRepository.GetAsync(t => t.DetailId == orderDetail.DetailId)).FirstOrDefault();
-                        int statusTask = 0;
-                        if (task != null)
-                        {
-                            statusTask = task.Status;
-                        }
+                        int statusTask = task?.Status ?? 0;
+
                         var orderDetailDto = new OrderDetailDtoResponse
                         {
                             OrderId = orderDetail.OrderId,
@@ -100,7 +96,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                             Note = order.Note,
                             orderStatus = order.Status,
                             ServiceName = orderDetail.Service?.ServiceName,
-                            MartyrName = martyrGraveInfo?.Name,  // Lấy thông tin liệt sĩ từ MartyrGraveInformation
+                            MartyrName = martyrGraveInfo?.Name,
                             OrderPrice = orderDetail.OrderPrice,
                             StatusTask = statusTask
                         };
@@ -108,7 +104,6 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         orderDto.OrderDetails.Add(orderDetailDto);
                     }
 
-                    // Thêm DTO của đơn hàng vào danh sách kết quả
                     orderDtoList.Add(orderDto);
                 }
 
@@ -119,6 +114,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 throw new Exception(ex.Message);
             }
         }
+
 
 
 

@@ -101,8 +101,13 @@ namespace MartyrGraveManagement.Controllers
 
         [Authorize(Policy = "RequireCustomerRole")]
         [HttpGet("account/{customerId}")]
-        public async Task<ActionResult<List<OrdersGetAllDTOResponse>>> GetOrderByAccountId(int customerId, DateTime Date, int pageIndex = 1, int pageSize = 5)
-        {//
+        public async Task<ActionResult<List<OrdersGetAllDTOResponse>>> GetOrderByAccountId(
+            int customerId,
+            DateTime? date = null, 
+            int? status = null,   
+            int pageIndex = 1,
+            int pageSize = 5)
+        {
             try
             {
                 var accountId = User.FindFirst("AccountId")?.Value;
@@ -115,14 +120,17 @@ namespace MartyrGraveManagement.Controllers
                 {
                     return Forbid();
                 }
-                var orders = await _odersService.GetOrderByAccountId(customerId, pageIndex, pageSize, Date);
-                return Ok(new {orders = orders.orderList, totalPage = orders.totalPage});
+
+                var orders = await _odersService.GetOrderByAccountId(customerId, pageIndex, pageSize, date, status);
+                return Ok(new { orders = orders.orderList, totalPage = orders.totalPage });
             }
             catch (Exception ex)
             {
                 return StatusCode(500, new { message = "An unexpected error occurred.", details = ex.Message });
             }
         }
+
+
 
 
 
