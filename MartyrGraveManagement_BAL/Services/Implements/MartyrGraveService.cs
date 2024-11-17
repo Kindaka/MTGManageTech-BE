@@ -1009,5 +1009,58 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
             return outputFilePath;
         }
+
+        public async Task<(List<MartyrGraveByAreaDtoResponse> martyrGraves, int totalPage)> GetMartyrGraveByAreaIdAsync(int areaId, int pageIndex, int pageSize)
+        {
+            try
+            {
+                var totalMartyrGraves = (await _unitOfWork.MartyrGraveRepository.GetAsync(g => g.AreaId == areaId)).Count();
+                var totalPage = (int)Math.Ceiling(totalMartyrGraves / (double)pageSize);
+
+                var martyrGraves = await _unitOfWork.MartyrGraveRepository.GetAsync(
+                    filter: g => g.AreaId == areaId,
+                    includeProperties: "MartyrGraveInformations,GraveImages,Location,Area",
+                    pageIndex: pageIndex,
+                    pageSize: pageSize
+                );
+
+                var martyrGraveList = new List<MartyrGraveByAreaDtoResponse>();
+
+                foreach (var grave in martyrGraves)
+                {
+                    var graveDto = new MartyrGraveByAreaDtoResponse
+                    {
+                        MartyrId = grave.MartyrId,
+                        MartyrCode = grave.MartyrCode,
+                        Status = grave.Status,
+                        AreaName = grave.Area?.AreaName ?? "Unknown",
+                        LocationDescription = $"{grave.Location?.AreaNumber}-{grave.Location?.RowNumber}-{grave.Location?.MartyrNumber}",
+                        Images = grave.GraveImages?.Select(img => new GraveImageDtoResponse { Image = img.UrlPath }).ToList(),
+                        MatyrGraveInformations = grave.MartyrGraveInformations?.Select(info => new MartyrGraveDTOsInformationDtoResponse
+                        {
+                            InformationId = info.InformationId,
+                            Name = info.Name,
+                            NickName = info.NickName,
+                            Position = info.Position,
+                            Medal = info.Medal,
+                            HomeTown = info.HomeTown,
+                            DateOfBirth = info.DateOfBirth,
+                            DateOfSacrifice = info.DateOfSacrifice
+                        }).ToList()
+                    };
+
+                    martyrGraveList.Add(graveDto);
+                }
+
+                return (martyrGraveList, totalPage);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error while fetching martyr graves by area: {ex.Message}", ex);
+            }
+        }
+
+
+
     }
 }

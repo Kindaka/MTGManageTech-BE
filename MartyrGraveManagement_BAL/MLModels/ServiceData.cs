@@ -10,12 +10,7 @@ namespace MartyrGraveManagement_BAL.MLModels
     {
         public int ServiceId { get; set; }
         public float Frequency { get; set; }
-        public float AveragePrice { get; set; }
-        public float Quantity { get; set; }
         public float RecentOrdersCount { get; set; }
-
-        //test
         public float TrendScore { get; set; }
-
     }
 }

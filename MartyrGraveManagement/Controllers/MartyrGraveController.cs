@@ -328,5 +328,20 @@ namespace MartyrGraveManagement.Controllers
         }
 
 
+
+        [HttpGet("area/{areaId}")]
+        public async Task<IActionResult> GetMartyrGraveByAreaId(int areaId, int pageIndex = 1, int pageSize = 10)
+        {
+            try
+            {
+                var result = await _martyrGraveService.GetMartyrGraveByAreaIdAsync(areaId, pageIndex, pageSize);
+                return Ok(new { martyrGraves = result.martyrGraves, totalPage = result.totalPage });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred.", details = ex.Message });
+            }
+        }
+
     }
 }
