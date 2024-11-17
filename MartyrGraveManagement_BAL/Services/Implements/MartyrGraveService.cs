@@ -514,13 +514,6 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             {
                 try
                 {
-                   // Kiểm tra AreaId có tồn tại không
-                    var area = await _unitOfWork.AreaRepository.GetByIDAsync(martyrGraveDto.AreaId);
-                    var location = await _unitOfWork.LocationRepository.GetByIDAsync(martyrGraveDto.LocationId);
-                    if (area == null || location == null)
-                    {
-                        return (false, "Không tìm thấy khu vực");
-                    }
 
                     // Kiểm tra MartyrGrave có tồn tại không
                     var existingGrave = await _unitOfWork.MartyrGraveRepository.GetByIDAsync(id);
@@ -529,23 +522,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         return (false, "Không tìm thấy MartyrGrave");
                     }
 
-                    // Cập nhật thông tin MartyrGrave từ DTO
-                    _mapper.Map(martyrGraveDto, existingGrave);
 
-                    // Tạo lại mã MartyrCode
-                    string martyrCode = GenerateMartyrCode(location.AreaNumber, location.RowNumber, location.MartyrNumber);
-                    var existedMartyrGrave = (await _unitOfWork.MartyrGraveRepository.FindAsync(m => m.MartyrCode == martyrCode && m.MartyrId != id)).FirstOrDefault();
-
-                    if (existedMartyrGrave != null)
-                    {
-                        return (false, "MartyrCode đã tồn tại, hãy kiểm tra lại");
-                    }
-
-                    existingGrave.MartyrCode = martyrCode;
-
-                    // Cập nhật MartyrGrave vào cơ sở dữ liệu
-                    await _unitOfWork.MartyrGraveRepository.UpdateAsync(existingGrave);
-                    await _unitOfWork.SaveAsync();
 
                     // Cập nhật các thông tin MartyrGraveInformations
                     var existingInformations = await _unitOfWork.MartyrGraveInformationRepository.GetAsync(m => m.MartyrId == existingGrave.MartyrId);
@@ -553,44 +530,43 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     // Xóa các thông tin cũ
                     foreach (var existingInformation in existingInformations)
                     {
-                        await _unitOfWork.MartyrGraveInformationRepository.DeleteAsync(existingInformation);
+                        if (martyrGraveDto.Informations.Any())
+                        {
+                            foreach (var martyrGraveInformation in martyrGraveDto.Informations)
+                            {
+                                existingInformation.Name = martyrGraveInformation.Name;
+                                existingInformation.NickName = martyrGraveInformation.NickName;
+                                existingInformation.Position = martyrGraveInformation.Position;
+                                existingInformation.Medal = martyrGraveInformation.Medal;
+                                existingInformation.HomeTown = martyrGraveInformation.HomeTown;
+                                existingInformation.DateOfBirth = martyrGraveInformation.DateOfBirth;
+                                existingInformation.DateOfSacrifice = martyrGraveInformation.DateOfSacrifice;
+
+                                await _unitOfWork.MartyrGraveInformationRepository.UpdateAsync(existingInformation);
+                                break;
+                            }
+                        }
+                        //await _unitOfWork.MartyrGraveInformationRepository.DeleteAsync(existingInformation);
                     }
                     await _unitOfWork.SaveAsync();
 
                     // Thêm lại các thông tin mới từ DTO
-                    if (martyrGraveDto.Informations.Any())
-                    {
-                        foreach (var martyrGraveInformation in martyrGraveDto.Informations)
-                        {
-                            var information = new MartyrGraveInformation
-                            {
-                                MartyrId = existingGrave.MartyrId,
-                                Name = martyrGraveInformation.Name,
-                                NickName = martyrGraveInformation.NickName,
-                                Position = martyrGraveInformation.Position,
-                                Medal = martyrGraveInformation.Medal,
-                                HomeTown = martyrGraveInformation.HomeTown,
-                                DateOfBirth = martyrGraveInformation.DateOfBirth,
-                                DateOfSacrifice = martyrGraveInformation.DateOfSacrifice
-                            };
-                            await _unitOfWork.MartyrGraveInformationRepository.AddAsync(information);
-                        }
-                        await _unitOfWork.SaveAsync();
-                    }
+                    
 
-                    // Cập nhật hình ảnh GraveImages
-                    var existingImages = await _unitOfWork.GraveImageRepository.GetAsync(i => i.MartyrId == existingGrave.MartyrId);
-
-                    // Xóa các ảnh cũ
-                    foreach (var existingImage in existingImages)
-                    {
-                        await _unitOfWork.GraveImageRepository.DeleteAsync(existingImage);
-                    }
-                    await _unitOfWork.SaveAsync();
+                    
 
                     // Thêm các ảnh mới
                     if (martyrGraveDto.Image.Any())
                     {
+                        // Cập nhật hình ảnh GraveImages
+                        var existingImages = await _unitOfWork.GraveImageRepository.GetAsync(i => i.MartyrId == existingGrave.MartyrId);
+
+                        // Xóa các ảnh cũ
+                        foreach (var existingImage in existingImages)
+                        {
+                            await _unitOfWork.GraveImageRepository.DeleteAsync(existingImage);
+                        }
+                        await _unitOfWork.SaveAsync();
                         foreach (var imageDto in martyrGraveDto.Image)
                         {
                             var graveImage = new GraveImage

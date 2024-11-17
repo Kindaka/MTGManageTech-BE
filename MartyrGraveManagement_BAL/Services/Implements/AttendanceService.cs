@@ -226,6 +226,8 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                                 {
                                     AttendanceId = attendance.AttendanceId,
                                     AccountId = attendance.AccountId,
+                                    PhoneNumber = attendance.Account.PhoneNumber,
+                                    Email = attendance.Account.EmailAddress,
                                     SlotId = attendance.SlotId,
                                     staffName = attendance.Account.FullName,
                                     Date = attendance.Date,
@@ -280,6 +282,8 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                             var attendanceItem = new AttendanceDtoResponse
                             {
                                 AttendanceId = attendance.AttendanceId,
+                                PhoneNumber = attendance.Account.PhoneNumber,
+                                Email = attendance.Account.EmailAddress,
                                 AccountId = attendance.AccountId,
                                 SlotId = attendance.SlotId,
                                 staffName = attendance.Account.FullName,
@@ -305,6 +309,48 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             catch (Exception ex)
             {
                 throw new Exception(ex.Message);
+            }
+        }
+
+        public async Task<IEnumerable<AttendanceSlotDateDtoResponse>> GetAttendanceSlotDates(DateTime startDate, DateTime endDate, int managerId)
+        {
+            try
+            {
+                var groupedAttendances = new List<AttendanceSlotDateDtoResponse>();
+                var manager = await _unitOfWork.AccountRepository.GetByIDAsync(managerId);
+                var attendances = await _unitOfWork.AttendanceRepository.GetAsync(a => a.Date <= DateOnly.FromDateTime(endDate) && a.Date >= DateOnly.FromDateTime(startDate), includeProperties:"Account,Slot");
+                if(attendances == null)
+                {
+                    return groupedAttendances;
+                }
+                foreach (var attendance in attendances) { 
+                    if(attendance.Account.AreaId == manager.AreaId)
+                    {
+                        // Check if this Date and Slot combination already exists
+                        bool exists = groupedAttendances.Any(g =>
+                            g.Date == attendance.Date &&
+                            g.SlotId == attendance.SlotId);
+
+                        // Only add if the combination doesn't exist
+                        if (!exists)
+                        {
+                            var groupedAttendance = new AttendanceSlotDateDtoResponse
+                            {
+                                SlotId = attendance.SlotId,
+                                Date = attendance.Date,
+                                SlotName = attendance.Slot.SlotName,
+                                StartTime = attendance.Slot.StartTime,
+                                EndTime = attendance.Slot.EndTime
+                            };
+                            groupedAttendances.Add(groupedAttendance);
+                        }
+                    }
+                }
+                return groupedAttendances;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error getting attendance slots and dates: {ex.Message}");
             }
         }
 

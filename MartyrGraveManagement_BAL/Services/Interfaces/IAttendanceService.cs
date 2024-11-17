@@ -17,5 +17,6 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
         Task<AttendanceDtoResponse> GetAttendanceByAttendanceId(int attendanceId);
         Task<List<AttendanceDtoResponse>> GetAttendancesBySchedule(int slotId, DateTime Date, int managerId);
         //Task<AttendanceDtoResponse> GetAttendancesByScheduleForStaff(int slotId, DateTime Date, int staffId);
+        Task<IEnumerable<AttendanceSlotDateDtoResponse>> GetAttendanceSlotDates(DateTime startDate, DateTime endDate, int managerId);
     }
 }

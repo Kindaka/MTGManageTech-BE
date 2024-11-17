@@ -10,6 +10,8 @@ namespace MartyrGraveManagement_BAL.ModelViews.AttendanceDTOs
     {
         public int AttendanceId { get; set; }
         public int AccountId { get; set; }
+        public string? PhoneNumber { get; set; }
+        public string? Email { get; set; }
         public int SlotId { get; set; }
         public string staffName { get; set; }
         public DateOnly Date { get; set; } 

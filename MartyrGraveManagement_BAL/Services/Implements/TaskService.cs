@@ -86,10 +86,10 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
             else
             {
-                totalTask = (await _unitOfWork.TaskRepository.GetAsync(s => s.AccountId == accountId && s.StartDate.Date == Date.Date)).Count();
+                totalTask = (await _unitOfWork.TaskRepository.GetAsync(s => s.AccountId == accountId && s.StartDate.Date == Date)).Count();
                 totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
                 // Lấy tất cả các đơn hàng dựa trên AccountId và bao gồm các chi tiết đơn hàng
-                tasks = await _unitOfWork.TaskRepository.GetAsync(t => t.AccountId == accountId && t.StartDate.Date == Date.Date, includeProperties: "OrderDetail.Service,OrderDetail.MartyrGrave",
+                tasks = await _unitOfWork.TaskRepository.GetAsync(t => t.AccountId == accountId && t.StartDate.Date == Date, includeProperties: "OrderDetail.Service,OrderDetail.MartyrGrave",
                 pageIndex: pageIndex, pageSize: pageSize);
             }
 

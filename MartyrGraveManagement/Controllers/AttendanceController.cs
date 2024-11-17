@@ -406,5 +406,77 @@ namespace MartyrGraveManagement.Controllers
         //    }
         //}
 
+
+        /// <summary>
+        /// Get slots and dates for attendances under a manager
+        /// </summary>
+        [Authorize(Policy = "RequireManagerRole")]
+        [HttpGet("get-list-slots-dates")]
+        public async Task<IActionResult> GetAttendanceSlotDates(
+            [FromQuery] DateTime startDate,
+            [FromQuery] DateTime endDate,
+            [FromQuery] int managerId)
+        {
+            try
+            {
+                if (startDate > endDate)
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = "Start date must be before or equal to end date"
+                    });
+                }
+                // Lấy AccountId từ token
+                var tokenAccountIdClaim = User.FindFirst("AccountId");
+                if (tokenAccountIdClaim == null || string.IsNullOrEmpty(tokenAccountIdClaim.Value))
+                {
+                    return Forbid("Không tìm thấy AccountId trong token.");
+                }
+
+                var tokenAccountId = int.Parse(tokenAccountIdClaim.Value);
+
+                // Kiểm tra nếu AccountId trong URL có khớp với AccountId trong token không
+                if (tokenAccountId != managerId)
+                {
+                    return Forbid("Bạn không có quyền.");
+                }
+
+                // Sử dụng hàm mới để kiểm tra quyền của nhân viên hoặc quản lý
+                var checkAuthorize = await _authorizeService.CheckAuthorizeManagerByAccountId(tokenAccountId, managerId);
+                if (!checkAuthorize.isMatchedAccountManager || !checkAuthorize.isAuthorizedAccount)
+                {
+                    return Forbid();
+                }
+
+                var slotDates = await _attendanceService.GetAttendanceSlotDates(startDate, endDate, managerId);
+
+                if (!slotDates.Any())
+                {
+                    return Ok(new
+                    {
+                        success = true,
+                        message = "No attendance records found for the specified criteria",
+                        data = new List<AttendanceSlotDateDtoResponse>()
+                    });
+                }
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Attendance slots and dates retrieved successfully",
+                    data = slotDates
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "Error retrieving attendance slots and dates",
+                    error = ex.Message
+                });
+            }
+        }
     }
 }
