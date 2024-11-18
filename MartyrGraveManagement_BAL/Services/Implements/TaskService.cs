@@ -76,27 +76,37 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             int totalPage = 0;
             int totalTask = 0;
             IEnumerable<StaffTask> tasks = new List<StaffTask>();
+
             if (Date == DateTime.MinValue)
             {
-                totalTask = (await _unitOfWork.TaskRepository.GetAsync(s => s.AccountId == accountId)).Count();
+                // Thêm điều kiện lọc `status` 1 hoặc 3
+                totalTask = (await _unitOfWork.TaskRepository.GetAsync(s => s.AccountId == accountId && (s.Status == 1 || s.Status == 3))).Count();
                 totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
-                // Lấy tất cả các đơn hàng dựa trên AccountId và bao gồm các chi tiết đơn hàng
-                tasks = await _unitOfWork.TaskRepository.GetAsync(t => t.AccountId == accountId, includeProperties: "OrderDetail.Service,OrderDetail.MartyrGrave",
-                pageIndex: pageIndex, pageSize: pageSize);
+
+                // Lấy tất cả các `Task` có `status` là 1 hoặc 3
+                tasks = await _unitOfWork.TaskRepository.GetAsync(
+                    t => t.AccountId == accountId && (t.Status == 1 || t.Status == 3),
+                    includeProperties: "OrderDetail.Service,OrderDetail.MartyrGrave",
+                    pageIndex: pageIndex,
+                    pageSize: pageSize
+                );
             }
             else
             {
-                totalTask = (await _unitOfWork.TaskRepository.GetAsync(s => s.AccountId == accountId && s.StartDate.Date == Date)).Count();
+                // Thêm điều kiện lọc `status` 1 hoặc 3
+                totalTask = (await _unitOfWork.TaskRepository.GetAsync(s => s.AccountId == accountId && s.StartDate.Date == Date && (s.Status == 1 || s.Status == 3))).Count();
                 totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
-                // Lấy tất cả các đơn hàng dựa trên AccountId và bao gồm các chi tiết đơn hàng
-                tasks = await _unitOfWork.TaskRepository.GetAsync(t => t.AccountId == accountId && t.StartDate.Date == Date, includeProperties: "OrderDetail.Service,OrderDetail.MartyrGrave",
-                pageIndex: pageIndex, pageSize: pageSize);
+
+                // Lấy tất cả các `Task` có `status` là 1 hoặc 3 theo ngày
+                tasks = await _unitOfWork.TaskRepository.GetAsync(
+                    t => t.AccountId == accountId && t.StartDate.Date == Date && (t.Status == 1 || t.Status == 3),
+                    includeProperties: "OrderDetail.Service,OrderDetail.MartyrGrave",
+                    pageIndex: pageIndex,
+                    pageSize: pageSize
+                );
             }
 
-
-            // Lấy danh sách các Task thuộc về account, bao gồm các bảng liên quan
-            
-
+            // Nếu không có Task nào
             if (!tasks.Any())
             {
                 throw new InvalidOperationException("This account does not have any tasks.");
@@ -126,6 +136,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
             return (taskResponses, totalPage);
         }
+
 
         public async Task<(IEnumerable<TaskDtoResponse> taskList, int totalPage)> GetTasksForManager(int managerId, int pageIndex, int pageSize, DateTime Date)
         {
