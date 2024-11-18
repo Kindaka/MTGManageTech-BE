@@ -55,32 +55,57 @@ namespace MartyrGraveManagement.Controllers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [Authorize(Policy = "RequireCustomerRole")]
         [HttpPost]
-        public async Task<ActionResult<CartItemsDTOResponse>> CreateCartItems(CartItemsDTORequest cartItemDTO)
+        public async Task<ActionResult> CreateCartItems(List<CartItemsDTORequest> cartItemsDTOs)
         {
             try
             {
+                // Lấy AccountId từ thông tin đăng nhập của người dùng
                 var accountId = User.FindFirst("AccountId")?.Value;
                 if (accountId == null)
                 {
                     return Forbid();
                 }
-                var checkMatchedId = await _authorizeService.CheckAuthorizeByCustomerId(cartItemDTO.AccountId, int.Parse(accountId));
-                if (!checkMatchedId.isMatchedCustomer)
+
+                // Kiểm tra tất cả các mục trong danh sách có hợp lệ với AccountId của người dùng không
+                foreach (var cartItemDTO in cartItemsDTOs)
                 {
-                    return Forbid();
+                    var checkMatchedId = await _authorizeService.CheckAuthorizeByCustomerId(cartItemDTO.AccountId, int.Parse(accountId));
+                    if (!checkMatchedId.isMatchedCustomer)
+                    {
+                        return Forbid();
+                    }
+
+                    if (cartItemDTO == null)
+                    {
+                        return BadRequest("Cannot add empty object to cart");
+                    }
                 }
-                if (cartItemDTO == null)
-                {
-                    return BadRequest("Cannot add empty object to cart");
-                }
-                var createCartItem = await _cartItemsService.CreateCartItemsAsync(cartItemDTO);
-                return CreatedAtAction(nameof(GetCartItem), new { id = createCartItem.CartId }, createCartItem);
+
+                // Gọi service để tạo danh sách CartItems và lấy kết quả
+                var (responses, messages) = await _cartItemsService.CreateCartItemsAsync(cartItemsDTOs);
+
+                // Trả về kết quả bao gồm danh sách phản hồi và thông báo
+                return Ok(new { responses, messages });
             }
             catch (KeyNotFoundException ex)
             {
+                // Xử lý lỗi không tìm thấy dữ liệu
                 return NotFound(new { message = ex.Message });
             }
+            catch (InvalidOperationException ex)
+            {
+                // Xử lý lỗi liên quan đến logic kinh doanh (vd: GraveService không tồn tại)
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                // Xử lý lỗi không mong muốn
+                return StatusCode(500, new { message = "An error occurred while processing your request.", details = ex.Message });
+            }
         }
+
+
+
 
 
         [Authorize(Policy = "RequireCustomerRole")]
