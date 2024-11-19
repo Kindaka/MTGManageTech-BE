@@ -1,4 +1,5 @@
 ﻿using MartyrGraveManagement_BAL.ModelViews.PaymentDTOs;
+using MartyrGraveManagement_DAL.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,5 +13,6 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
         Task<PaymentDTOResponse> CancelTransaction(PaymentDTORequest paymentRequest);
         Task<PaymentDTOResponse> CreatePayment(PaymentDTORequest paymentRequest);
         Task<List<PaymentDTOResponseForAdmin>> GetPaymentList(DateTime startDate, DateTime endDate, int? status);
+        Task<PaymentDTOResponse> CreateMomoPayment(Order order);
     }
 }

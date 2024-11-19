@@ -51,6 +51,34 @@ namespace MartyrGraveManagement.Controllers
             }
         }
 
+        [HttpGet("momo-return")]
+        public async Task<IActionResult> MomoReturn([FromQuery] PaymentDTORequest parameters)
+        {
+            try
+            {
+                if (parameters.resultCode != "0")
+                {
+                    var res = await _paymentService.CancelTransaction(parameters);
+                    if (res != null) 
+                    {
+                        return Redirect(URL_ERROR);
+                    }
+                    return NotFound("Order does not created");
+                }
+
+                var result = await _paymentService.CreatePayment(parameters);
+                if (result != null)
+                {
+                    return Redirect(URL_SUCCESS);
+                }
+                return Redirect(URL_ERROR);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
         [HttpGet("get-payments")]
         public async Task<IActionResult> GetPayments(DateTime startDate, DateTime endDate, int status)
         {

@@ -18,5 +18,8 @@ namespace MartyrGraveManagement_BAL.ModelViews.PaymentDTOs
         public int TransactionStatus { get; set; }
         public double PaymentAmount { get; set; }
         public int OrderId { get; set; }
+
+        public string? PaymentUrl { get; set; } 
+
     }
 }

@@ -23,14 +23,18 @@ namespace MartyrGraveManagement_BAL.Services.Implements
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IConfiguration _configuration;
+        private readonly IPaymentService _paymentService;
 
 
-        public OrdersService(IUnitOfWork unitOfWork, IMapper mapper, IConfiguration configuration)
+
+        public OrdersService(IUnitOfWork unitOfWork, IMapper mapper, IConfiguration configuration, IPaymentService paymentService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _configuration = configuration;
+            _paymentService = paymentService;
         }
+
 
         public async Task<(List<OrdersGetAllDTOResponse> orderList, int totalPage)> GetOrderByAccountId(int accountId, int pageIndex, int pageSize, DateTime? date, int? status)
         {
@@ -451,19 +455,20 @@ namespace MartyrGraveManagement_BAL.Services.Implements
         //}
 
 
-        public async Task<(bool status, string? paymentUrl, string responseContent)> CreateOrderFromCartAsync(int accountId, OrdersDTORequest orderBody)
+        public async Task<(bool status, string? paymentUrl, string responseContent)> CreateOrderFromCartAsync(int accountId, OrdersDTORequest orderBody, string paymentMethod)
         {
             using (var transaction = await _unitOfWork.BeginTransactionAsync())
             {
                 try
                 {
+                    // Lấy thông tin tài khoản và giỏ hàng
                     var account = await _unitOfWork.AccountRepository.GetByIDAsync(accountId);
                     if (account == null)
                     {
                         return (false, null, "Không tìm thấy tài khoản.");
                     }
 
-                    if (account.Status == false)
+                    if (!account.Status)
                     {
                         return (false, null, "Tài khoản đã bị khóa.");
                     }
@@ -474,25 +479,25 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         return (false, null, "Không có sản phẩm trong giỏ hàng.");
                     }
 
-                    // Kiểm tra tất cả dịch vụ trước khi thêm vào đơn hàng
+                    // Tính toán tổng giá và tạo chi tiết đơn hàng
                     decimal totalPrice = 0;
-                    List<OrderDetail> orderDetails = new List<OrderDetail>();
-
+                    var orderDetails = new List<OrderDetail>();
                     foreach (var cartItem in cartItems)
                     {
                         var service = await _unitOfWork.ServiceRepository.GetByIDAsync(cartItem.ServiceId);
-                        if (service == null || service.Status == false)
+                        if (service == null || !service.Status)
                         {
-                            return (false, null, $"Dịch vụ {cartItem.ServiceId} đã ngừng cung cấp.");
+                            return (false, null, $"Dịch vụ {cartItem.ServiceId} không khả dụng.");
                         }
 
-                        // Kiểm tra nếu CustomerCode của Account và MartyrGrave trùng nhau thì áp dụng giảm giá
+                        // Lấy thông tin mộ liệt sĩ
                         var grave = await _unitOfWork.MartyrGraveRepository.GetByIDAsync(cartItem.MartyrId);
                         decimal priceToApply = (decimal)service.Price;
 
+                        // Kiểm tra xem người đặt hàng có phải là người quản lý mộ không
                         if (grave.AccountId == account.AccountId)
                         {
-                            // Giảm giá 5% nếu điều kiện CustomerCode trùng khớp
+                            // Giảm giá 5% nếu người đặt hàng là người quản lý mộ
                             priceToApply *= 0.95m;
                         }
 
@@ -506,13 +511,13 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         });
                     }
 
-                    // Tạo Order sau khi kiểm tra
+                    // Tạo đơn hàng
                     var order = new Order
                     {
                         AccountId = accountId,
                         OrderDate = DateTime.Now,
                         TotalPrice = totalPrice,
-                        Status = 0,  // Chưa thanh toán
+                        Status = 0, // Chưa thanh toán
                         ExpectedCompletionDate = orderBody.ExpectedCompletionDate,
                         Note = orderBody.Note
                     };
@@ -520,7 +525,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     await _unitOfWork.OrderRepository.AddAsync(order);
                     await _unitOfWork.SaveAsync();
 
-                    // Thêm các chi tiết đơn hàng
+                    // Thêm chi tiết đơn hàng
                     foreach (var orderDetail in orderDetails)
                     {
                         orderDetail.OrderId = order.OrderId;
@@ -528,10 +533,28 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     }
                     await _unitOfWork.SaveAsync();
 
-                    // Tạo link thanh toán VNPay
-                    var paymentUrl = CreateVnpayLink(order);
-                    await transaction.CommitAsync();
+                    // Tạo link thanh toán
+                    string paymentUrl;
+                    if (paymentMethod.ToLower() == "vnpay")
+                    {
+                        paymentUrl = CreateVnpayLink(order);
+                    }
+                    else if (paymentMethod.ToLower() == "momo")
+                    {
+                        var momoPayment = await _paymentService.CreateMomoPayment(order);
+                        if (momoPayment == null)
+                        {
+                            await transaction.RollbackAsync();
+                            return (false, null, "Không thể tạo thanh toán MoMo");
+                        }
+                        paymentUrl = momoPayment.PaymentUrl; // Lấy URL thanh toán từ response
+                    }
+                    else
+                    {
+                        return (false, null, "Phương thức thanh toán không hợp lệ.");
+                    }
 
+                    await transaction.CommitAsync();
                     return (true, paymentUrl, "Đơn hàng đã được tạo thành công. Vui lòng thanh toán.");
                 }
                 catch (Exception ex)
@@ -541,6 +564,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 }
             }
         }
+
 
 
 
@@ -573,7 +597,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
         }
 
-        public async Task<(List<OrderDetailDtoResponse> orderDetailList, int totalPage)> GetOrderByAreaId(int managerId,int pageIndex, int pageSize, DateTime Date)
+        public async Task<(List<OrderDetailDtoResponse> orderDetailList, int totalPage)> GetOrderByAreaId(int managerId, int pageIndex, int pageSize, DateTime Date)
         {
             try
             {
@@ -583,14 +607,15 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 //    includeProperties: "OrderDetails,OrderDetails.Service,OrderDetails.MartyrGrave.MartyrGraveInformations"
                 //);
                 var manager = await _unitOfWork.AccountRepository.GetByIDAsync(managerId);
-                if(manager == null)
+                if (manager == null)
                 {
                     return (new List<OrderDetailDtoResponse>(), 0); // Trả về danh sách rỗng nếu không có đơn hàng
                 }
                 int totalPage = 0;
                 int totalOrder = 0;
                 IEnumerable<OrderDetail> orderDetails = new List<OrderDetail>();
-                if (Date == DateTime.MinValue) {
+                if (Date == DateTime.MinValue)
+                {
                     totalOrder = (await _unitOfWork.OrderDetailRepository.GetAsync(s => s.MartyrGrave.AreaId == manager.AreaId,
                     includeProperties: "MartyrGrave,Order")).Count();
                     totalPage = (int)Math.Ceiling(totalOrder / (double)pageSize);
@@ -625,49 +650,49 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
                 foreach (var orderDetail in orderDetails)
                 {
-                        var martyrGraveInfo = orderDetail.MartyrGrave?.MartyrGraveInformations?.FirstOrDefault();
+                    var martyrGraveInfo = orderDetail.MartyrGrave?.MartyrGraveInformations?.FirstOrDefault();
 
-                        var orderDetailDto = new OrderDetailDtoResponse
-                        {
-                            OrderId = orderDetail.OrderId,
-                            DetailId = orderDetail.DetailId,
-                            OrderDate = orderDetail.Order.OrderDate,
-                            ExpectedCompletionDate = orderDetail.Order.ExpectedCompletionDate,
-                            Note = orderDetail.Order.Note,
-                            orderStatus = orderDetail.Order.Status,
-                            ServiceName = orderDetail.Service?.ServiceName,
-                            MartyrName = martyrGraveInfo?.Name, // Lấy thông tin liệt sĩ từ MartyrGraveInformation
-                            OrderPrice = orderDetail.OrderPrice
-                        };
+                    var orderDetailDto = new OrderDetailDtoResponse
+                    {
+                        OrderId = orderDetail.OrderId,
+                        DetailId = orderDetail.DetailId,
+                        OrderDate = orderDetail.Order.OrderDate,
+                        ExpectedCompletionDate = orderDetail.Order.ExpectedCompletionDate,
+                        Note = orderDetail.Order.Note,
+                        orderStatus = orderDetail.Order.Status,
+                        ServiceName = orderDetail.Service?.ServiceName,
+                        MartyrName = martyrGraveInfo?.Name, // Lấy thông tin liệt sĩ từ MartyrGraveInformation
+                        OrderPrice = orderDetail.OrderPrice
+                    };
 
-                        var taskStatus = (await _unitOfWork.TaskRepository.GetAsync(t => t.DetailId == orderDetail.DetailId)).FirstOrDefault();
-                        if (taskStatus != null)
+                    var taskStatus = (await _unitOfWork.TaskRepository.GetAsync(t => t.DetailId == orderDetail.DetailId)).FirstOrDefault();
+                    if (taskStatus != null)
+                    {
+                        orderDetailDto.StatusTask = taskStatus.Status;
+                    }
+                    if (manager.AreaId == orderDetail.MartyrGrave.AreaId)
+                    {
+                        var accountStaffs = await _unitOfWork.AccountRepository.GetAsync(s => s.AreaId == orderDetail.MartyrGrave.AreaId && s.RoleId == 3);
+                        if (accountStaffs != null)
                         {
-                            orderDetailDto.StatusTask = taskStatus.Status;
-                        }
-                        if (manager.AreaId == orderDetail.MartyrGrave.AreaId)
-                        {
-                            var accountStaffs = await _unitOfWork.AccountRepository.GetAsync(s => s.AreaId == orderDetail.MartyrGrave.AreaId && s.RoleId == 3);
-                            if (accountStaffs != null)
+                            foreach (var accountStaff in accountStaffs)
                             {
-                                foreach (var accountStaff in accountStaffs)
+                                if (accountStaff.Status == true)
                                 {
-                                    if (accountStaff.Status == true)
+                                    var staffDto = new StaffDtoResponse
                                     {
-                                        var staffDto = new StaffDtoResponse
-                                        {
-                                            AccountId = accountStaff.AccountId,
-                                            StaffFullName = accountStaff.FullName
-                                        };
-                                        orderDetailDto.Staffs?.Add(staffDto);
-                                    }
+                                        AccountId = accountStaff.AccountId,
+                                        StaffFullName = accountStaff.FullName
+                                    };
+                                    orderDetailDto.Staffs?.Add(staffDto);
                                 }
                             }
                         }
-                        orderDetailList.Add(orderDetailDto);
+                    }
+                    orderDetailList.Add(orderDetailDto);
 
 
-                    
+
                 }
 
                 return (orderDetailList, totalPage);
@@ -709,11 +734,12 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 StatusTask = orderDetail.StaffTask?.Status ?? 0
             };
 
-            if(orderDetailDto.StatusTask == 1 || orderDetailDto.StatusTask == 2 || orderDetailDto.StatusTask == 3 || orderDetailDto.StatusTask == 4 || orderDetailDto.StatusTask == 5)
+            if (orderDetailDto.StatusTask == 1 || orderDetailDto.StatusTask == 2 || orderDetailDto.StatusTask == 3 || orderDetailDto.StatusTask == 4 || orderDetailDto.StatusTask == 5)
             {
                 // Lấy danh sách nhân viên thuộc cùng AreaId và task của detail đó
                 var taskStaff = (await _unitOfWork.TaskRepository.GetAsync(t => t.DetailId == orderDetailDto.DetailId, includeProperties: "Account")).FirstOrDefault();
-                if (taskStaff != null) {
+                if (taskStaff != null)
+                {
                     var orderDetailStaff = new StaffDtoResponse
                     {
                         AccountId = taskStaff.AccountId,
@@ -722,7 +748,8 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     orderDetailDto.Staffs.Add(orderDetailStaff);
                 }
             }
-            else {
+            else
+            {
                 // Lấy danh sách nhân viên thuộc cùng AreaId
                 var accountStaffs = await _unitOfWork.AccountRepository.GetAsync(
                 s => s.AreaId == orderDetail.MartyrGrave.AreaId && s.RoleId == 3 && s.Status == true
@@ -741,7 +768,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
 
             return orderDetailDto;
-            
+
         }
 
 

@@ -166,37 +166,50 @@ namespace MartyrGraveManagement.Controllers
 
         [Authorize(Policy = "RequireCustomerRole")]
         [HttpPost]
-        public async Task<ActionResult<OrdersDTOResponse>> Create(int customerId, [FromBody] OrdersDTORequest orderBody)
+        public async Task<ActionResult> CreateOrderAndGeneratePaymentUrl(int customerId, [FromBody] OrdersDTORequest orderBody, [FromQuery] string paymentMethod)
         {
             try
             {
-                if (orderBody.ExpectedCompletionDate <= DateTime.Now.AddDays(3)) {
-                    return BadRequest("Ngày hoàn thành dự kiến phải ít nhất sau 3 ngày kể từ bây giờ");
+                // Kiểm tra ngày hoàn thành dự kiến
+                if (orderBody.ExpectedCompletionDate <= DateTime.Now.AddDays(3))
+                {
+                    return BadRequest("Ngày hoàn thành dự kiến phải ít nhất sau 3 ngày kể từ bây giờ.");
                 }
+
+                // Lấy AccountId từ JWT token
                 var accountId = User.FindFirst("AccountId")?.Value;
                 if (accountId == null)
                 {
                     return Forbid();
                 }
+
+                // Kiểm tra quyền sở hữu
                 var checkMatchedId = await _authorizeService.CheckAuthorizeByCustomerId(customerId, int.Parse(accountId));
                 if (!checkMatchedId.isMatchedCustomer)
                 {
                     return Forbid();
                 }
-                var create = await _odersService.CreateOrderFromCartAsync(customerId, orderBody);
-                if (create.status)
+
+                // Tạo đơn hàng và lấy link thanh toán từ service
+                var createResult = await _odersService.CreateOrderFromCartAsync(customerId, orderBody, paymentMethod);
+
+                // Kiểm tra kết quả
+                if (createResult.status)
                 {
-                    return Ok(new { paymentUrl = create.paymentUrl, responseContent = create.responseContent });
+                    return Ok(new { paymentUrl = createResult.paymentUrl, message = createResult.responseContent });
                 }
                 else
                 {
-                    return BadRequest(create.responseContent);
+                    return BadRequest(createResult.responseContent);
                 }
-                
             }
             catch (KeyNotFoundException ex)
             {
                 return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
             }
         }
 
