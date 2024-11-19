@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using MartyrGraveManagement_BAL.ModelViews.BlogDTOs;
+using MartyrGraveManagement_BAL.ModelViews.TaskDTOs;
 using MartyrGraveManagement_BAL.Services.Interfaces;
 using MartyrGraveManagement_DAL.Entities;
 using MartyrGraveManagement_DAL.UnitOfWorks.Interfaces;
@@ -153,30 +154,94 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
 
 
-        public async Task<List<BlogDTO>> GetAllBlogsAsync()
+        public async Task<(IEnumerable<BlogDTO> blogList, int totalPage)> GetAllBlogsAsync(int managerId, int pageIndex, int pageSize, DateTime Date)
         {
-            var blogs = await _unitOfWork.BlogRepository.GetAllAsync(includeProperties: "Account,HistoricalEvent");
-            var blogDtos = new List<BlogDTO>();
+            //var blogs = await _unitOfWork.BlogRepository.GetAllAsync(includeProperties: "Account,HistoricalEvent");
+            //var blogDtos = new List<BlogDTO>();
 
-            foreach (var blog in blogs)
+            //foreach (var blog in blogs)
+            //{
+            //    blogDtos.Add(new BlogDTO
+            //    {
+            //        BlogId = blog.BlogId,
+            //        BlogName = blog.BlogName,
+            //        BlogDescription = blog.BlogDescription,
+            //        BlogContent = blog.BlogContent,
+            //        AccountId = blog.AccountId,
+            //        FullName = blog.Account?.FullName,
+            //        HistoryId = blog.HistoryId,
+            //        BlogCategoryName = blog.HistoricalEvent?.BlogCategoryName,
+            //        CreateDate = blog.CreateDate,
+            //        UpdateDate = blog.UpdateDate,
+            //        Status = blog.Status
+            //    });
+            //}
+
+            //return blogDtos;
+            try
             {
-                blogDtos.Add(new BlogDTO
+                // Kiểm tra xem AccountId có tồn tại không
+                var account = await _unitOfWork.AccountRepository.GetByIDAsync(managerId);
+                if (account == null)
                 {
-                    BlogId = blog.BlogId,
-                    BlogName = blog.BlogName,
-                    BlogDescription = blog.BlogDescription,
-                    BlogContent = blog.BlogContent,
-                    AccountId = blog.AccountId,
-                    FullName = blog.Account?.FullName,
-                    HistoryId = blog.HistoryId,
-                    BlogCategoryName = blog.HistoricalEvent?.BlogCategoryName,
-                    CreateDate = blog.CreateDate,
-                    UpdateDate = blog.UpdateDate,
-                    Status = blog.Status
-                });
-            }
+                    throw new KeyNotFoundException("Account not found.");
+                }
 
-            return blogDtos;
+                int totalPage = 0;
+                int totalBlog = 0;
+                IEnumerable<Blog> blogs = new List<Blog>();
+                if (Date == DateTime.MinValue)
+                {
+                    totalBlog = (await _unitOfWork.BlogRepository.GetAsync(s => s.Account.AreaId == account.AreaId, includeProperties: "Account,HistoricalEvent")).Count();
+                    totalPage = (int)Math.Ceiling(totalBlog / (double)pageSize);
+                    // Lấy tất cả các đơn hàng dựa trên AccountId và bao gồm các chi tiết đơn hàng
+                    blogs = await _unitOfWork.BlogRepository.GetAsync(s => s.Account.AreaId == account.AreaId, includeProperties: "Account,HistoricalEvent", orderBy: q => q.OrderByDescending(s => s.UpdateDate),
+                    pageIndex: pageIndex, pageSize: pageSize);
+                }
+                else
+                {
+                    totalBlog = (await _unitOfWork.BlogRepository.GetAsync(s => s.Account.AreaId == account.AreaId && s.UpdateDate.Date == Date.Date, includeProperties: "Account,HistoricalEvent")).Count();
+                    totalPage = (int)Math.Ceiling(totalBlog / (double)pageSize);
+                    // Lấy tất cả các đơn hàng dựa trên AccountId và bao gồm các chi tiết đơn hàng
+                    blogs = await _unitOfWork.BlogRepository.GetAsync(t => t.Account.AreaId == account.AreaId && t.UpdateDate.Date == Date.Date, includeProperties: "Account,HistoricalEvent", orderBy: q => q.OrderByDescending(s => s.UpdateDate),
+                    pageIndex: pageIndex, pageSize: pageSize);
+                }
+
+
+                // Lấy danh sách các Task thuộc về account, bao gồm các bảng liên quan
+
+
+                if (!blogs.Any())
+                {
+                    throw new InvalidOperationException("This account does not have any tasks.");
+                }
+
+                // Ánh xạ FullName từ Account và các thông tin khác
+                var blogResponses = new List<BlogDTO>();
+                foreach (var blog in blogs)
+                {
+                    blogResponses.Add(new BlogDTO
+                    {
+                        BlogId = blog.BlogId,
+                        BlogName = blog.BlogName,
+                        BlogDescription = blog.BlogDescription,
+                        BlogContent = blog.BlogContent,
+                        AccountId = blog.AccountId,
+                        FullName = blog.Account?.FullName,
+                        HistoryId = blog.HistoryId,
+                        BlogCategoryName = blog.HistoricalEvent?.BlogCategoryName,
+                        CreateDate = blog.CreateDate,
+                        UpdateDate = blog.UpdateDate,
+                        Status = blog.Status
+                    });
+                }
+
+                return (blogResponses, totalPage);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
 
         public async Task<(List<BlogDTO> blogList, int totalPage)> GetAllBlogsWithStatusTrueAsync(int pageIndex = 1, int pageSize = 5)

@@ -595,7 +595,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     includeProperties: "MartyrGrave,Order")).Count();
                     totalPage = (int)Math.Ceiling(totalOrder / (double)pageSize);
                     orderDetails = await _unitOfWork.OrderDetailRepository.GetAsync(od => od.MartyrGrave.AreaId == manager.AreaId,
-                    includeProperties: "MartyrGrave.MartyrGraveInformations,Service,Order", pageIndex: pageIndex, pageSize: pageSize);
+                    includeProperties: "MartyrGrave.MartyrGraveInformations,Service,Order", orderBy: q => q.OrderByDescending(s => s.Order.OrderDate), pageIndex: pageIndex, pageSize: pageSize);
                 }
                 else
                 {

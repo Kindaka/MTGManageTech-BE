@@ -146,6 +146,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         ImagePath1 = attendance.ImagePath1,
                         ImagePath2 = attendance.ImagePath2,
                         ImagePath3 = attendance.ImagePath3,
+                        Note = attendance.Note,
                         status = attendance.Status,
                     };
                     return attendanceItem;

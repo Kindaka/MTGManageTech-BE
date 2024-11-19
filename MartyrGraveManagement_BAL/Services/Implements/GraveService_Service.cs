@@ -154,22 +154,22 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
         }
 
-        public async Task<List<ServiceDtoResponse>> GetAllServicesForGrave(int martyrId, int? categoryId)
+        public async Task<List<GraveServiceDtoResponse>> GetAllServicesForGrave(int martyrId, int? categoryId)
         {
             try
             {
-                List<ServiceDtoResponse> serviceList = new List<ServiceDtoResponse>();
+                List<GraveServiceDtoResponse> serviceList = new List<GraveServiceDtoResponse>();
                 List<GraveService> listGraveServices = new List<GraveService>();
                 if (categoryId == 0)
                 {
-                    listGraveServices = (await _unitOfWork.GraveServiceRepository.GetAsync(gs => gs.MartyrId == martyrId)).ToList();
+                    listGraveServices = (await _unitOfWork.GraveServiceRepository.GetAsync(gs => gs.MartyrId == martyrId, includeProperties: "Service.ServiceCategory,MartyrGrave")).ToList();
                 }
                 else
                 {
                     var category = await _unitOfWork.ServiceCategoryRepository.GetByIDAsync(categoryId);
                     if (category != null)
                     {
-                        listGraveServices = (await _unitOfWork.GraveServiceRepository.GetAsync(gs => gs.MartyrId == martyrId && gs.Service.ServiceCategory.CategoryId == categoryId, includeProperties: "Service.ServiceCategory")).ToList();
+                        listGraveServices = (await _unitOfWork.GraveServiceRepository.GetAsync(gs => gs.MartyrId == martyrId && gs.Service.ServiceCategory.CategoryId == categoryId, includeProperties: "Service.ServiceCategory,MartyrGrave")).ToList();
                     }
                     else
                     {
@@ -178,39 +178,66 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 }
                 if (listGraveServices != null)
                 {
-                    List<Service> services = new List<Service>();
                     foreach(var graveService in listGraveServices)
                     {
-                        var service = await _unitOfWork.ServiceRepository.GetByIDAsync(graveService.ServiceId);
-                        if(service != null)
+                        var item = new GraveServiceDtoResponse
                         {
-                            services.Add(service);
-                        }
+                            GraveServiceId = graveService.GraveServiceId,
+                            MartyrId = graveService.MartyrId,
+                            ServiceId = graveService.ServiceId,
+                            CategoryId = graveService.Service.ServiceCategory.CategoryId,
+                            ServiceName = graveService.Service.ServiceName,
+                            CategoryName = graveService.Service.ServiceCategory.CategoryName,
+                            Description = graveService.Service.Description,
+                            Price = graveService.Service.Price,
+                            ImagePath = graveService.Service.ImagePath,
+                            Status = graveService.Service.Status,
+
+                        };
+                        serviceList.Add(item);
                     }
 
 
 
-                    if (services != null)
-                    {
-                        foreach (var service in services)
-                        {
-                            var mapper = _mapper.Map<ServiceDtoResponse>(service);
-                            var category = await _unitOfWork.ServiceCategoryRepository.GetByIDAsync(service.CategoryId);
-                            mapper.CategoryName = category.CategoryName;
-                            serviceList.Add(mapper);
-                        }
+                    //if (services != null)
+                    //{
+                    //    foreach (var service in services)
+                    //    {
+                    //        var mapper = _mapper.Map<GraveServiceDtoResponse>(service);
+                    //        var category = await _unitOfWork.ServiceCategoryRepository.GetByIDAsync(service.CategoryId);
+                    //        mapper.CategoryName = category.CategoryName;
+                    //        serviceList.Add(mapper);
+                    //    }
 
-                    }
+                    //}
                     return serviceList;
                 }
                 else
                 {
-                    return null;
+                    return serviceList;
                 }
 
             }
             catch (Exception ex)
             {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        public async Task<(bool check, string response)> DeleteServiceOfGrave(int graveServiceId)
+        {
+            try
+            {
+                var graveService = await _unitOfWork.GraveServiceRepository.GetByIDAsync(graveServiceId);
+                if(graveService != null)
+                {
+                    await _unitOfWork.GraveServiceRepository.DeleteAsync(graveService);
+                    await _unitOfWork.SaveAsync();
+                    return (true, "Đã xóa thành công");
+                }
+                return (false, "Không tìm thấy dịch vụ của mộ");
+            }
+            catch (Exception ex) { 
                 throw new Exception(ex.Message);
             }
         }

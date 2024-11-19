@@ -1,4 +1,5 @@
 ﻿using MartyrGraveManagement_BAL.ModelViews.BlogDTOs;
+using MartyrGraveManagement_BAL.Services.Implements;
 using MartyrGraveManagement_BAL.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -102,23 +103,23 @@ namespace MartyrGraveManagement.Controllers
             }
         }
 
-        /// <summary>
-        /// View All Blog (True and False) Manager
-        /// </summary>
-        [Authorize(Policy = "RequireManagerRole")]
-        [HttpGet("GetAllBlogs")]
-        public async Task<IActionResult> GetAllBlogs()
-        {
-            try
-            {
-                var blogs = await _blogService.GetAllBlogsAsync();
-                return Ok(new { message = "Blogs retrieved successfully.", data = blogs });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = $"Lỗi khi lấy danh sách Blogs: {ex.Message}" });
-            }
-        }
+        ///// <summary>
+        ///// View All Blog (True and False) Manager
+        ///// </summary>
+        //[Authorize(Policy = "RequireManagerRole")]
+        //[HttpGet("GetAllBlogs")]
+        //public async Task<IActionResult> GetAllBlogs()
+        //{
+        //    try
+        //    {
+        //        var blogs = await _blogService.GetAllBlogsAsync();
+        //        return Ok(new { message = "Blogs retrieved successfully.", data = blogs });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, new { message = $"Lỗi khi lấy danh sách Blogs: {ex.Message}" });
+        //    }
+        //}
 
         /// <summary>
         /// View All Blogs with status true and pagination (Customer)
@@ -211,6 +212,38 @@ namespace MartyrGraveManagement.Controllers
                 return Ok(new { message = result });
             }
             return BadRequest(new { message = result });
+        }
+
+
+        /// <summary>
+        /// Get blogs for manager.
+        /// </summary>
+        [Authorize(Policy = "RequireManagerRole")]
+        [HttpGet("blogs/manager/{managerId}")]
+        public async Task<IActionResult> GetBlogsBymanagerId(int managerId, DateTime Date, int pageIndex = 1, int pageSize = 5)
+        {//
+            try
+            {
+                var accountId = User.FindFirst("AccountId")?.Value;
+                if (accountId == null)
+                {
+                    return Forbid();
+                }
+                var checkMatchedId = await _authorizeService.CheckAuthorizeManagerByAccountId(managerId, int.Parse(accountId));
+                if (!checkMatchedId.isMatchedAccountManager)
+                {
+                    return Forbid();
+                }
+
+                var blogs = await _blogService.GetAllBlogsAsync(managerId, pageIndex, pageSize, Date);
+
+
+                return Ok(new { blogs = blogs.blogList, totalPage = blogs.totalPage });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
     }
 }

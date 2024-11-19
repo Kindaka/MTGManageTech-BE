@@ -96,7 +96,7 @@ namespace MartyrGraveManagement.Controllers
         }
 
         /// <summary>
-        /// Get tasks by AccountId.
+        /// Get all tasks by AccountId for staff.
         /// </summary>
         [Authorize(Policy = "RequireStaffRole")]
         [HttpGet("tasks/account/{accountId}")]
@@ -117,6 +117,35 @@ namespace MartyrGraveManagement.Controllers
 
 
                 return Ok(new {tasks = tasks.taskList, totalPage = tasks.totalPage});
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Get tasks not scheduling (task status 1) by AccountId for staff.
+        /// </summary>
+        [Authorize(Policy = "RequireStaffRole")]
+        [HttpGet("tasksNotScheduling/account/{accountId}")]
+        public async Task<IActionResult> GetTasksNotSchedulingByAccountId(int accountId, DateTime Date, int pageIndex = 1, int pageSize = 5)
+        {//
+            try
+            {
+                var userId = int.Parse(User.FindFirst("AccountId")?.Value); // Giả sử bạn lưu userId trong token
+
+                // Kiểm tra quyền truy cập bằng authorizeService
+                var (isMatchedStaff, isAuthorizedAccount) = await _authorizeService.CheckAuthorizeStaffByAccountId(userId, accountId);
+                if (!isMatchedStaff)
+                {
+                    return Forbid("You do not have permission to access tasks for this account.");
+                }
+
+                var tasks = await _taskService.GetTasksNotSchedulingByAccountIdAsync(accountId, pageIndex, pageSize, Date);
+
+
+                return Ok(new { tasks = tasks.taskList, totalPage = tasks.totalPage });
             }
             catch (Exception ex)
             {

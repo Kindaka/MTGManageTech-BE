@@ -6,6 +6,7 @@ using MartyrGraveManagement_DAL.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Identity.Client;
 
 namespace MartyrGraveManagement.Controllers
 {
@@ -23,18 +24,33 @@ namespace MartyrGraveManagement.Controllers
 
         [Authorize(Policy = "RequireManagerRole")]
         [HttpPost]
-        public async Task<IActionResult> CreateServiceGrave(GraveServiceDtoRequest graveServiceDTO)
+        public async Task<IActionResult> CreateServiceGrave(int managerId, GraveServiceDtoRequest graveServiceDTO)
         {//
             try
             {
-                var accountId = User.FindFirst("AccountId")?.Value;
-                if (accountId == null)
-                {
-                    return Forbid();
-                }
                 if (graveServiceDTO == null)
                 {
                     return BadRequest("Cannot add empty service to grave");
+                }
+                // Lấy AccountId từ token
+                var tokenAccountIdClaim = User.FindFirst("AccountId");
+                if (tokenAccountIdClaim == null || string.IsNullOrEmpty(tokenAccountIdClaim.Value))
+                {
+                    return Forbid("Không tìm thấy AccountId trong token.");
+                }
+
+                var tokenAccountId = int.Parse(tokenAccountIdClaim.Value);
+
+                // Kiểm tra nếu AccountId trong URL có khớp với AccountId trong token không
+                if (tokenAccountId != managerId)
+                {
+                    return Forbid("Bạn không có quyền cập nhật thông tin của tài khoản này.");
+                }
+
+                var checkAuthorize = await _authorizeService.CheckAuthorizeManagerByAccountId(tokenAccountId, managerId);
+                if (!checkAuthorize.isMatchedAccountManager || !checkAuthorize.isAuthorizedAccount)
+                {
+                    return Forbid();
                 }
                 var check = await _serviceOfGrave.CreateServiceForGrave(graveServiceDTO);
                 if(check.check)
@@ -69,6 +85,49 @@ namespace MartyrGraveManagement.Controllers
                     return BadRequest("Cannot add empty service to grave");
                 }
                 var check = await _serviceOfGrave.UpdateServiceForGrave(martyrId, graveServiceDTO);
+                if (check.check)
+                {
+                    return Ok(check.response);
+                }
+                else
+                {
+                    return NotFound(check.response);
+                }
+
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+        }
+
+        [Authorize(Policy = "RequireManagerRole")]
+        [HttpDelete]
+        public async Task<IActionResult> DeleteServiceGrave(int graveServiceId, int managerId)
+        {
+            try
+            {
+                // Lấy AccountId từ token
+                var tokenAccountIdClaim = User.FindFirst("AccountId");
+                if (tokenAccountIdClaim == null || string.IsNullOrEmpty(tokenAccountIdClaim.Value))
+                {
+                    return Forbid("Không tìm thấy AccountId trong token.");
+                }
+
+                var tokenAccountId = int.Parse(tokenAccountIdClaim.Value);
+
+                // Kiểm tra nếu AccountId trong URL có khớp với AccountId trong token không
+                if (tokenAccountId != managerId)
+                {
+                    return Forbid("Bạn không có quyền cập nhật thông tin của tài khoản này.");
+                }
+
+                var checkAuthorize = await _authorizeService.CheckAuthorizeManagerByAccountId(tokenAccountId, managerId);
+                if (!checkAuthorize.isMatchedAccountManager || !checkAuthorize.isAuthorizedAccount)
+                {
+                    return Forbid();
+                }
+                var check = await _serviceOfGrave.DeleteServiceOfGrave(graveServiceId);
                 if (check.check)
                 {
                     return Ok(check.response);
