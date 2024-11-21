@@ -348,7 +348,30 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             return BitConverter.ToString(hash).Replace("-", "").ToLower();
         }
 
-
+        public async Task<PaymentDTOResponseForAdmin> GetPaymentById(int paymentId)
+        {
+            try
+            {                
+                var payments = (await _unitOfWork.PaymentRepository.GetAsync(p => p.PaymentId == paymentId, includeProperties: "Order.Account")).FirstOrDefault();
+                if (payments != null)
+                {
+                    var paymentDtoResponse = new PaymentDTOResponseForAdmin
+                    {
+                        CustomerName = payments.Order.Account.FullName,
+                        PaymentMethod = payments.PaymentMethod,
+                        PayDate = payments.PayDate,
+                        PaymentAmount = payments.PaymentAmount,
+                        OrderId = payments.OrderId,
+                        Status = payments.TransactionStatus
+                    };
+                    return paymentDtoResponse;
+                }
+                return null;
+            }
+            catch (Exception ex) {
+                throw new Exception($"Error: {ex.Message}");
+            }
+        }
     }
 }
 

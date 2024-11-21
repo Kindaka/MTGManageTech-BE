@@ -1,5 +1,6 @@
 ﻿using MartyrGraveManagement_BAL.ModelViews.PaymentDTOs;
 using MartyrGraveManagement_BAL.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -79,6 +80,7 @@ namespace MartyrGraveManagement.Controllers
             }
         }
 
+        [Authorize(Policy = "RequireManagerRole")]
         [HttpGet("get-payments")]
         public async Task<IActionResult> GetPayments(DateTime startDate, DateTime endDate, int status)
         {
@@ -92,5 +94,22 @@ namespace MartyrGraveManagement.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
+
+        [Authorize(Policy = "RequireManagerRole")]
+        [HttpGet("get-payment/{paymentId}")]
+        public async Task<IActionResult> GetPaymentById(int paymentId)
+        {
+            try
+            {
+                var payments = await _paymentService.GetPaymentById(paymentId);
+                return Ok(payments);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+
     }
 }

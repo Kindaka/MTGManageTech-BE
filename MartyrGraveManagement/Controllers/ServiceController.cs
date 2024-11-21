@@ -192,10 +192,6 @@ namespace MartyrGraveManagement.Controllers
                 Console.WriteLine($"Lỗi không mong muốn: {ex}");
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
-        }
-
-
-
-
+        }       
     }
 }

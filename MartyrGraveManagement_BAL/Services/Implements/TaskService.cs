@@ -221,7 +221,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 {
                     throw new KeyNotFoundException("Account not found.");
                 }
-
+                var taskResponses = new List<TaskDtoResponse>();
                 int totalPage = 0;
                 int totalTask = 0;
                 IEnumerable<StaffTask> tasks = new List<StaffTask>();
@@ -230,7 +230,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     totalTask = (await _unitOfWork.TaskRepository.GetAsync(s => s.OrderDetail.MartyrGrave.AreaId == account.AreaId, includeProperties: "OrderDetail.MartyrGrave,Account")).Count();
                     totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
                     // Lấy tất cả các đơn hàng dựa trên AccountId và bao gồm các chi tiết đơn hàng
-                    tasks = await _unitOfWork.TaskRepository.GetAsync(s => s.OrderDetail.MartyrGrave.AreaId == account.AreaId, includeProperties: "OrderDetail.Service,OrderDetail.MartyrGrave,Account",
+                    tasks = await _unitOfWork.TaskRepository.GetAsync(s => s.OrderDetail.MartyrGrave.AreaId == account.AreaId, includeProperties: "OrderDetail.Service.ServiceCategory,OrderDetail.MartyrGrave,Account",
                     pageIndex: pageIndex, pageSize: pageSize);
                 }
                 else
@@ -238,7 +238,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     totalTask = (await _unitOfWork.TaskRepository.GetAsync(s => s.OrderDetail.MartyrGrave.AreaId == account.AreaId && s.StartDate.Date == Date.Date, includeProperties: "OrderDetail.MartyrGrave,Account")).Count();
                     totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
                     // Lấy tất cả các đơn hàng dựa trên AccountId và bao gồm các chi tiết đơn hàng
-                    tasks = await _unitOfWork.TaskRepository.GetAsync(t => t.OrderDetail.MartyrGrave.AreaId == account.AreaId && t.StartDate.Date == Date.Date, includeProperties: "OrderDetail.Service,OrderDetail.MartyrGrave,Account",
+                    tasks = await _unitOfWork.TaskRepository.GetAsync(t => t.OrderDetail.MartyrGrave.AreaId == account.AreaId && t.StartDate.Date == Date.Date, includeProperties: "OrderDetail.Service.ServiceCategory,OrderDetail.MartyrGrave,Account",
                     pageIndex: pageIndex, pageSize: pageSize);
                 }
 
@@ -248,11 +248,11 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
                 if (!tasks.Any())
                 {
-                    throw new InvalidOperationException("This account does not have any tasks.");
+                    return (taskResponses, 0);
                 }
 
-                // Ánh xạ FullName từ Account và các thông tin khác
-                var taskResponses = new List<TaskDtoResponse>();
+
+
                 foreach (var task in tasks)
                 {
                     var taskDto = _mapper.Map<TaskDtoResponse>(task);
@@ -261,6 +261,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     // Lấy thông tin từ OrderDetail, Service, và MartyrGrave
                     taskDto.ServiceName = task.OrderDetail?.Service?.ServiceName;
                     taskDto.ServiceDescription = task.OrderDetail?.Service?.Description;
+                    taskDto.CategoryName = task.OrderDetail?.Service?.ServiceCategory?.CategoryName;
 
                     // Ghép vị trí mộ từ AreaNumber, RowNumber, và MartyrNumber
                     var martyrGrave = task.OrderDetail?.MartyrGrave;

@@ -20,6 +20,8 @@ namespace MartyrGraveManagement_DAL.Entities
         [Column(TypeName = "nvarchar(255)")]
         public string Description { get; set; }
         public DateTime UploadTime { get; set; }
+        public DateOnly StartDate { get; set; }
+        public DateOnly EndDate { get; set; }
         public bool Status { get; set; }
 
         public Account? Account { get; set; }

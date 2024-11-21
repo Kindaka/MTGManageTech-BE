@@ -9,6 +9,7 @@ using Microsoft.Identity.Client;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -365,6 +366,46 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 }
 
                 return (cartItemResponses, totalPriceInCart);  // Trả về danh sách giỏ hàng và tổng giá
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);  // Quản lý lỗi nếu có bất kỳ ngoại lệ nào
+            }
+        }
+
+        public async Task<(List<CartItemGetByGuestDTOResponse> cartitemList, double totalPriceInCart)> GetCartForGuest(List<ServiceMartyrGraveDtoRequest> requests)
+        {
+            try
+            {
+                var cartItemList = new List<CartItemGetByGuestDTOResponse>();
+                double totalPriceInCart = 0;
+                foreach (var request in requests) {
+                    var grave = await _unitOfWork.MartyrGraveRepository.GetByIDAsync(request.martyrId);
+                    var service = await _unitOfWork.ServiceRepository.GetByIDAsync(request.serviceId);
+                    if (grave != null)
+                    {
+                        // Tạo DTO response cho từng CartItem
+                        var cartItemResponse = new CartItemGetByGuestDTOResponse
+                        {
+                            ServiceId = service.ServiceId,
+                            MartyrCode = grave.MartyrCode,
+                            MartyrId = grave.MartyrId,
+                        };
+
+                        // Lấy thông tin chi tiết của dịch vụ (Service) và ánh xạ sang DTO
+                        if (service != null)
+                        {
+                            cartItemResponse.ServiceView = _mapper.Map<ServiceDtoResponse>(service);
+
+                            // Tính tổng giá trị trong giỏ hàng
+                            totalPriceInCart += cartItemResponse.ServiceView.Price;
+                        }
+
+                        // Thêm đối tượng vào danh sách kết quả
+                        cartItemList.Add(cartItemResponse);
+                    }
+                }
+                return (cartItemList, totalPriceInCart);
             }
             catch (Exception ex)
             {

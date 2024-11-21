@@ -10,6 +10,7 @@ using MartyrGraveManagement_BAL.Services.Implements;
 using MartyrGraveManagement_BAL.Services.Interfaces;
 using MartyrGraveManagement_BAL.ModelViews.CartItemsDTOs;
 using Microsoft.AspNetCore.Authorization;
+using MartyrGraveManagement_BAL.ModelViews.ServiceDTOs;
 
 namespace MartyrGraveManagement.Controllers
 {
@@ -241,5 +242,30 @@ namespace MartyrGraveManagement.Controllers
             }
         }
 
+        /// <summary>
+        /// Get service and martyrGrave information for anonymous guest in cart.
+        /// </summary>
+        [AllowAnonymous]
+        [HttpPost("service-martyrGrave/anonymous/cart")]
+        public async Task<IActionResult> GetServiceMartyrGraveInCart(List<ServiceMartyrGraveDtoRequest> request)
+        {
+            try
+            {
+                var cartList = await _cartItemsService.GetCartForGuest(request);
+                if (cartList.cartitemList.Any())
+                {
+                    return Ok(new { cartItemList = cartList.cartitemList, totalPrice = cartList.totalPriceInCart });
+                }
+                else
+                {
+                    return Ok(cartList);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
     }
 }

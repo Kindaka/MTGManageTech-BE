@@ -1,4 +1,5 @@
 ﻿using MartyrGraveManagement_BAL.ModelViews.CartItemsDTOs;
+using MartyrGraveManagement_BAL.ModelViews.ServiceDTOs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,6 +19,6 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
         Task<(List<CartItemGetByCustomerDTOResponse> cartitemList, double totalPriceInCart)> GetCartItemsByAccountId(int accountId);
         Task<(List<CartItemGetByCustomerDTOResponse> cartitemList, double totalPriceInCart)> GetCheckoutByAccountId(int accountId);
         Task<bool> UpdateCartItemStatusByAccountId(int cartItemId, bool status);
-
+        Task<(List<CartItemGetByGuestDTOResponse> cartitemList, double totalPriceInCart)> GetCartForGuest(List<ServiceMartyrGraveDtoRequest> request);
     }
 }
