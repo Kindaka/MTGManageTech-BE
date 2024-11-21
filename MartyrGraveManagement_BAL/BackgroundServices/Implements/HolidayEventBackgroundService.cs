@@ -64,28 +64,55 @@ namespace MartyrGraveManagement_BAL.BackgroundServices.Implements
                 try
                 {
                     var tomorrow = DateOnly.FromDateTime(DateTime.Today.AddDays(1));
+                    Console.WriteLine($"Tomorrow: {tomorrow}");
 
-                    // Lấy tất cả các thông báo có ngày tạo bằng ngày mai
-                    var notificationsUpcoming = await _unitOfWork.NotificationRepository
-                        .GetAsync(n => DateOnly.FromDateTime(n.CreatedDate.Date) == tomorrow);
+                    // Lấy tất cả các sự kiện diễn ra vào ngày mai
+                    var eventsUpcoming = await _unitOfWork.HolidayEventsRepository
+                        .GetAsync(e => e.EventDate == tomorrow && e.Status == true);
 
-                    if (notificationsUpcoming.Any())
+                    Console.WriteLine($"Found {eventsUpcoming.Count()} events for tomorrow.");
+
+                    if (eventsUpcoming.Any())
                     {
-                        foreach (var notification in notificationsUpcoming)
+                        foreach (var holidayEvent in eventsUpcoming)
                         {
-                            // Lấy tất cả các NotificationAccount liên quan đến Notification này có status là false
-                            var notificationAccounts = await _unitOfWork.NotificationAccountsRepository
-                                .GetAsync(na => na.NotificationId == notification.NotificationId && na.Status == false);
+                            Console.WriteLine($"Processing event {holidayEvent.EventId}: {holidayEvent.EventName}");
 
-                            // Cập nhật status thành true cho tất cả các NotificationAccount liên quan
-                            foreach (var notificationAccount in notificationAccounts)
+                            // Lấy tất cả các Notification liên quan đến sự kiện này
+                            var notifications = await _unitOfWork.NotificationRepository
+                                .GetAsync(n => n.Description.Contains(holidayEvent.EventName) && n.Status == true);
+
+                            foreach (var notification in notifications)
                             {
-                                notificationAccount.Status = true;
-                                await _unitOfWork.NotificationAccountsRepository.UpdateAsync(notificationAccount);
-                            }
+                                Console.WriteLine($"Processing notification {notification.NotificationId}");
 
-                            // Lưu thay đổi
-                            await _unitOfWork.SaveAsync();
+                                // Lấy tất cả các NotificationAccount liên quan đến Notification này có status là false
+                                var notificationAccounts = await _unitOfWork.NotificationAccountsRepository
+                                    .GetAsync(na => na.NotificationId == notification.NotificationId && na.Status == false);
+
+                                Console.WriteLine($"Found {notificationAccounts.Count()} notification accounts to update.");
+
+                                // Cập nhật status thành true cho tất cả các NotificationAccount liên quan
+                                foreach (var notificationAccount in notificationAccounts)
+                                {
+                                    Console.WriteLine($"Updating NotificationAccount {notificationAccount.Id} to true.");
+                                    notificationAccount.Status = true;
+                                }
+
+                                // Cập nhật tất cả NotificationAccount liên quan
+                                if (notificationAccounts.Any())
+                                {
+                                    foreach (var notificationAccount in notificationAccounts)
+                                    {
+                                        notificationAccount.Status = true;
+                                    }
+
+                                    await _unitOfWork.NotificationAccountsRepository.UpdateRangeAsync(notificationAccounts);
+                                }
+
+
+                                Console.WriteLine($"Finished processing notification {notification.NotificationId}");
+                            }
                         }
                     }
                 }
@@ -99,6 +126,8 @@ namespace MartyrGraveManagement_BAL.BackgroundServices.Implements
                 await Task.Delay(10000);
             }
         }
+
+
 
 
 
