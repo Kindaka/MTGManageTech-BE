@@ -11,6 +11,8 @@ namespace MartyrGraveManagement_BAL.ModelViews.FeedbackDTOs
     {
         public int FeedbackId { get; set; }
         public int AccountId { get; set; }
+        public string AccountName { get; set; }
+        public string AvatarPath { get; set; }
         public int DetailId { get; set; }
         public int StaffId { get; set; }
         public string Content { get; set; }

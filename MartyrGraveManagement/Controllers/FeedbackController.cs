@@ -103,7 +103,7 @@ namespace MartyrGraveManagement.Controllers
         /// <summary>
         /// get feedback by detailId
         /// </summary>
-        [HttpGet("/getFeedbackWithDetailId/{detailId}")]
+        [HttpGet("getFeedbackWithDetailId/{detailId}")]
         public async Task<IActionResult> GetFeedbackByDetailId(int detailId)
         {
             var result = await _feedbackService.GetFeedbackByIdAsync(detailId);

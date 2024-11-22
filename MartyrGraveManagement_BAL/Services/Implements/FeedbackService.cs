@@ -121,6 +121,8 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             {
                 FeedbackId = feedbackEntity.FeedbackId,
                 AccountId = feedbackEntity.AccountId,
+                AccountName = feedbackEntity.Account.FullName,
+                AvatarPath = feedbackEntity.Account.AvatarPath,
                 DetailId = feedbackEntity.DetailId,
                 Content = feedbackEntity.Content,
                 CreatedAt = feedbackEntity.CreatedAt,
