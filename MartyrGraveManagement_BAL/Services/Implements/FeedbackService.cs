@@ -98,7 +98,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
         {
             // Truy xuất phản hồi bao gồm thông tin tài khoản khách hàng và chi tiết đơn hàng
             var feedback = await _unitOfWork.FeedbackRepository.GetAsync(
-                f => f.FeedbackId == id,
+                f => f.DetailId == id,
                 includeProperties: "Account,OrderDetail"
             );
             var feedbackEntity = feedback.FirstOrDefault();
