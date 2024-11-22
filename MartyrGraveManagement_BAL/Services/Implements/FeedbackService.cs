@@ -372,5 +372,46 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
         }
 
+        public async Task<(bool success, string message, FeedbackDtoResponse feedback)> GetFeedbackByDetailId(int detailId)
+        {
+            // Truy xuất phản hồi bao gồm thông tin tài khoản khách hàng và chi tiết đơn hàng
+            var feedback = await _unitOfWork.FeedbackRepository.GetAsync(
+                f => f.DetailId == detailId,
+                includeProperties: "Account,OrderDetail"
+            );
+            var feedbackEntity = feedback.FirstOrDefault();
+
+            if (feedbackEntity == null)
+            {
+                return (false, "Feedback not found.", null);
+            }
+
+            // Truy xuất thông tin nhân viên nếu StaffId có giá trị
+            string? fullNameStaff = null;
+            if (feedbackEntity.StaffId != null)
+            {
+                var staffAccount = await _unitOfWork.AccountRepository.GetByIDAsync(feedbackEntity.StaffId.Value);
+                fullNameStaff = staffAccount?.FullName;
+            }
+
+            // Tạo đối tượng phản hồi DTO
+            var responseDto = new FeedbackDtoResponse
+            {
+                FeedbackId = feedbackEntity.FeedbackId,
+                AccountId = feedbackEntity.AccountId,
+                DetailId = feedbackEntity.DetailId,
+                Content = feedbackEntity.Content,
+                CreatedAt = feedbackEntity.CreatedAt,
+                UpdatedAt = feedbackEntity.UpdatedAt,
+                Status = feedbackEntity.Status,
+                ResponseContent = feedbackEntity.ResponseContent,
+                Rating = feedbackEntity.Rating,
+                FullName = feedbackEntity.Account?.FullName,
+                StaffId = feedbackEntity.StaffId ?? 0, // Gán StaffId nếu có, ngược lại gán giá trị mặc định
+                FullNameStaff = fullNameStaff
+            };
+
+            return (true, "Feedback retrieved successfully.", responseDto);
+        }
     }
 }

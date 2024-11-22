@@ -23,26 +23,35 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             _mapper = mapper;
         }
 
-        public async Task<bool> ChangeStatusUser(int accountId)
+        public async Task<bool> ChangeStatusUser(int accountId, int userAccountId)
         {
             try
             {
                 var account = await _unitOfWork.AccountRepository.GetByIDAsync(accountId);
-                if (account == null) {
+                var userAccount = await _unitOfWork.AccountRepository.GetByIDAsync(userAccountId);
+                if (account == null || userAccount == null) {
                     return false;
                 }
-                if (account.Status == true) { 
-                    account.Status = false;
-                    await _unitOfWork.AccountRepository.UpdateAsync(account);
-                    await _unitOfWork.SaveAsync();
-                    return true;
+                if ((account.RoleId == 4 && userAccount.RoleId == 3) || (account.RoleId == 3 && userAccount.RoleId == 2))
+                {
+                    if (account.Status == true)
+                    {
+                        account.Status = false;
+                        await _unitOfWork.AccountRepository.UpdateAsync(account);
+                        await _unitOfWork.SaveAsync();
+                        return true;
+                    }
+                    else
+                    {
+                        account.Status = true;
+                        await _unitOfWork.AccountRepository.UpdateAsync(account);
+                        await _unitOfWork.SaveAsync();
+                        return true;
+                    }
                 }
                 else
                 {
-                    account.Status = true;
-                    await _unitOfWork.AccountRepository.UpdateAsync(account);
-                    await _unitOfWork.SaveAsync();
-                    return true;
+                    return false;
                 }
             }
             catch (Exception ex)

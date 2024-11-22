@@ -382,7 +382,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 foreach (var request in requests) {
                     var grave = await _unitOfWork.MartyrGraveRepository.GetByIDAsync(request.martyrId);
                     var service = await _unitOfWork.ServiceRepository.GetByIDAsync(request.serviceId);
-                    if (grave != null)
+                    if (grave != null && service != null)
                     {
                         // Tạo DTO response cho từng CartItem
                         var cartItemResponse = new CartItemGetByGuestDTOResponse

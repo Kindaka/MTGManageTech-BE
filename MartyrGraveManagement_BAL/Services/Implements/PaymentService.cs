@@ -200,7 +200,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
         {
             try
             {
-                var payments = await _unitOfWork.PaymentRepository.GetAsync(p => p.PayDate >= startDate.Date && p.PayDate <= endDate.Date.AddDays(1).AddTicks(-1));
+                var payments = await _unitOfWork.PaymentRepository.GetAsync(p => DateOnly.FromDateTime(p.PayDate.Date) >= DateOnly.FromDateTime(startDate.AddDays(1)) && DateOnly.FromDateTime(p.PayDate.Date) <= DateOnly.FromDateTime(endDate.AddDays(1)));
 
                 if( payments != null && payments.Any())
                 {
@@ -219,9 +219,11 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                                     {
                                         OrderId = payment.OrderId,
                                         PaymentMethod = payment.PaymentMethod,
+                                        BankCode = payment.BankCode,
+                                        CardType = payment.CardType,
                                         CustomerName = customer.FullName,
                                         PayDate = payment.PayDate,
-                                        Status = order.Status,
+                                        Status = payment.TransactionStatus,
                                         PaymentAmount = payment.PaymentAmount,
                                     };
                                     paymentList.Add(paymentDtoResponse);
@@ -248,9 +250,11 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                                     {
                                         OrderId = payment.OrderId,
                                         PaymentMethod = payment.PaymentMethod,
+                                        BankCode = payment.BankCode,
+                                        CardType = payment.CardType,
                                         CustomerName = customer.FullName,
                                         PayDate = payment.PayDate,
-                                        Status = order.Status,
+                                        Status = payment.TransactionStatus,
                                         PaymentAmount = payment.PaymentAmount,
                                     };
                                     paymentList.Add(paymentDtoResponse);
@@ -359,6 +363,8 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     {
                         CustomerName = payments.Order.Account.FullName,
                         PaymentMethod = payments.PaymentMethod,
+                        BankCode = payments.BankCode,
+                        CardType = payments.CardType,
                         PayDate = payments.PayDate,
                         PaymentAmount = payments.PaymentAmount,
                         OrderId = payments.OrderId,

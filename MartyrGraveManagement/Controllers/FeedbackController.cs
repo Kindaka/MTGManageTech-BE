@@ -100,6 +100,22 @@ namespace MartyrGraveManagement.Controllers
             return Ok(result.feedback);  // Trả về đối tượng feedback đã chứa FullName và CustomerCode
         }
 
+        /// <summary>
+        /// get feedback by Id
+        /// </summary>
+        [HttpGet("{detailId}")]
+        public async Task<IActionResult> GetFeedbackByDetailId(int detailId)
+        {
+            var result = await _feedbackService.GetFeedbackByIdAsync(detailId);
+
+            if (!result.success)
+            {
+                return NotFound(result.message);
+            }
+
+            return Ok(result.feedback);  // Trả về đối tượng feedback đã chứa FullName và CustomerCode
+        }
+
 
         /// <summary>
         /// get all feedback (Staff or Manager Role)

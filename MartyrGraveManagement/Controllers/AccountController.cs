@@ -62,20 +62,41 @@ namespace MartyrGraveManagement.Controllers
         /// Update account status (Admin and Manager Role)
         /// </summary>
         /// <returns>Returns a list of all Manager Account.</returns>
-        [Authorize(Policy = "RequireManagerRole")]
-        [HttpPut("/api/updateStatus/{accountId}")]
-        public async Task<IActionResult> UpdateStatus(int accountId)
+        [Authorize(Policy = "RequireManagerOrStaffRole")]
+        [HttpPut("/api/updateStatus/{banAccountId}")]
+        public async Task<IActionResult> UpdateStatus(int banAccountId, int userAccountId)
         {
             try
             {
-                var check = await _accountService.ChangeStatusUser(accountId);
+                // Lấy AccountId từ token
+                var tokenAccountIdClaim = User.FindFirst("AccountId");
+                if (tokenAccountIdClaim == null || string.IsNullOrEmpty(tokenAccountIdClaim.Value))
+                {
+                    return Forbid("Không tìm thấy AccountId trong token.");
+                }
+
+                var tokenAccountId = int.Parse(tokenAccountIdClaim.Value);
+
+                // Kiểm tra nếu AccountId trong URL có khớp với AccountId trong token không
+                if (tokenAccountId != userAccountId)
+                {
+                    return Forbid("Bạn không có quyền cập nhật thông tin của tài khoản này.");
+                }
+
+                // Sử dụng hàm mới để kiểm tra quyền của nhân viên hoặc quản lý
+                var checkAuthorize = await _authorizeService.CheckAuthorizeStaffOrManager(tokenAccountId, userAccountId);
+                if (!checkAuthorize.isMatchedStaffOrManager || !checkAuthorize.isAuthorized)
+                {
+                    return Forbid();
+                }
+                var check = await _accountService.ChangeStatusUser(banAccountId, userAccountId);
                 if (check)
                 {
                     return Ok("Thay đổi trạng thái user thành công");
                 }
                 else
                 {
-                    return BadRequest("Không tìm thấy account");
+                    return BadRequest("Không thể cập nhật trạng thái");
                 }
             }
             catch (Exception ex)

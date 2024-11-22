@@ -10,6 +10,8 @@ namespace MartyrGraveManagement_BAL.ModelViews.PaymentDTOs
     {
         public string? CustomerName { get; set; }
         public string PaymentMethod { get; set; }
+        public string BankCode { get; set; }
+        public string CardType { get; set; }
         public DateTime PayDate { get; set; }
         public decimal PaymentAmount { get; set; }
         public int OrderId { get; set; }
