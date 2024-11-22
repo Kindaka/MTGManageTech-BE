@@ -31,6 +31,9 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 CommentId = comment.CommentId,
                 AccountId = comment.AccountId,
                 AccountName = comment.Account?.FullName,
+                AccountStatus = comment.Account.Status,
+                AccountAvatar = comment.Account.AvatarPath,
+
                 BlogId = comment.BlogId,
                 Content = comment.Content,
                 CreatedDate = comment.CreatedDate,

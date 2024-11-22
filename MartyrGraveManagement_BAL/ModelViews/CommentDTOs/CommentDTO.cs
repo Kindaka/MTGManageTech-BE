@@ -11,6 +11,8 @@ namespace MartyrGraveManagement_BAL.ModelViews.CommentDTOs
         public int CommentId { get; set; }
         public int AccountId { get; set; }
         public string AccountName { get; set; }
+        public string AccountAvatar { get; set; }
+        public bool AccountStatus { get; set; }
         public int BlogId { get; set; }
         public string Content { get; set; }
         public DateTime CreatedDate { get; set; }
