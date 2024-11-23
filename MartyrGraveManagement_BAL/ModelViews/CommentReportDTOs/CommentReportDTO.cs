@@ -11,6 +11,7 @@ namespace MartyrGraveManagement_BAL.ModelViews.CommentReportDTOs
         public int ReportId { get; set; }
         public int AccountId { get; set; }
         public string AccountName { get; set; }
+        public string AccountAvatar { get; set; }
         public int CommentId { get; set; }
         public string Title { get; set; }
         public string Content { get; set; }

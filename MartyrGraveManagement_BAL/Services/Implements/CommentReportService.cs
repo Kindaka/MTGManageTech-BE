@@ -1,4 +1,5 @@
-﻿using MartyrGraveManagement_BAL.ModelViews.CommentReportDTOs;
+﻿using MartyrGraveManagement_BAL.ModelViews.CommentDTOs;
+using MartyrGraveManagement_BAL.ModelViews.CommentReportDTOs;
 using MartyrGraveManagement_BAL.Services.Interfaces;
 using MartyrGraveManagement_DAL.Entities;
 using MartyrGraveManagement_DAL.UnitOfWorks.Interfaces;
@@ -51,6 +52,8 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 ReportId = report.ReportId,
                 AccountId = report.AccountId,
                 AccountName = report.Account?.FullName,
+                AccountAvatar = report.Account?.AvatarPath,
+
                 CommentId = report.CommentId,
                 Title = report.Title,
                 Content = report.Content,
@@ -58,6 +61,21 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 UpdatedDate = report.UpdatedDate,
                 Status = report.Status
             };
+        }
+
+        public async Task<string> DeleteCommentReportAsync(int reportId)
+        {
+            var comment = await _unitOfWork.CommentReportRepository.GetByIDAsync(reportId);
+            if (comment == null)
+                throw new KeyNotFoundException("Comment not found.");
+
+            comment.Status = false;
+            comment.UpdatedDate = DateTime.Now;
+
+            await _unitOfWork.CommentReportRepository.UpdateAsync(comment);
+            await _unitOfWork.SaveAsync();
+
+            return "Comment updated successfully.";
         }
 
 
