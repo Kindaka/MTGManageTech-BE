@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using MartyrGraveManagement_BAL.MLModels;
 using MartyrGraveManagement_BAL.ModelViews.AccountDTOs;
 using MartyrGraveManagement_BAL.ModelViews.AreaDTOs;
 using MartyrGraveManagement_BAL.ModelViews.BlogCategoryDTOs;
@@ -19,6 +20,7 @@ using MartyrGraveManagement_BAL.ModelViews.ScheduleDetailDTOs;
 using MartyrGraveManagement_BAL.ModelViews.ServiceCategoryDTOs;
 using MartyrGraveManagement_BAL.ModelViews.ServiceDTOs;
 using MartyrGraveManagement_BAL.ModelViews.SlotDTOs;
+using MartyrGraveManagement_BAL.ModelViews.StaffPerformanceDTOs;
 using MartyrGraveManagement_BAL.ModelViews.TaskDTOs;
 using MartyrGraveManagement_BAL.Services.Implements;
 using MartyrGraveManagement_DAL.Entities;
@@ -133,6 +135,42 @@ namespace MartyrGraveManagement_BAL.MappingProfiles
             CreateMap<BlogCategoryDtoRequest, BlogCategory>().ReverseMap();
             CreateMap<BlogDtoResponse, Blog>().ReverseMap();
 
+            //StaffPerformanace mapping
+            CreateMap<StaffPerformanceRequest, WorkPerformance>();
+
+            CreateMap<WorkPerformance, WorkPerformanceDTO>()
+                .ForMember(dest => dest.OverallPoint, opt => opt.MapFrom(src =>
+                    Math.Round(
+                        (src.QualityMaintenancePoint * 0.4) +
+                        (src.TimeCompletePoint * 0.3) +
+                        (src.InteractionPoint * 0.3),
+                        2)))
+                .ForMember(dest => dest.PerformanceLevel, opt => opt.MapFrom(src =>
+                    GetPerformanceLevel(
+                        (float)((src.QualityMaintenancePoint * 0.4) +
+                        (src.TimeCompletePoint * 0.3) +
+                        (src.InteractionPoint * 0.3)))))
+                .ForMember(dest => dest.AccountFullName, opt => opt.MapFrom(src =>
+                    src.Account != null ? src.Account.FullName : string.Empty))
+                .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src =>
+                    src.Account != null ? src.Account.PhoneNumber : string.Empty));
+
+            CreateMap<WorkPerformanceDTO, WorkPerformance>()
+                .ForMember(dest => dest.Account, opt => opt.Ignore());
+
+            // Thêm mapping cho PerformanceMetrics
+            CreateMap<PerformanceMetrics, PerformanceMetricsDTO>();
+            CreateMap<PerformanceMetricsDTO, PerformanceMetrics>();
+
+        }
+        // Thêm helper method vào class MappingProfile
+        private static string GetPerformanceLevel(float score)
+        {
+            if (score >= 90) return "Xuất sắc";
+            if (score >= 80) return "Tốt";
+            if (score >= 70) return "Khá";
+            if (score >= 60) return "Trung bình";
+            return "Cần cải thiện";
         }
     }
 }

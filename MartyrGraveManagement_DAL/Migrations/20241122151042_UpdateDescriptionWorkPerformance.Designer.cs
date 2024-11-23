@@ -4,6 +4,7 @@ using MartyrGraveManagement_DAL.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MartyrGraveManagement_DAL.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241122151042_UpdateDescriptionWorkPerformance")]
+    partial class UpdateDescriptionWorkPerformance
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1178,11 +1181,11 @@ namespace MartyrGraveManagement_DAL.Migrations
                     b.Property<DateOnly>("EndDate")
                         .HasColumnType("date");
 
-                    b.Property<double>("InteractionPoint")
-                        .HasColumnType("float");
+                    b.Property<int>("InteractionPoint")
+                        .HasColumnType("int");
 
-                    b.Property<double>("QualityMaintenancePoint")
-                        .HasColumnType("float");
+                    b.Property<int>("QualityMaintenancePoint")
+                        .HasColumnType("int");
 
                     b.Property<DateOnly>("StartDate")
                         .HasColumnType("date");
@@ -1190,8 +1193,8 @@ namespace MartyrGraveManagement_DAL.Migrations
                     b.Property<bool>("Status")
                         .HasColumnType("bit");
 
-                    b.Property<double>("TimeCompletePoint")
-                        .HasColumnType("float");
+                    b.Property<int>("TimeCompletePoint")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("UploadTime")
                         .HasColumnType("datetime2");
