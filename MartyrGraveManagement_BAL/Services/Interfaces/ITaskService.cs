@@ -26,7 +26,7 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
         Task<TaskDtoResponse> UpdateTaskImagesAsync(int taskId, TaskImageUpdateDTO imageUpdateDto);
         Task<bool> DeleteTaskAsync(int taskId); //status task 0 
 
-        Task<TaskDtoResponse> ReassignTaskAsync(int taskId, int newAccountId);
+        Task<TaskDtoResponse> ReassignTaskAsync(int detailId, int newAccountId);
 
     }
 }

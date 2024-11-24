@@ -367,8 +367,8 @@ namespace MartyrGraveManagement.Controllers
         /// <param name="newAccountId">The new AccountId of the staff to assign the task to.</param>
         /// <returns>Returns the updated task with the new assignee.</returns>
         [Authorize(Policy = "RequireManagerRole")]  // Chỉ Manager mới được phép bàn giao task
-        [HttpPut("tasks/{taskId}/reassign/{newAccountId}")]
-        public async Task<IActionResult> ReassignTask(int taskId, int newAccountId)
+        [HttpPut("tasks/{detailId}/reassign/{newAccountId}")]
+        public async Task<IActionResult> ReassignTask(int detailId, int newAccountId)
         {
             try
             {
@@ -382,7 +382,7 @@ namespace MartyrGraveManagement.Controllers
 
                 var accountIdFromToken = int.Parse(accountIdClaim);
 
-                var updatedTask = await _taskService.ReassignTaskAsync(taskId, newAccountId);
+                var updatedTask = await _taskService.ReassignTaskAsync(detailId, newAccountId);
                 return Ok(new { message = "Task reassigned successfully.", updatedTask });
             }
             catch (KeyNotFoundException ex)

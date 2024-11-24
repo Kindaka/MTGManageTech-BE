@@ -745,7 +745,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 StatusTask = orderDetail.StaffTask?.Status ?? 0
             };
 
-            if (orderDetailDto.StatusTask == 1 || orderDetailDto.StatusTask == 2 || orderDetailDto.StatusTask == 3 || orderDetailDto.StatusTask == 4 || orderDetailDto.StatusTask == 5)
+            if (orderDetailDto.StatusTask == 1 || orderDetailDto.StatusTask == 3 || orderDetailDto.StatusTask == 4 || orderDetailDto.StatusTask == 5)
             {
                 // Lấy danh sách nhân viên thuộc cùng AreaId và task của detail đó
                 var taskStaff = (await _unitOfWork.TaskRepository.GetAsync(t => t.DetailId == orderDetailDto.DetailId, includeProperties: "Account")).FirstOrDefault();

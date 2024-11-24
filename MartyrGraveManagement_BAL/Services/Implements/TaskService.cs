@@ -1106,14 +1106,14 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
 
 
-        public async Task<TaskDtoResponse> ReassignTaskAsync(int taskId, int newAccountId)
+        public async Task<TaskDtoResponse> ReassignTaskAsync(int detailId, int newAccountId)
         {
             using (var transaction = await _unitOfWork.BeginTransactionAsync()) // Bắt đầu transaction
             {
                 try
                 {
                     // 1. Kiểm tra xem TaskId có tồn tại không
-                    var task = await _unitOfWork.TaskRepository.GetByIDAsync(taskId);
+                    var task = (await _unitOfWork.TaskRepository.GetAsync(t => t.DetailId == detailId)).FirstOrDefault();
                     if (task == null)
                     {
                         throw new KeyNotFoundException("TaskId does not exist.");
