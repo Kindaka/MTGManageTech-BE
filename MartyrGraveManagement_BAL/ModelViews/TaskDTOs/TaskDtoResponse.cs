@@ -26,6 +26,7 @@ namespace MartyrGraveManagement_BAL.ModelViews.TaskDTOs
         // Các thuộc tính mới
         public string? ServiceName { get; set; }
         public string? ServiceDescription { get; set; }
+        public string? ServiceImage { get; set; }
         public string? CategoryName { get; set; }
         public string? GraveLocation { get; set; }
     }

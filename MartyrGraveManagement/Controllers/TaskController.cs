@@ -69,13 +69,11 @@ namespace MartyrGraveManagement.Controllers
         /// Get all tasks for a specific martyr grave
         /// </summary>
         [HttpGet("martyr-grave/{martyrGraveId}")]
-        public async Task<IActionResult> GetTasksByMartyrGraveId(int martyrGraveId)
+        public async Task<IActionResult> GetTasksByMartyrGraveId(int martyrGraveId, int userId)
         {
             try
             {
-                var tasks = await _taskService.GetTasksByMartyrGraveId(martyrGraveId);
-                if (!tasks.Any())
-                    return NotFound($"No tasks found for martyr grave ID: {martyrGraveId}");
+                var tasks = await _taskService.GetTasksByMartyrGraveId(martyrGraveId, userId);
 
                 return Ok(new
                 {
