@@ -32,7 +32,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 if (account == null || userAccount == null) {
                     return false;
                 }
-                if ((account.RoleId == 4 && userAccount.RoleId == 3) || (account.RoleId == 3 && userAccount.RoleId == 2))
+                if ((account.RoleId == 4 && userAccount.RoleId == 3) || (account.RoleId == 3 && userAccount.RoleId == 2) || (account.RoleId==2 && userAccountId ==1))
                 {
                     if (account.Status == true)
                     {

@@ -88,6 +88,7 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("RequireManagerRole", policy => policy.RequireClaim(ClaimTypes.Role, "2"));
     options.AddPolicy("RequireManagerOrStaffRole", policy => policy.RequireClaim(ClaimTypes.Role, "3", "2"));
     options.AddPolicy("RequireManagerOrStaffOrCustomerRole", policy => policy.RequireClaim(ClaimTypes.Role, "3", "4", "2"));
+    options.AddPolicy("RequireManagerOrStaffOrAdminRole", policy => policy.RequireClaim(ClaimTypes.Role, "1", "2", "3"));
     options.AddPolicy("RequireManagerOrAdminRole", policy => policy.RequireClaim(ClaimTypes.Role, "1", "2"));
 });
 

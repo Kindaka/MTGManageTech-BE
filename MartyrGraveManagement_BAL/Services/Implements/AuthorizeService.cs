@@ -66,7 +66,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 if (accountToCheck != null)
                 {
                     // Kiểm tra nếu tài khoản là quản lý (RoleId == 2) hoặc nhân viên (RoleId == 3)
-                    if (accountToCheck.RoleId == 2 || accountToCheck.RoleId == 3)
+                    if (accountToCheck.RoleId == 2 || accountToCheck.RoleId == 3 || accountToCheck.RoleId == 1 )
                     {
                         isAuthorized = true;
                     }

@@ -42,7 +42,7 @@ namespace MartyrGraveManagement.Controllers
         /// Get all Manager Account (Admin role)
         /// </summary>
         /// <returns>Returns a list of all Manager Account.</returns>
-        [Authorize(Policy = "RequireManagerRole")]
+        [Authorize(Policy = "RequireAdminRole")]
         [HttpGet("/api/managers")]
         public async Task<ActionResult<IEnumerable<AccountDtoResponse>>> GetManagers([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
@@ -62,7 +62,7 @@ namespace MartyrGraveManagement.Controllers
         /// Update account status (Admin and Manager Role)
         /// </summary>
         /// <returns>Returns a list of all Manager Account.</returns>
-        [Authorize(Policy = "RequireManagerOrStaffRole")]
+        [Authorize(Policy = "RequireManagerOrStaffOrAdminRole")]
         [HttpPut("/api/updateStatus/{banAccountId}")]
         public async Task<IActionResult> UpdateStatus(int banAccountId, int userAccountId)
         {
