@@ -236,6 +236,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 foreach (var cartItem in cartItems)
                 {
                     var grave = (await _unitOfWork.MartyrGraveRepository.FindAsync(m => m.MartyrId == cartItem.MartyrId)).FirstOrDefault();
+                    var graveInfo = (await _unitOfWork.MartyrGraveInformationRepository.FindAsync(m => m.MartyrId == cartItem.MartyrId)).FirstOrDefault();
                     if (grave != null)
                     {
                         // Tạo DTO response cho từng CartItem
@@ -246,6 +247,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                             ServiceId = cartItem.ServiceId,
                             MartyrCode = grave.MartyrCode,
                             MartyrId = grave.MartyrId,
+                            MartyrName = graveInfo.Name,
                             Status = cartItem.Status
                         };
 

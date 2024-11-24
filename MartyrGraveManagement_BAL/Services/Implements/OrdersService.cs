@@ -89,7 +89,10 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     {
                         var martyrGraveInfo = orderDetail.MartyrGrave?.MartyrGraveInformations?.FirstOrDefault();
                         var task = (await _unitOfWork.TaskRepository.GetAsync(t => t.DetailId == orderDetail.DetailId)).FirstOrDefault();
-                        int statusTask = task?.Status ?? 0;
+                        int statusTask = task?.AccountId ?? 0;
+                        string ImagePath1 = task?.ImagePath1;
+                        string ImagePath2 = task?.ImagePath2;
+                        string ImagePath3 = task?.ImagePath3;
 
                         var orderDetailDto = new OrderDetailDtoResponse
                         {
@@ -102,7 +105,11 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                             ServiceName = orderDetail.Service?.ServiceName,
                             MartyrName = martyrGraveInfo?.Name,
                             OrderPrice = orderDetail.OrderPrice,
-                            StatusTask = statusTask
+                            StatusTask = statusTask,
+                            ImagePath1 = ImagePath1,
+                            ImagePath2 = ImagePath2,
+                            ImagePath3 = ImagePath3
+
                         };
 
                         orderDto.OrderDetails.Add(orderDetailDto);
@@ -318,6 +325,10 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     if (relatedTask != null)
                     {
                         orderDetailDto.StatusTask = relatedTask.Status;
+                        orderDetailDto.ImagePath1 = relatedTask.ImagePath1;
+                        orderDetailDto.ImagePath2 = relatedTask.ImagePath2;
+                        orderDetailDto.ImagePath3 = relatedTask.ImagePath3;
+                        
 
                         // Map Staff information
                         if (relatedTask.Account != null)

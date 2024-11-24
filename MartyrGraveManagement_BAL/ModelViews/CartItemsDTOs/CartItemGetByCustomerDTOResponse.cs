@@ -13,6 +13,7 @@ namespace MartyrGraveManagement_BAL.ModelViews.CartItemsDTOs
         public int AccountId { get; set; }
         public int ServiceId { get; set; }
         public string MartyrCode { get; set; }
+        public string MartyrName { get; set; }
         public int MartyrId { get; set; }
         public bool Status { get; set; }
 

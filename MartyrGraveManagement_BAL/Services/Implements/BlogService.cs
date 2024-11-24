@@ -333,6 +333,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         UpdatedDate = comment.UpdatedDate,
                         AccountId = comment.Account.AccountId,
                         AccountName = comment.Account?.FullName,
+                        AccountAvatar = comment.Account?.AvatarPath,
 
                         CommentIcons = comment.Comment_Icons
                             .GroupBy(icon => icon.Icon?.IconImage)

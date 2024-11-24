@@ -40,6 +40,7 @@ namespace MartyrGraveManagement_BAL.ModelViews.BlogDTOs
         public DateTime CreatedDate { get; set; }
         public DateTime UpdatedDate { get; set; }
         public string AccountName { get; set; } // Tên của người bình luận
+        public string AccountAvatar { get; set; } // Tên của người bình luận
 
         // Danh sách các biểu tượng liên kết với bình luận này
         public List<CommentIconDetailDTO> CommentIcons { get; set; }

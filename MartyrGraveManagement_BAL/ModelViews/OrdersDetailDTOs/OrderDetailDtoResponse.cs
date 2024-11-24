@@ -20,6 +20,9 @@ namespace MartyrGraveManagement_BAL.ModelViews.OrdersDetailDTOs
         public double ? OrderPrice { get; set; }
 
         public int StatusTask { get; set; }
+        public string ImagePath1 { get; set; }
+        public string ImagePath2 { get; set; }
+        public string ImagePath3 { get; set; }
 
 
         public List<StaffDtoResponse>? Staffs { get; set; } = new List<StaffDtoResponse>();
