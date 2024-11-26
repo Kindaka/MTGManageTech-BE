@@ -131,7 +131,7 @@ builder.Services.AddMemoryCache();
 builder.Services.AddScoped<ITaskBackgroundService, TaskBackgroundService>();
 builder.Services.AddScoped<IOrderBackgroundService, OrderBackgroundService>();
 builder.Services.AddScoped<IHolidayEventBackgroundService, HolidayEventBackgroundService>();
-builder.Services.AddScoped<IAttendanceBackgroundService, AttendanceBackgroundService>();
+//builder.Services.AddScoped<IAttendanceBackgroundService, AttendanceBackgroundService>();
 
 
 // Đăng ký các dịch vụ của bạn
@@ -145,7 +145,7 @@ builder.Services.AddScoped<IService_Service, Service_Service>();
 builder.Services.AddScoped<ICartService, CartItemsService>();
 builder.Services.AddScoped<ITaskService, TaskService>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
-builder.Services.AddScoped<IOrdersService, OrdersService>();
+//builder.Services.AddScoped<IOrdersService, OrdersService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<ISendEmailService, SendEmailService>();
 builder.Services.AddScoped<IFeedbackService, FeedbackService>();
@@ -154,9 +154,7 @@ builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IGraveService_Service, GraveService_Service>();
 builder.Services.AddScoped<IHistoricalEventService, HistoricalEventService>();
 builder.Services.AddScoped<IBlogService, BlogService>();
-builder.Services.AddScoped<IScheduleDetailService, ScheduleDetailService>();
-builder.Services.AddScoped<ISlotService, SlotService>();
-builder.Services.AddScoped<IAttendanceService, AttendanceService>();
+//builder.Services.AddScoped<IScheduleDetailService, ScheduleDetailService>();
 builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<ICommentIconService, CommentIconService>();
 builder.Services.AddScoped<ICommentReportService, CommentReportService>();
@@ -167,7 +165,7 @@ builder.Services.AddScoped<IOtpService, OtpService>();
 builder.Services.AddScoped<ISmsService, TwillioService>();
 builder.Services.AddScoped<IMaterialService, MaterialService>();
 builder.Services.AddScoped<IBlogCategoryService, BlogCategoryService>();
-builder.Services.AddScoped<IStaffPerformanceService, StaffPerformanceService>();
+//builder.Services.AddScoped<IStaffPerformanceService, StaffPerformanceService>();
 
 // Đăng ký ML
 builder.Services.AddScoped<ITrendingRecommendationService, TrendingRecommendationService>();

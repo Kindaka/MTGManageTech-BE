@@ -29,6 +29,7 @@ namespace MartyrGraveManagement_DAL.Entities
         public bool Status { get; set; }
 
         public Role? Role { get; set; }
+        public CustomerWallet? CustomerWallet { get; set; }
         public IEnumerable<Order>? Orders { get; set; }
         public IEnumerable<Feedback>? Feedbacks { get; set; }
         public IEnumerable<WorkPerformance>? WorkPerformances { get; set; }
@@ -42,7 +43,10 @@ namespace MartyrGraveManagement_DAL.Entities
         public IEnumerable<Holiday_Event>? Holiday_Events { get; set; }
         public IEnumerable<NotificationAccount>? NotificationAccounts { get; set; }
         public IEnumerable<Blog>? Blogs { get; set; }
-        public IEnumerable<Attendance>? Attendances { get; set; }
+        //public IEnumerable<Attendance>? Attendances { get; set; }
+        public IEnumerable<TransactionBalanceHistory>? TransactionBalanceHistorys { get; set; }
+        public IEnumerable<Service_Schedule>? ServiceSchedules { get; set; }
+        public IEnumerable<Schedule_Assignment>? ScheduleAssignments { get; set; }
 
 
     }

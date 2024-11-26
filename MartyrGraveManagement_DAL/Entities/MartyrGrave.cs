@@ -28,6 +28,7 @@ namespace MartyrGraveManagement_DAL.Entities
         public IEnumerable<WeeklyReportGrave>? WeeklyReportGraves { get; set; }
         public IEnumerable<CartItemCustomer>? CartItems { get; set; }
         public IEnumerable<GraveService>? GraveServices { get; set; }
+        public IEnumerable<Service_Schedule>? ServiceSchedules { get; set; }
 
     }
 }

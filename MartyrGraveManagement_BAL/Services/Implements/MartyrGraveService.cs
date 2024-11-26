@@ -708,8 +708,8 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 .Where(m =>
                     (string.IsNullOrEmpty(searchCriteria.Name) || ConvertToUnaccentedLowercaseString(m.Name).Contains(unaccentedSearchName)) &&
                     (!searchCriteria.YearOfBirth.HasValue || m.DateOfBirth.HasValue && m.DateOfBirth.Value.Year == searchCriteria.YearOfBirth.Value) &&
-                    (!searchCriteria.YearOfSacrifice.HasValue || m.DateOfSacrifice.Year == searchCriteria.YearOfSacrifice.Value) &&
-                    (string.IsNullOrEmpty(searchCriteria.HomeTown) || ConvertToUnaccentedLowercaseString(m.HomeTown).Contains(ConvertToUnaccentedLowercaseString(searchCriteria.HomeTown)))
+                    (!searchCriteria.YearOfSacrifice.HasValue || m.DateOfSacrifice.HasValue && m.DateOfSacrifice.Value.Year == searchCriteria.YearOfSacrifice.Value) &&
+                    (string.IsNullOrEmpty(searchCriteria.HomeTown) || m.HomeTown != null && ConvertToUnaccentedLowercaseString(m.HomeTown).Contains(ConvertToUnaccentedLowercaseString(searchCriteria.HomeTown)))
                 );
 
             // Ánh xạ từ entity sang DTO

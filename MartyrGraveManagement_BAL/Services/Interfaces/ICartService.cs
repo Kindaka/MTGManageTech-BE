@@ -16,9 +16,9 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
         Task<(List<CartItemsDTOResponse>, List<string>)> CreateCartItemsAsync(List<CartItemsDTORequest> cartItemsDTOs);
         Task<bool> DeleteCartItemsAsync(int id);
 
-        Task<(List<CartItemGetByCustomerDTOResponse> cartitemList, double totalPriceInCart)> GetCartItemsByAccountId(int accountId);
-        Task<(List<CartItemGetByCustomerDTOResponse> cartitemList, double totalPriceInCart)> GetCheckoutByAccountId(int accountId);
+        Task<(List<CartItemGetByCustomerDTOResponse> cartitemList, decimal totalPriceInCart)> GetCartItemsByAccountId(int accountId);
+        Task<(List<CartItemGetByCustomerDTOResponse> cartitemList, decimal totalPriceInCart)> GetCheckoutByAccountId(int accountId);
         Task<bool> UpdateCartItemStatusByAccountId(int cartItemId, bool status);
-        Task<(List<CartItemGetByGuestDTOResponse> cartitemList, double totalPriceInCart)> GetCartForGuest(List<ServiceMartyrGraveDtoRequest> request);
+        Task<(List<CartItemGetByGuestDTOResponse> cartitemList, decimal totalPriceInCart)> GetCartForGuest(List<ServiceMartyrGraveDtoRequest> request);
     }
 }

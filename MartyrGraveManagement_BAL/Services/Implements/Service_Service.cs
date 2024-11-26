@@ -53,7 +53,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                             }
 
                         }
-                        double totalPrice = 0;
+                        decimal totalPrice = 0;
                         var newService = new Service
                         {
                             CategoryId = service.CategoryId,
@@ -86,7 +86,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         }
                         if (totalPrice > 0)
                         {
-                            newService.Price = totalPrice + (totalPrice * 0.05);
+                            newService.Price = totalPrice + (totalPrice * 0.05m);
                             await _unitOfWork.ServiceRepository.UpdateAsync(newService);
                             await _unitOfWork.SaveAsync();
                         }
@@ -181,7 +181,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 var service = await _unitOfWork.ServiceRepository.GetByIDAsync(serviceId);
                 if (service != null)
                 {
-                    double wage = 0;
+                    decimal wage = 0;
                     var serviceView = _mapper.Map<ServiceDetailDtoResponse>(service);
                     var materials = await _unitOfWork.MaterialServiceRepository.GetAsync(m => m.ServiceId == service.ServiceId);
                     if (materials.Any())
@@ -203,7 +203,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                             }
                         }
                     }
-                    serviceView.wage = wage * 0.05;
+                    serviceView.wage = wage * 0.05m;
                     return serviceView;
                 }
                 else
@@ -272,7 +272,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     var existedService = await _unitOfWork.ServiceRepository.GetByIDAsync(serviceId);
                     if (existedService != null)
                     {
-                        double totalPrice = 0;
+                        decimal totalPrice = 0;
                         existedService.CategoryId = service.CategoryId;
                         existedService.ServiceName = service.ServiceName;
                         existedService.Description = service.Description;
@@ -329,7 +329,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         }
                         if (totalPrice > 0)
                         {
-                            existedService.Price = totalPrice + (totalPrice * 0.05);
+                            existedService.Price = totalPrice + (totalPrice * 0.05m);
                             await _unitOfWork.ServiceRepository.UpdateAsync(existedService);
                             await _unitOfWork.SaveAsync();
                         }

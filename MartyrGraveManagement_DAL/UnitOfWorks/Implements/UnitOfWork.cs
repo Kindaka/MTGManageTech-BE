@@ -37,9 +37,9 @@ namespace MartyrGraveManagement_DAL.UnitOfWorks.Implements
         private GenericRepository<Blog> _blogRepository;
         private GenericRepository<HistoricalImage> _historicalImageRepository;
         private GenericRepository<HistoricalRelatedMartyr> _historicalRelatedMartyrRepository;
-        private GenericRepository<Slot> _slotRepository;
+        //private GenericRepository<Slot> _slotRepository;
         private GenericRepository<ScheduleDetail> _scheduleDetailRepository;
-        private GenericRepository<Attendance> _attendanceRepository;
+        //private GenericRepository<Attendance> _attendanceRepository;
         private GenericRepository<Comment> _commentRepository;
         private GenericRepository<Comment_Icon> _commentIconRepository;
         private GenericRepository<Comment_Report> _commentReportRepository;
@@ -81,9 +81,9 @@ namespace MartyrGraveManagement_DAL.UnitOfWorks.Implements
         public IGenericRepository<Blog> BlogRepository => _blogRepository ??= new GenericRepository<Blog>(_context);
         public IGenericRepository<HistoricalImage> HistoricalImageRepository => _historicalImageRepository ??= new GenericRepository<HistoricalImage>(_context);
         public IGenericRepository<HistoricalRelatedMartyr> HistoricalRelatedMartyrRepository => _historicalRelatedMartyrRepository ??= new GenericRepository<HistoricalRelatedMartyr>(_context);
-        public IGenericRepository<Slot> SlotRepository => _slotRepository ??= new GenericRepository<Slot>(_context);
+        //public IGenericRepository<Slot> SlotRepository => _slotRepository ??= new GenericRepository<Slot>(_context);
         public IGenericRepository<ScheduleDetail> ScheduleDetailRepository => _scheduleDetailRepository ??= new GenericRepository<ScheduleDetail>(_context);
-        public IGenericRepository<Attendance> AttendanceRepository => _attendanceRepository ??= new GenericRepository<Attendance>(_context);
+        //public IGenericRepository<Attendance> AttendanceRepository => _attendanceRepository ??= new GenericRepository<Attendance>(_context);
         public IGenericRepository<Comment> CommentRepository => _commentRepository ??= new GenericRepository<Comment>(_context);
         public IGenericRepository<Comment_Icon> CommentIconRepository => _commentIconRepository ??= new GenericRepository<Comment_Icon>(_context);
         public IGenericRepository<Comment_Report> CommentReportRepository => _commentReportRepository ??= new GenericRepository<Comment_Report>(_context);

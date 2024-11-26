@@ -45,9 +45,9 @@ namespace MartyrGraveManagement_DAL.Entities
         public DbSet<Location> Locations { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<NotificationAccount> NotificationAccounts { get; set; }
-        public DbSet<Slot> Slots { get; set; }
+        //public DbSet<Slot> Slots { get; set; }
         public DbSet<ScheduleDetail> ScheduleTasks { get; set; }
-        public DbSet<Attendance> Attendances { get; set; }
+        //public DbSet<Attendance> Attendances { get; set; }
         public DbSet<Material_Service> Material_Services { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -73,6 +73,75 @@ namespace MartyrGraveManagement_DAL.Entities
                 .HasOne(a => a.Role)
                 .WithMany(r => r.Accounts)
                 .HasForeignKey(a => a.RoleId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // CustomerWallet Configuration
+            modelBuilder.Entity<CustomerWallet>()
+                .HasKey(a => a.WalletId);
+            modelBuilder.Entity<CustomerWallet>()
+                .HasOne(a => a.Account)
+                .WithOne(r => r.CustomerWallet)
+                .HasForeignKey<CustomerWallet>(a => a.CustomerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // TransactionBalanceHistory Configuration
+            modelBuilder.Entity<TransactionBalanceHistory>()
+                .HasKey(a => a.TransactionId);
+            modelBuilder.Entity<TransactionBalanceHistory>()
+                .HasOne(a => a.Account)
+                .WithMany(r => r.TransactionBalanceHistorys)
+                .HasForeignKey(a => a.CustomerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Service_Schedule Configuration
+            modelBuilder.Entity<Service_Schedule>()
+                .HasKey(a => a.ServiceScheduleId);
+            modelBuilder.Entity<Service_Schedule>()
+                .HasOne(a => a.Account)
+                .WithMany(r => r.ServiceSchedules)
+                .HasForeignKey(a => a.AccountId)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Service_Schedule>()
+                .HasOne(a => a.Service)
+                .WithMany(r => r.ServiceSchedules)
+                .HasForeignKey(a => a.ServiceId)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Service_Schedule>()
+                .HasOne(a => a.MartyrGrave)
+                .WithMany(r => r.ServiceSchedules)
+                .HasForeignKey(a => a.MartyrId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // ScheduleAssigment Configuration
+            modelBuilder.Entity<Schedule_Assignment>()
+                .HasKey(a => a.AssignmentId);
+            modelBuilder.Entity<Schedule_Assignment>()
+                .HasOne(a => a.Account)
+                .WithMany(r => r.ScheduleAssignments)
+                .HasForeignKey(a => a.StaffId)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Schedule_Assignment>()
+                .HasOne(a => a.Service_Schedule)
+                .WithMany(r => r.ScheduleAssignments)
+                .HasForeignKey(a => a.ServiceScheduleId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // AssignmentTask Configuration
+            modelBuilder.Entity<AssignmentTask>()
+                .HasKey(a => a.AssignmentTaskId);
+            modelBuilder.Entity<AssignmentTask>()
+                .HasOne(a => a.ScheduleAssignment)
+                .WithMany(r => r.AssignmentTasks)
+                .HasForeignKey(a => a.AssignmentId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // AssignmentTaskImage Configuration
+            modelBuilder.Entity<AssignmentTaskImage>()
+                .HasKey(a => a.ImageId);
+            modelBuilder.Entity<AssignmentTaskImage>()
+                .HasOne(a => a.AssignmentTask)
+                .WithMany(r => r.AssignmentTaskImages)
+                .HasForeignKey(a => a.AssignmentTaskId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Role Configuration
@@ -326,43 +395,24 @@ namespace MartyrGraveManagement_DAL.Entities
                 .HasForeignKey<StaffTask>(t => t.DetailId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Slot Configuration
-            modelBuilder.Entity<Slot>()
-                .HasKey(s => s.SlotId);
+            //TaskImage Configuration
+            modelBuilder.Entity<TaskImage>()
+                .HasKey(t => t.ImageId);
+            modelBuilder.Entity<TaskImage>()
+                .HasOne(t => t.StaffTask)
+                .WithMany(a => a.TaskImages)
+                .HasForeignKey(t => t.TaskId);
 
 
             // Schedule_Staff Configuration
             modelBuilder.Entity<ScheduleDetail>()
                 .HasKey(st => st.Id);
             modelBuilder.Entity<ScheduleDetail>()
-                .HasOne(st => st.Slot)
-                .WithMany(st => st.ScheduleDetails)
-                .HasForeignKey(st => st.SlotId)
-                .OnDelete(DeleteBehavior.Restrict);
-            modelBuilder.Entity<ScheduleDetail>()
-                .HasOne(st => st.StaffTask)
-                .WithMany(st => st.ScheduleTasks)
-                .HasForeignKey(st => st.TaskId)
-                .OnDelete(DeleteBehavior.Restrict);
-            modelBuilder.Entity<ScheduleDetail>()
                 .HasOne(st => st.Account)
                 .WithMany(st => st.ScheduleTasks)
                 .HasForeignKey(st => st.AccountId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Attendance Configuration
-            modelBuilder.Entity<Attendance>()
-                .HasKey(st => st.AttendanceId);
-            modelBuilder.Entity<Attendance>()
-                .HasOne(st => st.Slot)
-                .WithMany(st => st.Attendances)
-                .HasForeignKey(st => st.SlotId)
-                .OnDelete(DeleteBehavior.Restrict);
-            modelBuilder.Entity<Attendance>()
-                .HasOne(st => st.Account)
-                .WithMany(st => st.Attendances)
-                .HasForeignKey(st => st.AccountId)
-                .OnDelete(DeleteBehavior.Restrict);
 
             //Notification Configuration
             modelBuilder.Entity<Notification>()

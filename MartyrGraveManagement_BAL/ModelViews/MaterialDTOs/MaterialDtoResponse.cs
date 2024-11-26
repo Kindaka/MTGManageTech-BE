@@ -12,7 +12,7 @@ namespace MartyrGraveManagement_BAL.ModelViews.MaterialDTOs
         public int MaterialId { get; set; }
         public string MaterialName { get; set; }
         public string? Description { get; set; }
-        public double Price { get; set; }
+        public decimal Price { get; set; }
         public bool Status { get; set; }
     }
 }

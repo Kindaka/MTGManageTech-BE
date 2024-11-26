@@ -8,23 +8,26 @@ using System.Threading.Tasks;
 
 namespace MartyrGraveManagement_DAL.Entities
 {
-    public class OrderDetail
+    public class Service_Schedule
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int DetailId { get; set; }
-        public long OrderId { get; set; }
+        public int ServiceScheduleId { get; set; }
+        public int AccountId { get; set; }
         public int ServiceId { get; set; }
         public int MartyrId { get; set; }
-        public double OrderPrice { get; set; }
-        public int Quantity { get; set; }
+        [Column(TypeName = "decimal(18, 2)")]
+        public decimal Amount { get; set; }
+        public DateOnly ScheduleDate { get; set; }
+        public int DayOfMonth { get; set; } = 0;
+        public int DayOfWeek { get; set; } = 0;
+        public string? Note { get; set; }
         public bool Status { get; set; }
 
-        public Order? Order { get; set; }
+        public Account? Account { get; set; }
         public Service? Service { get; set; }
         public MartyrGrave? MartyrGrave { get; set; }
-        public Feedback? Feedback { get; set; }
-        public StaffTask? StaffTask { get; set; }
-    }
 
+        public IEnumerable<Schedule_Assignment>? ScheduleAssignments { get; set; }
+    }
 }

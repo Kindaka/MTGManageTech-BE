@@ -112,7 +112,7 @@ namespace MartyrGraveManagement_BAL.MappingProfiles
             CreateMap<ScheduleDetail, ScheduleDetailListDtoResponse>().ReverseMap();
            
             //Slot mapping
-            CreateMap<Slot, SlotDtoResponse>().ReverseMap();
+            //CreateMap<Slot, SlotDtoResponse>().ReverseMap();
 
             //Comment mapping
                  CreateMap<CommentDTO, Comment>().ReverseMap();

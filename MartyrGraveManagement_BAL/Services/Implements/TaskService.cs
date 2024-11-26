@@ -1051,9 +1051,9 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     }
 
                     // 3. Cập nhật hình ảnh
-                    task.ImagePath1 = imageUpdateDto.UrlImages.ElementAtOrDefault(0);  // Ảnh 1
-                    task.ImagePath2 = imageUpdateDto.UrlImages.ElementAtOrDefault(1);  // Ảnh 2 (nếu có)
-                    task.ImagePath3 = imageUpdateDto.UrlImages.ElementAtOrDefault(2);  // Ảnh 3 (nếu có)
+                    task.ImageWorkSpace = imageUpdateDto.UrlImages.ElementAtOrDefault(0);  // Ảnh 1
+                    //task.ImagePath2 = imageUpdateDto.UrlImages.ElementAtOrDefault(1);  // Ảnh 2 (nếu có)
+                    //task.ImagePath3 = imageUpdateDto.UrlImages.ElementAtOrDefault(2);  // Ảnh 3 (nếu có)
 
                     // 4. Cập nhật trạng thái task lên 4
                     task.Status = 4;  // Task hoàn thành

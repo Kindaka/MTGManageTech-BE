@@ -13,12 +13,12 @@ namespace MartyrGraveManagement_BAL.ModelViews.ServiceDTOs
         public int CategoryId { get; set; }
         public string ServiceName { get; set; }
         public string? Description { get; set; }
-        public double Price { get; set; }
+        public decimal Price { get; set; }
         public string? ImagePath { get; set; }
         public bool Status { get; set; }
         
 
         public List<MaterialDtoResponse> Materials { get; set; } = new List<MaterialDtoResponse>();
-        public double wage { get; set; }
+        public decimal wage { get; set; }
     }
 }

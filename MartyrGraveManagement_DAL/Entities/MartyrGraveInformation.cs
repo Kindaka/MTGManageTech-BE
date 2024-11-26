@@ -16,6 +16,7 @@ namespace MartyrGraveManagement_DAL.Entities
         public int MartyrId { get; set; }
         [Column(TypeName = "nvarchar(100)")]
         public string Name { get; set; }
+        public bool Gender { get; set; }
         [Column(TypeName = "nvarchar(100)")]
         public string? NickName { get; set; }
         [Column(TypeName = "nvarchar(250)")]
@@ -25,7 +26,7 @@ namespace MartyrGraveManagement_DAL.Entities
         [Column(TypeName = "nvarchar(100)")]
         public string? HomeTown { get; set; }
         public DateTime? DateOfBirth { get; set; }
-        public DateTime DateOfSacrifice { get; set; }
+        public DateTime? DateOfSacrifice { get; set; }
         [Column(TypeName = "nvarchar(1000)")]
         public string? ReasonOfSacrifice { get; set; }
 

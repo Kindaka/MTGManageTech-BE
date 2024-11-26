@@ -8,15 +8,13 @@ using System.Threading.Tasks;
 
 namespace MartyrGraveManagement_DAL.Entities
 {
-    public class StaffTask
+    public class AssignmentTask
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int TaskId { get; set; }
-        public int AccountId { get; set; } 
-        public int OrderId { get; set; }
-        public int  DetailId { get; set; }
-        public DateTime StartDate { get; set; } // Create At
+        public int AssignmentTaskId { get; set; }
+        public int AssignmentId { get; set; }
+        public DateTime CreateAt { get; set; } // Create At
         public DateTime EndDate { get; set; }
         [Column(TypeName = "nvarchar(255)")]
         public string? Description { get; set; }
@@ -24,12 +22,7 @@ namespace MartyrGraveManagement_DAL.Entities
         [Column(TypeName = "nvarchar(500)")]
         public string? Reason { get; set; }
         public int Status { get; set; }
-        public Account? Account { get; set; }
-        public OrderDetail? OrderDetail { get; set; }
-        //public IEnumerable<ScheduleDetail>? ScheduleTasks { get; set; }
-        public IEnumerable<TaskImage>? TaskImages { get; set; }
-
-
+        public Schedule_Assignment? ScheduleAssignment { get; set; }
+        public IEnumerable<AssignmentTaskImage>? AssignmentTaskImages { get; set; }
     }
-
 }

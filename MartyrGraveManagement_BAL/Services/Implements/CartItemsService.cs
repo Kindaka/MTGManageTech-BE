@@ -209,7 +209,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
         //}
 
 
-        public async Task<(List<CartItemGetByCustomerDTOResponse> cartitemList, double totalPriceInCart)> GetCartItemsByAccountId(int accountId)
+        public async Task<(List<CartItemGetByCustomerDTOResponse> cartitemList, decimal totalPriceInCart)> GetCartItemsByAccountId(int accountId)
         {
             try
             {
@@ -231,7 +231,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
                 // Tạo danh sách CartItemGetByCustomerDTOResponse để chứa kết quả
                 var cartItemResponses = new List<CartItemGetByCustomerDTOResponse>();
-                double totalPriceInCart = 0;
+                decimal totalPriceInCart = 0;
 
                 foreach (var cartItem in cartItems)
                 {
@@ -259,7 +259,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                             // Kiểm tra nếu CustomerCode của Account và MartyrGrave trùng nhau thì áp dụng giảm giá cho từng dịch vụ
                             if (grave.AccountId == account.AccountId)
                             {
-                                cartItemResponse.ServiceView.Price *= 0.95; // Giảm giá 5% cho dịch vụ
+                                cartItemResponse.ServiceView.Price *= 0.95m; // Giảm giá 5% cho dịch vụ
                             }
 
                             // Tính tổng giá trị trong giỏ hàng
@@ -303,7 +303,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
         }
 
-        public async Task<(List<CartItemGetByCustomerDTOResponse> cartitemList, double totalPriceInCart)> GetCheckoutByAccountId(int accountId)
+        public async Task<(List<CartItemGetByCustomerDTOResponse> cartitemList, decimal totalPriceInCart)> GetCheckoutByAccountId(int accountId)
         {
             try
             {
@@ -325,7 +325,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
                 // Tạo danh sách CartItemGetByCustomerDTOResponse để chứa kết quả
                 var cartItemResponses = new List<CartItemGetByCustomerDTOResponse>();
-                double totalPriceInCart = 0;
+                decimal totalPriceInCart = 0;
 
                 foreach (var cartItem in cartItems)
                 {
@@ -351,7 +351,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                             // Kiểm tra nếu CustomerCode của Account và MartyrGrave trùng nhau thì áp dụng giảm giá cho từng dịch vụ
                             if (grave.AccountId == account.AccountId)
                             {
-                                cartItemResponse.ServiceView.Price *= 0.95; // Giảm giá 5% cho dịch vụ
+                                cartItemResponse.ServiceView.Price *= 0.95m; // Giảm giá 5% cho dịch vụ
                             }
 
                             // Tính tổng giá trị trong giỏ hàng
@@ -375,12 +375,12 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
         }
 
-        public async Task<(List<CartItemGetByGuestDTOResponse> cartitemList, double totalPriceInCart)> GetCartForGuest(List<ServiceMartyrGraveDtoRequest> requests)
+        public async Task<(List<CartItemGetByGuestDTOResponse> cartitemList, decimal totalPriceInCart)> GetCartForGuest(List<ServiceMartyrGraveDtoRequest> requests)
         {
             try
             {
                 var cartItemList = new List<CartItemGetByGuestDTOResponse>();
-                double totalPriceInCart = 0;
+                decimal totalPriceInCart = 0;
                 foreach (var request in requests) {
                     var grave = await _unitOfWork.MartyrGraveRepository.GetByIDAsync(request.martyrId);
                     var service = await _unitOfWork.ServiceRepository.GetByIDAsync(request.serviceId);

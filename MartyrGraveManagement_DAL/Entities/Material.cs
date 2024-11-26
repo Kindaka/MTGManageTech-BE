@@ -18,7 +18,8 @@ namespace MartyrGraveManagement_DAL.Entities
         [Column(TypeName = "nvarchar(255)")]
         public string? Description { get; set; }
         public string? ImagePath { get; set; }
-        public double Price { get; set; }
+        [Column(TypeName = "decimal(18, 2)")]
+        public decimal Price { get; set; }
         public bool Status { get; set; }
 
         public IEnumerable<Material_Service> Material_Services { get; set; }
