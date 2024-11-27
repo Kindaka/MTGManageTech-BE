@@ -14,5 +14,6 @@
 
         Task<bool> CheckAuthorizeStaffByAreaId(int taskId, int accountId, int areaId);
         Task<bool> CheckAuthorizeStaffByAreaId(int accountId, int areaId);
+        Task<(bool isMatchedCustomer, bool isAuthorizedAccount)> CheckAuthorizeCustomerWallet(int customerId, int accountId);
     }
 }

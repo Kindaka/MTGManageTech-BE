@@ -127,6 +127,9 @@ builder.Services.AddCors(options =>
 // Add Memory Cache
 builder.Services.AddMemoryCache();
 
+builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
+
+
 // Đăng ký TaskBackgroundService
 builder.Services.AddScoped<ITaskBackgroundService, TaskBackgroundService>();
 builder.Services.AddScoped<IOrderBackgroundService, OrderBackgroundService>();
@@ -165,7 +168,7 @@ builder.Services.AddScoped<IOtpService, OtpService>();
 builder.Services.AddScoped<ISmsService, TwillioService>();
 builder.Services.AddScoped<IMaterialService, MaterialService>();
 builder.Services.AddScoped<IBlogCategoryService, BlogCategoryService>();
-//builder.Services.AddScoped<IStaffPerformanceService, StaffPerformanceService>();
+builder.Services.AddScoped<IWalletService, WalletService>();
 
 // Đăng ký ML
 builder.Services.AddScoped<ITrendingRecommendationService, TrendingRecommendationService>();

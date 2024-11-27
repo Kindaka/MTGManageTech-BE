@@ -9,6 +9,7 @@ using MartyrGraveManagement_BAL.ModelViews.CommentDTOs;
 using MartyrGraveManagement_BAL.ModelViews.CommentIconDTOs;
 using MartyrGraveManagement_BAL.ModelViews.CommentReportDTOs;
 using MartyrGraveManagement_BAL.ModelViews.CustomerDTOs;
+using MartyrGraveManagement_BAL.ModelViews.CustomerWalletDTOs;
 using MartyrGraveManagement_BAL.ModelViews.FeedbackDTOs;
 using MartyrGraveManagement_BAL.ModelViews.HistoricalEventDTOs;
 using MartyrGraveManagement_BAL.ModelViews.HolidayEventDTOs;
@@ -161,6 +162,18 @@ namespace MartyrGraveManagement_BAL.MappingProfiles
             // Thêm mapping cho PerformanceMetrics
             CreateMap<PerformanceMetrics, PerformanceMetricsDTO>();
             CreateMap<PerformanceMetricsDTO, PerformanceMetrics>();
+
+
+            // Wallet mappings
+            CreateMap<CustomerWallet, CustomerWalletDTO>()
+                .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src =>
+                    src.Account != null ? src.Account.FullName : string.Empty));
+
+            // Transaction History mappings
+            CreateMap<TransactionBalanceHistory, TransactionBalanceHistoryDTO>()
+                .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src =>
+                    src.Account != null ? src.Account.FullName : string.Empty));
+
 
         }
         // Thêm helper method vào class MappingProfile

@@ -359,5 +359,38 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 throw new Exception(ex.Message);
             }
         }
+
+        public async Task<(bool isMatchedCustomer, bool isAuthorizedAccount)> CheckAuthorizeCustomerWallet(int customerId, int accountId)
+        {
+            try
+            {
+                bool isAuthorizedAccount = false;
+                bool isMatchedCustomer = false;
+
+                // Lấy thông tin account của người đang đăng nhập
+                var accountJwt = await _unitOfWork.AccountRepository.GetByIDAsync(accountId);
+                if (accountJwt == null)
+                {
+                    throw new Exception("Invalid account");
+                }
+
+                // Nếu là admin hoặc manager thì có quyền xem tất cả
+                if (accountJwt.RoleId == 1 || accountJwt.RoleId == 2)
+                {
+                    isAuthorizedAccount = true;
+                }
+                // Nếu là customer thì chỉ được xem thông tin của chính mình
+                else if (accountJwt.RoleId == 4 && accountId == customerId)
+                {
+                    isMatchedCustomer = true;
+                }
+
+                return (isMatchedCustomer, isAuthorizedAccount);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error checking customer wallet authorization: {ex.Message}");
+            }
+        }
     }
 }

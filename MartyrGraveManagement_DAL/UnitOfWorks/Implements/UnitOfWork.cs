@@ -50,6 +50,8 @@ namespace MartyrGraveManagement_DAL.UnitOfWorks.Implements
         private GenericRepository<Material_Service> _materialServiceRepository;
         private GenericRepository<BlogCategory> _blogCategoryRepository;
         private GenericRepository<WorkPerformance> _workPerformanceRepository;
+        private GenericRepository<CustomerWallet> _customerWalletRepository;
+        private GenericRepository<TransactionBalanceHistory> _transactionBalanceHistoryRepository;
 
 
         public UnitOfWork(ApplicationDbContext context)
@@ -94,6 +96,8 @@ namespace MartyrGraveManagement_DAL.UnitOfWorks.Implements
         public IGenericRepository<Material_Service> MaterialServiceRepository => _materialServiceRepository ??= new GenericRepository<Material_Service>(_context);
         public IGenericRepository<BlogCategory> BlogCategoryRepository => _blogCategoryRepository ??= new GenericRepository<BlogCategory>(_context);
         public IGenericRepository<WorkPerformance> WorkPerformanceRepository => _workPerformanceRepository ??= new GenericRepository<WorkPerformance>(_context);
+        public IGenericRepository<CustomerWallet> CustomerWalletRepository => _customerWalletRepository ??= new GenericRepository<CustomerWallet>(_context);
+        public IGenericRepository<TransactionBalanceHistory> TransactionBalanceHistoryRepository => _transactionBalanceHistoryRepository ??= new GenericRepository<TransactionBalanceHistory>(_context);
 
 
         public async Task<IDbContextTransaction> BeginTransactionAsync()
