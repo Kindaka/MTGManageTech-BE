@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using MartyrGraveManagement_BAL.ModelViews.PaymentDTOs;
+using MartyrGraveManagement_BAL.ModelViews.TaskDTOs;
 using MartyrGraveManagement_BAL.Services.Interfaces;
 using MartyrGraveManagement_DAL.Entities;
 using MartyrGraveManagement_DAL.UnitOfWorks.Interfaces;
@@ -19,12 +20,14 @@ namespace MartyrGraveManagement_BAL.Services.Implements
     public class PaymentService : IPaymentService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ITaskService _taskService;
         private readonly IMapper _mapper;
         private readonly IConfiguration _configuration;
 
-        public PaymentService(IUnitOfWork unitOfWork, IMapper mapper, IConfiguration configuration)
+        public PaymentService(IUnitOfWork unitOfWork, ITaskService taskService , IMapper mapper, IConfiguration configuration)
         {
             _unitOfWork = unitOfWork;
+            _taskService = taskService;
             _mapper = mapper;
             _configuration = configuration;
         }
@@ -109,90 +112,102 @@ namespace MartyrGraveManagement_BAL.Services.Implements
         }
 
         public async Task<PaymentDTOResponse> CreatePayment(PaymentDTORequest paymentRequest)
-    {
-        using (var transaction = await _unitOfWork.BeginTransactionAsync())
         {
-            try
+            using (var transaction = await _unitOfWork.BeginTransactionAsync())
             {
-                var existedOrder = await _unitOfWork.OrderRepository.GetByIDAsync(
-                    paymentRequest.vnp_BankTranNo != null 
-                        ? int.Parse(paymentRequest.vnp_TxnRef) 
-                        : int.Parse(paymentRequest.orderId));
-
-                if (existedOrder == null)
+                try
                 {
-                    return null;
-                }
+                    var existedOrder = await _unitOfWork.OrderRepository.GetByIDAsync(
+                        paymentRequest.vnp_BankTranNo != null
+                            ? long.Parse(paymentRequest.vnp_TxnRef)
+                            : long.Parse(paymentRequest.orderId));
 
-                var existedPayment = await _unitOfWork.PaymentRepository.GetAsync(p => p.OrderId == existedOrder.OrderId);
-                if (existedPayment.Any())
-                {
-                    return null;
-                }
-
-                Payment payment;
-                if (paymentRequest.vnp_BankTranNo != null) // VNPay payment
-                {
-                    payment = new Payment
+                    if (existedOrder == null)
                     {
-                        PaymentMethod = "VNPay",
-                        BankCode = paymentRequest.vnp_BankCode,
-                        BankTransactionNo = paymentRequest.vnp_BankTranNo,
-                        CardType = paymentRequest.vnp_CardType,
-                        PaymentInfo = paymentRequest.vnp_OrderInfo,
-                        PayDate = DateTime.ParseExact(paymentRequest.vnp_PayDate, "yyyyMMddHHmmss", CultureInfo.InvariantCulture),
-                        TransactionNo = paymentRequest.vnp_TransactionNo,
-                        TransactionStatus = int.Parse(paymentRequest.vnp_TransactionStatus),
-                        PaymentAmount = decimal.Parse(paymentRequest.vnp_Amount) / 100,
-                        OrderId = int.Parse(paymentRequest.vnp_TxnRef)
-                    };
-                }
-                else // MoMo payment
-                {
-                    payment = new Payment
-                    {
-                        PaymentMethod = "MoMo",
-                        BankCode = "MOMO",
-                        CardType = "QR",
-                        PaymentInfo = paymentRequest.orderInfo,
-                        PayDate = DateTime.Now,
-                        TransactionNo = paymentRequest.requestId,
-                        BankTransactionNo = paymentRequest.transId?.ToString(),
-                        TransactionStatus = int.Parse(paymentRequest.resultCode),
-                        PaymentAmount = decimal.Parse(paymentRequest.amount),
-                        OrderId = int.Parse(paymentRequest.orderId)
-                    };
-                }
-
-                await _unitOfWork.PaymentRepository.AddAsync(payment);
-
-                // Cập nhật trạng thái đơn hàng và xóa giỏ hàng chỉ khi thanh toán thành công
-                if ((payment.PaymentMethod == "VNPay" && payment.TransactionStatus == 00) ||
-                    (payment.PaymentMethod == "MoMo" && payment.TransactionStatus == 0))
-                {
-                    existedOrder.Status = 1; // Đã thanh toán
-                    await _unitOfWork.OrderRepository.UpdateAsync(existedOrder);
-
-                    var cartItems = await _unitOfWork.CartItemRepository.GetAsync(
-                        c => c.AccountId == existedOrder.AccountId && c.Status == true);
-                    foreach (var cartItem in cartItems)
-                    {
-                        await _unitOfWork.CartItemRepository.DeleteAsync(cartItem);
+                        return null;
                     }
+
+                    var existedPayment = await _unitOfWork.PaymentRepository.GetAsync(p => p.OrderId == existedOrder.OrderId);
+                    if (existedPayment.Any())
+                    {
+                        return null;
+                    }
+
+                    Payment payment;
+                    if (paymentRequest.vnp_BankTranNo != null) // VNPay payment
+                    {
+                        payment = new Payment
+                        {
+                            PaymentMethod = "VNPay",
+                            BankCode = paymentRequest.vnp_BankCode,
+                            BankTransactionNo = paymentRequest.vnp_BankTranNo,
+                            CardType = paymentRequest.vnp_CardType,
+                            PaymentInfo = paymentRequest.vnp_OrderInfo,
+                            PayDate = DateTime.ParseExact(paymentRequest.vnp_PayDate, "yyyyMMddHHmmss", CultureInfo.InvariantCulture),
+                            TransactionNo = paymentRequest.vnp_TransactionNo,
+                            TransactionStatus = int.Parse(paymentRequest.vnp_TransactionStatus),
+                            PaymentAmount = decimal.Parse(paymentRequest.vnp_Amount) / 100,
+                            OrderId = long.Parse(paymentRequest.vnp_TxnRef)
+                        };
+                    }
+                    else // MoMo payment
+                    {
+                        payment = new Payment
+                        {
+                            PaymentMethod = "MoMo",
+                            BankCode = "MOMO",
+                            CardType = "QR",
+                            PaymentInfo = paymentRequest.orderInfo,
+                            PayDate = DateTime.Now,
+                            TransactionNo = paymentRequest.requestId,
+                            BankTransactionNo = paymentRequest.transId?.ToString(),
+                            TransactionStatus = int.Parse(paymentRequest.resultCode),
+                            PaymentAmount = decimal.Parse(paymentRequest.amount),
+                            OrderId = long.Parse(paymentRequest.orderId)
+                        };
+                    }
+
+                    await _unitOfWork.PaymentRepository.AddAsync(payment);
+
+                    // Cập nhật trạng thái đơn hàng và xóa giỏ hàng chỉ khi thanh toán thành công
+                    if ((payment.PaymentMethod == "VNPay" && payment.TransactionStatus == 00) ||
+                        (payment.PaymentMethod == "MoMo" && payment.TransactionStatus == 0))
+                    {
+                        existedOrder.Status = 1; // Đã thanh toán
+                        await _unitOfWork.OrderRepository.UpdateAsync(existedOrder);
+
+                        var cartItems = await _unitOfWork.CartItemRepository.GetAsync(
+                            c => c.AccountId == existedOrder.AccountId && c.Status == true);
+                        foreach (var cartItem in cartItems)
+                        {
+                            await _unitOfWork.CartItemRepository.DeleteAsync(cartItem);
+                        }
+
+                        // Lấy danh sách OrderDetail để tạo công việc cho nhân viên
+                        var orderDetails = await _unitOfWork.OrderDetailRepository.GetAsync(od => od.OrderId == existedOrder.OrderId);
+                        var taskRequests = orderDetails.Select(od => new TaskDtoRequest
+                        {
+                            OrderId = existedOrder.OrderId,
+                            DetailId = od.DetailId
+                        }).ToList();
+
+                        // Gọi hàm tạo công việc tự động
+                        await _taskService.CreateTasksAsync(taskRequests);
+                    }
+
+                    await _unitOfWork.SaveAsync();
+                    await transaction.CommitAsync();
+
+                    return _mapper.Map<PaymentDTOResponse>(payment);
                 }
-
-                await _unitOfWork.SaveAsync();
-                await transaction.CommitAsync();
-
-                return _mapper.Map<PaymentDTOResponse>(payment);
-            }
-            catch (Exception ex)
-            {
-                await transaction.RollbackAsync();
-                throw new Exception($"Error creating payment: {ex.Message}");
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    throw new Exception($"Error creating payment: {ex.Message}");
+                }
             }
         }
-    }
+
 
 
 

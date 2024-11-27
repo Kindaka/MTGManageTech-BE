@@ -14,7 +14,7 @@ namespace MartyrGraveManagement_DAL.Entities
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int TaskId { get; set; }
         public int AccountId { get; set; } 
-        public int OrderId { get; set; }
+        public long OrderId { get; set; }
         public int  DetailId { get; set; }
         public DateTime StartDate { get; set; } // Create At
         public DateTime EndDate { get; set; }

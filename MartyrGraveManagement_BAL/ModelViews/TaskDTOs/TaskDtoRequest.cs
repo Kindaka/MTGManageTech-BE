@@ -9,15 +9,10 @@ namespace MartyrGraveManagement_BAL.ModelViews.TaskDTOs
 {
     public class TaskDtoRequest
     {
-        [Required(ErrorMessage = "AccountId is required.")]
-        public int AccountId { get; set; }
-
         [Required(ErrorMessage = "OrderId is required.")]
-        public int OrderId { get; set; }
+        public long OrderId { get; set; }
 
         [Required(ErrorMessage = "OrderDetailId is required.")]
         public int DetailId { get; set; }
-
-
     }
 }

@@ -9,7 +9,7 @@ namespace MartyrGraveManagement_BAL.ModelViews.OrdersDTOs
 {
     public class OrdersGetAllDTOResponse
     {
-        public int OrderId { get; set; }
+        public long OrderId { get; set; }
         public int AccountId { get; set; }
         public DateTime OrderDate { get; set; }
         public DateTime ExpectedCompletionDate { get; set; }

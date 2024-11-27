@@ -5,6 +5,7 @@ using MartyrGraveManagement_DAL.Entities;
 using MartyrGraveManagement_DAL.UnitOfWorks.Interfaces;
 using Microsoft.Identity.Client;
 using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -634,70 +635,96 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
         public async Task<List<TaskDtoResponse>> CreateTasksAsync(List<TaskDtoRequest> taskDtos)
         {
-            var taskResponses = new List<TaskDtoResponse>();
-
-            foreach (var taskDto in taskDtos)
+            try
             {
-                // Kiểm tra xem AccountId (nhân viên) có tồn tại và là tài khoản hợp lệ không
-                var staffAccount = await _unitOfWork.AccountRepository.GetByIDAsync(taskDto.AccountId);
-                if (staffAccount == null || staffAccount.RoleId != 3)
+                var taskResponses = new List<TaskDtoResponse>();
+
+                foreach (var taskDto in taskDtos)
                 {
-                    throw new KeyNotFoundException("Staff AccountId không tồn tại hoặc không phải tài khoản nhân viên hợp lệ.");
+                    // Kiểm tra xem OrderId có tồn tại không
+                    var order = await _unitOfWork.OrderRepository.GetByIDAsync(taskDto.OrderId);
+                    if (order == null)
+                    {
+                        throw new KeyNotFoundException("OrderId không tồn tại.");
+                    }
+
+                    // Kiểm tra trạng thái của Order, nếu không phải là 1 thì không cho tạo Task
+                    if (order.Status != 1)
+                    {
+                        throw new InvalidOperationException("Order không ở trạng thái hợp lệ để tạo Task.");
+                    }
+
+                    // Kiểm tra xem DetailId có tồn tại và thuộc về OrderId không
+                    var orderDetail = await _unitOfWork.OrderDetailRepository.GetByIDAsync(taskDto.DetailId);
+                    if (orderDetail == null || orderDetail.OrderId != taskDto.OrderId)
+                    {
+                        throw new InvalidOperationException("DetailId không hợp lệ hoặc không thuộc về OrderId được cung cấp.");
+                    }
+
+                    // Kiểm tra xem khu vực của MartyrGrave trong OrderDetail
+                    var martyrGrave = await _unitOfWork.MartyrGraveRepository.GetByIDAsync(orderDetail.MartyrId);
+                    if (martyrGrave == null)
+                    {
+                        throw new InvalidOperationException("MartyrGrave không tồn tại.");
+                    }
+
+                    // Lấy danh sách nhân viên thuộc cùng khu vực
+                    var staffAccounts = await _unitOfWork.AccountRepository
+                        .FindAsync(a => a.RoleId == 3 && a.AreaId == martyrGrave.AreaId);
+
+                    if (!staffAccounts.Any())
+                    {
+                        throw new InvalidOperationException("Không có nhân viên nào thuộc khu vực phù hợp để nhận công việc.");
+                    }
+
+                    // Sắp xếp danh sách nhân viên dựa trên số lượng công việc
+                    var staffWorkloads = new Dictionary<int, int>();
+                    foreach (var staff in staffAccounts)
+                    {
+                        var taskCount = await _unitOfWork.TaskRepository
+                            .CountAsync(t => t.AccountId == staff.AccountId); // Lấy công việc đang được chỉ định
+                        staffWorkloads[staff.AccountId] = taskCount;
+                    }
+
+                    var sortedStaffAccounts = staffAccounts
+                        .OrderBy(staff => staffWorkloads[staff.AccountId])
+                        .ToList();
+
+                    // Lấy nhân viên có ít công việc nhất
+                    var selectedStaff = sortedStaffAccounts.First();
+
+                    // Đặt EndDate của task bằng với ExpectedCompletionDate của Order
+                    DateTime taskEndDate = order.ExpectedCompletionDate;
+
+                    // Tạo task mới và gắn Note của Order vào Description
+                    var taskEntity = new StaffTask
+                    {
+                        AccountId = selectedStaff.AccountId,
+                        OrderId = taskDto.OrderId,
+                        DetailId = taskDto.DetailId,
+                        StartDate = DateTime.Now,
+                        EndDate = taskEndDate,
+                        Description = order.Note,  // Gắn Note của Order vào Description của Task
+                        Status = 1  // Trạng thái ban đầu là 'assigned'
+                    };
+
+                    // Thêm Task vào cơ sở dữ liệu
+                    await _unitOfWork.TaskRepository.AddAsync(taskEntity);
+
+                    // Thêm vào danh sách kết quả
+                    taskResponses.Add(_mapper.Map<TaskDtoResponse>(taskEntity));
                 }
 
-                // Kiểm tra xem OrderId có tồn tại không
-                var order = await _unitOfWork.OrderRepository.GetByIDAsync(taskDto.OrderId);
-                if (order == null)
-                {
-                    throw new KeyNotFoundException("OrderId không tồn tại.");
-                }
+                await _unitOfWork.SaveAsync();
 
-                // Kiểm tra trạng thái của Order, nếu không phải là 1 thì không cho tạo Task
-                if (order.Status != 1)
-                {
-                    throw new InvalidOperationException("Order không ở trạng thái hợp lệ để tạo Task.");
-                }
-
-                // Kiểm tra xem DetailId có tồn tại và thuộc về OrderId không
-                var orderDetail = await _unitOfWork.OrderDetailRepository.GetByIDAsync(taskDto.DetailId);
-                if (orderDetail == null || orderDetail.OrderId != taskDto.OrderId)
-                {
-                    throw new InvalidOperationException("DetailId không hợp lệ hoặc không thuộc về OrderId được cung cấp.");
-                }
-
-                // Kiểm tra xem khu vực của nhân viên có trùng với khu vực của MartyrGrave trong OrderDetail không
-                var martyrGrave = await _unitOfWork.MartyrGraveRepository.GetByIDAsync(orderDetail.MartyrId);
-                if (martyrGrave == null || martyrGrave.AreaId != staffAccount.AreaId)
-                {
-                    throw new InvalidOperationException("Nhân viên không thuộc khu vực của MartyrGrave trong OrderDetail.");
-                }
-
-                // Đặt EndDate của task bằng với ExpectedCompletionDate của Order
-                DateTime taskEndDate = order.ExpectedCompletionDate;
-
-                // Tạo task mới và gắn Note của Order vào Description
-                var taskEntity = new StaffTask
-                {
-                    AccountId = taskDto.AccountId,
-                    OrderId = taskDto.OrderId,
-                    DetailId = taskDto.DetailId,
-                    StartDate = DateTime.Now,
-                    EndDate = taskEndDate,
-                    Description = order.Note,  // Gắn Note của Order vào Description của Task
-                    Status = 1  // Trạng thái ban đầu là 'assigned'
-                };
-
-                // Thêm Task vào cơ sở dữ liệu
-                await _unitOfWork.TaskRepository.AddAsync(taskEntity);
-
-                // Thêm vào danh sách kết quả
-                taskResponses.Add(_mapper.Map<TaskDtoResponse>(taskEntity));
+                return taskResponses;
+            }catch(Exception ex)
+            {
+                throw new Exception(ex.Message);
             }
-
-            await _unitOfWork.SaveAsync();
-
-            return taskResponses;
+            
         }
+
 
 
 

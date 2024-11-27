@@ -12,8 +12,6 @@ namespace MartyrGraveManagement_BAL.ModelViews.ScheduleDetailDTOs
         [Required]
         public int TaskId { get; set; }
         [Required]
-        public int SlotId { get; set; }
-        [Required]
         public DateTime Date { get; set; }
         public string? Description { get; set; }
     }

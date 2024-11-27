@@ -9,15 +9,12 @@ namespace MartyrGraveManagement_BAL.ModelViews.ScheduleDetailDTOs
     public class ScheduleDetailDtoResponse
     {
         public int ScheduleDetailId { get; set; }
-        public int SlotId { get; set; }
         public string StaffName { get; set; }
         public DateOnly Date { get; set; }
-        public TimeOnly StartTime { get; set; }
-        public TimeOnly EndTime { get; set; }
         public DateOnly StartDate { get; set; }
         public DateOnly EndDate { get; set; }
         public string? Description { get; set; }
-        public int TaskId { get; set; }
+        public int? TaskId { get; set; }
         public string ServiceName { get; set; }
         public string? ServiceDescription { get; set; }
         public string MartyrCode { get; set; }

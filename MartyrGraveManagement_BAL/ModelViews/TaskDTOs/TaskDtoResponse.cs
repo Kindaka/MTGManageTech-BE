@@ -11,7 +11,7 @@ namespace MartyrGraveManagement_BAL.ModelViews.TaskDTOs
         public int TaskId { get; set; }
         public int AccountId { get; set; }
         public string? Fullname { get; set; }
-        public int OrderId { get; set; }
+        public long OrderId { get; set; }
         public int DetailId { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
