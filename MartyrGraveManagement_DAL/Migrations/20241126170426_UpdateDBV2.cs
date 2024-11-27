@@ -149,6 +149,29 @@ namespace MartyrGraveManagement_DAL.Migrations
                 nullable: false,
                 defaultValue: false);
 
+            // 4. Tạo lại khóa chính cho Orders
+            migrationBuilder.AddPrimaryKey(
+                name: "PK_Orders",
+                table: "Orders",
+                column: "OrderId");
+
+            // 5. Tạo lại khóa ngoại từ OrderDetails
+            migrationBuilder.AddForeignKey(
+                name: "FK_OrderDetails_Orders_OrderId",
+                table: "OrderDetails",
+                column: "OrderId",
+                principalTable: "Orders",
+                principalColumn: "OrderId",
+                onDelete: ReferentialAction.Cascade);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Payments_Orders_OrderId",
+                table: "Payments",
+                column: "OrderId",
+                principalTable: "Orders",
+                principalColumn: "OrderId",
+                onDelete: ReferentialAction.Cascade);
+
             migrationBuilder.CreateTable(
                 name: "CustomerWallet",
                 columns: table => new
