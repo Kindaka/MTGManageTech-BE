@@ -112,27 +112,19 @@ namespace MartyrGraveManagement_DAL.Entities
                 .HasForeignKey(a => a.MartyrId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // ScheduleAssigment Configuration
-            modelBuilder.Entity<Schedule_Assignment>()
-                .HasKey(a => a.AssignmentId);
-            modelBuilder.Entity<Schedule_Assignment>()
-                .HasOne(a => a.Account)
-                .WithMany(r => r.ScheduleAssignments)
-                .HasForeignKey(a => a.StaffId)
-                .OnDelete(DeleteBehavior.Restrict);
-            modelBuilder.Entity<Schedule_Assignment>()
-                .HasOne(a => a.Service_Schedule)
-                .WithMany(r => r.ScheduleAssignments)
-                .HasForeignKey(a => a.ServiceScheduleId)
-                .OnDelete(DeleteBehavior.Restrict);
 
             // AssignmentTask Configuration
             modelBuilder.Entity<AssignmentTask>()
                 .HasKey(a => a.AssignmentTaskId);
             modelBuilder.Entity<AssignmentTask>()
-                .HasOne(a => a.ScheduleAssignment)
+                .HasOne(a => a.Service_Schedule)
                 .WithMany(r => r.AssignmentTasks)
-                .HasForeignKey(a => a.AssignmentId)
+                .HasForeignKey(a => a.ServiceScheduleId)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<AssignmentTask>()
+                .HasOne(a => a.Account)
+                .WithMany(r => r.AssignmentTasks)
+                .HasForeignKey(a => a.StaffId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // AssignmentTaskImage Configuration

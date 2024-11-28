@@ -46,7 +46,7 @@ namespace MartyrGraveManagement_DAL.Entities
         //public IEnumerable<Attendance>? Attendances { get; set; }
         public IEnumerable<TransactionBalanceHistory>? TransactionBalanceHistorys { get; set; }
         public IEnumerable<Service_Schedule>? ServiceSchedules { get; set; }
-        public IEnumerable<Schedule_Assignment>? ScheduleAssignments { get; set; }
+        public IEnumerable<AssignmentTask>? AssignmentTasks { get; set; }
 
 
     }

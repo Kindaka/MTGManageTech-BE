@@ -135,6 +135,7 @@ builder.Services.AddScoped<ITaskBackgroundService, TaskBackgroundService>();
 builder.Services.AddScoped<IOrderBackgroundService, OrderBackgroundService>();
 builder.Services.AddScoped<IHolidayEventBackgroundService, HolidayEventBackgroundService>();
 //builder.Services.AddScoped<IAttendanceBackgroundService, AttendanceBackgroundService>();
+builder.Services.AddScoped<IRecurringTaskService, RecurringTaskService>();
 
 
 // Đăng ký các dịch vụ của bạn
@@ -169,6 +170,8 @@ builder.Services.AddScoped<ISmsService, TwillioService>();
 builder.Services.AddScoped<IMaterialService, MaterialService>();
 builder.Services.AddScoped<IBlogCategoryService, BlogCategoryService>();
 builder.Services.AddScoped<IWalletService, WalletService>();
+builder.Services.AddScoped<IServiceSchedule_Service, ServiceSchedule_Service>();
+builder.Services.AddScoped<IAssignmentTaskService, AssignmentTaskService>();
 
 // Đăng ký ML
 builder.Services.AddScoped<ITrendingRecommendationService, TrendingRecommendationService>();
@@ -212,11 +215,17 @@ RecurringJob.AddOrUpdate<IHolidayEventBackgroundService>(
     Cron.Minutely
 );
 
-RecurringJob.AddOrUpdate<IAttendanceBackgroundService>(
-    "mark-absent-attendance",
-    service => service.MarkAbsentAttendanceAsync(),
-    Cron.Minutely
-);
+//RecurringJob.AddOrUpdate<IAttendanceBackgroundService>(
+//    "mark-absent-attendance",
+//    service => service.MarkAbsentAttendanceAsync(),
+//    Cron.Minutely
+//);
+
+RecurringJob.AddOrUpdate<IRecurringTaskService>(
+    "CreateRecurringTasks",
+    service => service.CreateRecurringTasksAsync(),
+    Cron.Hourly());
+
 
 
 app.MapControllers();

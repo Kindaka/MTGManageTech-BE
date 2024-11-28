@@ -13,7 +13,8 @@ namespace MartyrGraveManagement_DAL.Entities
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int AssignmentTaskId { get; set; }
-        public int AssignmentId { get; set; }
+        public int ServiceScheduleId { get; set; }
+        public int StaffId { get; set; }
         public DateTime CreateAt { get; set; } // Create At
         public DateTime EndDate { get; set; }
         [Column(TypeName = "nvarchar(255)")]
@@ -22,7 +23,8 @@ namespace MartyrGraveManagement_DAL.Entities
         [Column(TypeName = "nvarchar(500)")]
         public string? Reason { get; set; }
         public int Status { get; set; }
-        public Schedule_Assignment? ScheduleAssignment { get; set; }
+        public Service_Schedule? Service_Schedule { get; set; }
+        public Account? Account { get; set; }
         public IEnumerable<AssignmentTaskImage>? AssignmentTaskImages { get; set; }
     }
 }

@@ -47,6 +47,9 @@ namespace MartyrGraveManagement_DAL.UnitOfWorks.Interfaces
         public IGenericRepository<WorkPerformance> WorkPerformanceRepository { get; }
         public IGenericRepository<CustomerWallet> CustomerWalletRepository { get; }
         public IGenericRepository<TransactionBalanceHistory> TransactionBalanceHistoryRepository { get; }
+        public IGenericRepository<TaskImage> TaskImageRepository { get; }
+        public IGenericRepository<Service_Schedule> ServiceScheduleRepository { get; }
+        public IGenericRepository<AssignmentTask> AssignmentTaskRepository { get; }
 
 
         Task SaveAsync();

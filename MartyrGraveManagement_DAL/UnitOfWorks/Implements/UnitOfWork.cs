@@ -52,6 +52,9 @@ namespace MartyrGraveManagement_DAL.UnitOfWorks.Implements
         private GenericRepository<WorkPerformance> _workPerformanceRepository;
         private GenericRepository<CustomerWallet> _customerWalletRepository;
         private GenericRepository<TransactionBalanceHistory> _transactionBalanceHistoryRepository;
+        private GenericRepository<TaskImage> _taskImageRepository;
+        private GenericRepository<Service_Schedule> _serviceScheduleRepository;
+        private GenericRepository<AssignmentTask> _assignmentTaskRepository;
 
 
         public UnitOfWork(ApplicationDbContext context)
@@ -98,6 +101,9 @@ namespace MartyrGraveManagement_DAL.UnitOfWorks.Implements
         public IGenericRepository<WorkPerformance> WorkPerformanceRepository => _workPerformanceRepository ??= new GenericRepository<WorkPerformance>(_context);
         public IGenericRepository<CustomerWallet> CustomerWalletRepository => _customerWalletRepository ??= new GenericRepository<CustomerWallet>(_context);
         public IGenericRepository<TransactionBalanceHistory> TransactionBalanceHistoryRepository => _transactionBalanceHistoryRepository ??= new GenericRepository<TransactionBalanceHistory>(_context);
+        public IGenericRepository<TaskImage> TaskImageRepository => _taskImageRepository ??= new GenericRepository<TaskImage>(_context);
+        public IGenericRepository<Service_Schedule> ServiceScheduleRepository => _serviceScheduleRepository ??= new GenericRepository<Service_Schedule>(_context);
+        public IGenericRepository<AssignmentTask> AssignmentTaskRepository => _assignmentTaskRepository ??= new GenericRepository<AssignmentTask>(_context);
 
 
         public async Task<IDbContextTransaction> BeginTransactionAsync()

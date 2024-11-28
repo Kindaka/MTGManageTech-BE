@@ -319,6 +319,17 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 var location = await _unitOfWork.LocationRepository.GetByIDAsync(martyrGrave.LocationId);
                 taskDto.GraveLocation = $"K{location.AreaNumber}-R{location.RowNumber}-{location.MartyrNumber}";
             }
+            var taskImages = await _unitOfWork.TaskImageRepository.GetAsync(i => i.TaskId == singleTask.TaskId);
+            if(taskImages != null)
+            {
+                foreach (var image in taskImages)
+                {
+                    if (image.ImageWorkSpace != null)
+                    {
+                        taskDto.TaskImages.Add(image.ImageWorkSpace);
+                    }
+                }
+            }
 
             return taskDto;
         }
@@ -1078,9 +1089,22 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     }
 
                     // 3. Cập nhật hình ảnh
-                    task.ImageWorkSpace = imageUpdateDto.UrlImages.ElementAtOrDefault(0);  // Ảnh 1
-                    //task.ImagePath2 = imageUpdateDto.UrlImages.ElementAtOrDefault(1);  // Ảnh 2 (nếu có)
-                    //task.ImagePath3 = imageUpdateDto.UrlImages.ElementAtOrDefault(2);  // Ảnh 3 (nếu có)
+                    task.ImageWorkSpace = imageUpdateDto.ImageWorkSpace;  // Ảnh không gian bàn làm việc
+
+                    foreach(var image in imageUpdateDto.UrlImages)
+                    {
+                        if (image != null)
+                        {
+                            var imageTask = new TaskImage
+                            {
+                                TaskId = task.TaskId,
+                                ImageWorkSpace = image,
+                                CreateAt = DateTime.Now
+                            };
+                            await _unitOfWork.TaskImageRepository.AddAsync(imageTask);
+                        }
+                    }
+
 
                     // 4. Cập nhật trạng thái task lên 4
                     task.Status = 4;  // Task hoàn thành

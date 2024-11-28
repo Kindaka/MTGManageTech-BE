@@ -17,9 +17,8 @@ namespace MartyrGraveManagement_BAL.ModelViews.TaskDTOs
         public DateTime EndDate { get; set; }
         public string Description { get; set; }
         public int Status { get; set; }
-        public string? ImagePath1 { get; set; }
-        public string? ImagePath2 { get; set; }
-        public string? ImagePath3 { get; set; }
+        public string? ImageWorkSpace { get; set; }
+        public List<string> TaskImages { get; set; } = new List<string>();
         public string? Reason { get; set; }
 
 

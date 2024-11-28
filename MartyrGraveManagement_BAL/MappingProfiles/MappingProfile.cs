@@ -20,6 +20,7 @@ using MartyrGraveManagement_BAL.ModelViews.PaymentDTOs;
 using MartyrGraveManagement_BAL.ModelViews.ScheduleDetailDTOs;
 using MartyrGraveManagement_BAL.ModelViews.ServiceCategoryDTOs;
 using MartyrGraveManagement_BAL.ModelViews.ServiceDTOs;
+using MartyrGraveManagement_BAL.ModelViews.ServiceScheduleDTOs;
 using MartyrGraveManagement_BAL.ModelViews.SlotDTOs;
 using MartyrGraveManagement_BAL.ModelViews.StaffPerformanceDTOs;
 using MartyrGraveManagement_BAL.ModelViews.TaskDTOs;
@@ -173,6 +174,9 @@ namespace MartyrGraveManagement_BAL.MappingProfiles
             CreateMap<TransactionBalanceHistory, TransactionBalanceHistoryDTO>()
                 .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src =>
                     src.Account != null ? src.Account.FullName : string.Empty));
+
+            // ServiceSchedule
+            CreateMap<Service_Schedule, ServiceScheduleDtoResponse>().ReverseMap();
 
 
         }
