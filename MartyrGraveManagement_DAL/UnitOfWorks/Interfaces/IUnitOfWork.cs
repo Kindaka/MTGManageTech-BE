@@ -50,6 +50,7 @@ namespace MartyrGraveManagement_DAL.UnitOfWorks.Interfaces
         public IGenericRepository<TaskImage> TaskImageRepository { get; }
         public IGenericRepository<Service_Schedule> ServiceScheduleRepository { get; }
         public IGenericRepository<AssignmentTask> AssignmentTaskRepository { get; }
+        public IGenericRepository<AssignmentTaskImage> AssignmentTaskImageRepository { get; }
 
 
         Task SaveAsync();

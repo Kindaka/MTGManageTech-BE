@@ -200,19 +200,19 @@ app.UseHangfireDashboard("/hangfire");
 RecurringJob.AddOrUpdate<ITaskBackgroundService>(
     "check-expired-tasks",
     service => service.CheckExpiredTasks(),
-    Cron.Minutely
+    Cron.Hourly()
 );
 
 RecurringJob.AddOrUpdate<IOrderBackgroundService>(
     "check-expired-orders-payment",
     service => service.CheckExpiredOrderPayment(),
-    Cron.Minutely
+    Cron.Hourly()
 );
 
 RecurringJob.AddOrUpdate<IHolidayEventBackgroundService>(
     "check-and-send-holiday-event-notifications",
     service => service.UpdateNotificationAccountsForUpcomingDay(),
-    Cron.Minutely
+    Cron.Hourly()
 );
 
 //RecurringJob.AddOrUpdate<IAttendanceBackgroundService>(

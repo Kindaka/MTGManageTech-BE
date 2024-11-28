@@ -2,6 +2,7 @@
 using MartyrGraveManagement_BAL.MLModels;
 using MartyrGraveManagement_BAL.ModelViews.AccountDTOs;
 using MartyrGraveManagement_BAL.ModelViews.AreaDTOs;
+using MartyrGraveManagement_BAL.ModelViews.AssignmentTaskDTOs;
 using MartyrGraveManagement_BAL.ModelViews.BlogCategoryDTOs;
 using MartyrGraveManagement_BAL.ModelViews.BlogDTOs;
 using MartyrGraveManagement_BAL.ModelViews.CartItemsDTOs;
@@ -177,8 +178,64 @@ namespace MartyrGraveManagement_BAL.MappingProfiles
 
             // ServiceSchedule
             CreateMap<Service_Schedule, ServiceScheduleDtoResponse>().ReverseMap();
+            
 
+            // AssignmentTask mappings
+            CreateMap<TaskDtoResponse, AssignmentTask>().ReverseMap();
 
+            CreateMap<AssignmentTask, AssignmentTaskResponse>()
+                // Staff info
+                .ForMember(dest => dest.StaffName, opt => opt.MapFrom(src => 
+                    src.Account != null ? src.Account.FullName : string.Empty))
+                .ForMember(dest => dest.StaffPhone, opt => opt.MapFrom(src => 
+                    src.Account != null ? src.Account.PhoneNumber : string.Empty))
+                
+                // Service Schedule info
+                .ForMember(dest => dest.AccountId, opt => opt.MapFrom(src => 
+                    src.Service_Schedule != null ? src.Service_Schedule.AccountId : 0))
+                .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => 
+                    src.Service_Schedule != null && src.Service_Schedule.Account != null 
+                        ? src.Service_Schedule.Account.FullName : string.Empty))
+                .ForMember(dest => dest.CustomerPhone, opt => opt.MapFrom(src => 
+                    src.Service_Schedule != null && src.Service_Schedule.Account != null 
+                        ? src.Service_Schedule.Account.PhoneNumber : string.Empty))
+                .ForMember(dest => dest.Amount, opt => opt.MapFrom(src => 
+                    src.Service_Schedule != null ? src.Service_Schedule.Amount : 0))
+                .ForMember(dest => dest.ScheduleDate, opt => opt.MapFrom(src => 
+                    src.Service_Schedule != null ? src.Service_Schedule.ScheduleDate : default(DateOnly)))
+                .ForMember(dest => dest.DayOfMonth, opt => opt.MapFrom(src => 
+                    src.Service_Schedule != null ? src.Service_Schedule.DayOfMonth : 0))
+                .ForMember(dest => dest.DayOfWeek, opt => opt.MapFrom(src => 
+                    src.Service_Schedule != null ? src.Service_Schedule.DayOfWeek : 0))
+                .ForMember(dest => dest.Note, opt => opt.MapFrom(src => 
+                    src.Service_Schedule != null ? src.Service_Schedule.Note : string.Empty))
+                
+                // Service info
+                .ForMember(dest => dest.ServiceName, opt => opt.MapFrom(src => 
+                    src.Service_Schedule != null && src.Service_Schedule.Service != null 
+                        ? src.Service_Schedule.Service.ServiceName : string.Empty))
+                .ForMember(dest => dest.ServiceDescription, opt => opt.MapFrom(src => 
+                    src.Service_Schedule != null && src.Service_Schedule.Service != null 
+                        ? src.Service_Schedule.Service.Description : string.Empty))
+                .ForMember(dest => dest.ServiceImage, opt => opt.MapFrom(src => 
+                    src.Service_Schedule != null && src.Service_Schedule.Service != null 
+                        ? src.Service_Schedule.Service.ImagePath : string.Empty))
+                .ForMember(dest => dest.RecurringType, opt => opt.MapFrom(src => 
+                    src.Service_Schedule != null && src.Service_Schedule.Service != null 
+                        ? src.Service_Schedule.Service.RecurringType : 0))
+                
+                // Task images
+                .ForMember(dest => dest.TaskImages, opt => opt.MapFrom(src => 
+                    src.AssignmentTaskImages != null 
+                        ? src.AssignmentTaskImages.Select(i => i.ImagePath).ToList() 
+                        : new List<string>()));
+
+            CreateMap<AssignmentTaskStatusUpdateDTO, AssignmentTask>()
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status))
+                .ForMember(dest => dest.Reason, opt => opt.MapFrom(src => src.Reason));
+
+            CreateMap<AssignmentTaskImageUpdateDTO, AssignmentTask>()
+                .ForMember(dest => dest.ImageWorkSpace, opt => opt.MapFrom(src => src.ImageWorkSpace));
         }
         // Thêm helper method vào class MappingProfile
         private static string GetPerformanceLevel(float score)

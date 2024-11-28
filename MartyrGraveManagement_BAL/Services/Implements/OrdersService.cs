@@ -554,6 +554,108 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         }
                         paymentUrl = momoPayment.PaymentUrl; // Lấy URL thanh toán từ response
                     }
+                    else if (paymentMethod.ToLower() == "balance")
+                    {
+                        // Lấy ví của khách hàng
+                        var customerWallet = (await _unitOfWork.CustomerWalletRepository.GetAsync(
+                            w => w.CustomerId == accountId
+                        )).FirstOrDefault();
+
+                        if (customerWallet == null)
+                        {
+                            await transaction.RollbackAsync();
+                            return (false, null, "Không tìm thấy ví của khách hàng.");
+                        }
+
+                        // Kiểm tra số dư
+                        decimal currentBalance = customerWallet.CustomerBalance;
+                        if (currentBalance < totalPrice)
+                        {
+                            await transaction.RollbackAsync();
+                            return (false, null, "Số dư không đủ để thực hiện giao dịch này.");
+                        }
+
+                        try
+                        {
+                            // Tính toán số dư mới
+                            decimal newBalance = currentBalance - totalPrice;
+                            
+                            // Tạo Payment record
+                            var payment = new Payment
+                            {
+                                OrderId = order.OrderId,
+                                PaymentMethod = "Balance",
+                                PaymentInfo = $"Thanh toán đơn hàng {order.OrderId} bằng số dư ví",
+                                PayDate = DateTime.Now,
+                                TransactionStatus = 1, // Thanh toán thành công
+                                PaymentAmount = totalPrice,
+                                BankCode = "WALLET", // Thêm giá trị mặc định cho BankCode
+                                CardType = "BALANCE", // Thêm giá trị mặc định cho CardType nếu cần
+                                TransactionNo = DateTime.Now.Ticks.ToString(), // Tạo số giao dịch unique
+                                BankTransactionNo = DateTime.Now.Ticks.ToString() // Tạo số giao dịch ngân hàng unique
+                            };
+                            await _unitOfWork.PaymentRepository.AddAsync(payment);
+
+                            // Tạo TransactionBalanceHistory
+                            var transactionHistory = new TransactionBalanceHistory
+                            {
+                                CustomerId = accountId,
+                                TransactionType = "Payment",
+                                Amount = -totalPrice,
+                                TransactionDate = DateTime.Now,
+                                Description = $"Thanh toán đơn hàng #{order.OrderId}",
+                                BalanceAfterTransaction = newBalance
+                            };
+                            await _unitOfWork.TransactionBalanceHistoryRepository.AddAsync(transactionHistory);
+
+                            // Cập nhật số dư ví
+                            customerWallet.CustomerBalance = newBalance;
+                            customerWallet.UpdateAt = DateTime.Now;
+                            await _unitOfWork.CustomerWalletRepository.UpdateAsync(customerWallet);
+
+                            // Cập nhật trạng thái đơn hàng thành đã thanh toán
+                            order.Status = 1; // Đã thanh toán
+                            await _unitOfWork.OrderRepository.UpdateAsync(order);
+
+                            // Xóa các mục trong giỏ hàng
+                            foreach (var cartItem in cartItems)
+                            { 
+                                await _unitOfWork.CartItemRepository.DeleteAsync(cartItem);
+                            }
+
+                            // Tạo thông báo
+                            var notification = new Notification
+                            {
+                                Title = "Thanh toán đơn hàng thành công",
+                                Description = $"Đơn hàng #{order.OrderId} đã được thanh toán thành công.\n" +
+                                             $"Số tiền thanh toán: {totalPrice:N0} VNĐ\n" +
+                                             $"Số dư ban đầu: {currentBalance:N0} VNĐ\n" +
+                                             $"Số dư còn lại: {newBalance:N0} VNĐ",
+                                CreatedDate = DateTime.Now,
+                                Status = true
+                            };
+                            await _unitOfWork.NotificationRepository.AddAsync(notification);
+                            await _unitOfWork.SaveAsync();
+
+                            // Liên kết thông báo với tài khoản
+                            var notificationAccount = new NotificationAccount
+                            {
+                                AccountId = accountId,
+                                NotificationId = notification.NotificationId,
+                                Status = true
+                            };
+                            await _unitOfWork.NotificationAccountsRepository.AddAsync(notificationAccount);
+
+                            await _unitOfWork.SaveAsync();
+                            await transaction.CommitAsync();
+                            return (true, null, "Đơn hàng đã được thanh toán thành công bằng số dư tài khoản.");
+                        }
+                        catch (Exception ex)
+                        {
+                            await transaction.RollbackAsync();
+                            throw new Exception($"Lỗi khi xử lý thanh toán: {ex.Message}");
+                        }
+                    }
                     else
                     {
                         return (false, null, "Phương thức thanh toán không hợp lệ.");
@@ -723,7 +825,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 return null;
             }
 
-            // Tạo đối tượng DTO với các thông tin yêu cầu
+            // To đối tượng DTO với các thông tin yêu cầu
             var martyrGraveInfo = orderDetail.MartyrGrave?.MartyrGraveInformations?.FirstOrDefault();
             var orderDetailDto = new OrderDetailDtoResponse
             {

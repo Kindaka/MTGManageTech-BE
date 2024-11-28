@@ -48,8 +48,11 @@ namespace MartyrGraveManagement_BAL.BackgroundServices.Implements
                                 if (DateTime.Today >= nextServiceDate.Value.AddDays(-7) && DateTime.Today < nextServiceDate.Value)
                                 {
                                     // Kiểm tra xem công việc đã tồn tại chưa
+                                    //var existingTask = await _unitOfWork.AssignmentTaskRepository
+                                    //    .FindAsync(t => t.ServiceScheduleId == serviceSchedule.ServiceScheduleId && t.EndDate == nextServiceDate.Value);
+
                                     var existingTask = await _unitOfWork.AssignmentTaskRepository
-                                        .FindAsync(t => t.ServiceScheduleId == serviceSchedule.ServiceScheduleId && t.EndDate == nextServiceDate.Value);
+                                    .FindAsync(t => t.ServiceScheduleId == serviceSchedule.ServiceScheduleId && DateOnly.FromDateTime(t.EndDate) == DateOnly.FromDateTime(nextServiceDate.Value));
 
                                     if (existingTask.Any())
                                     {

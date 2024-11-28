@@ -55,6 +55,7 @@ namespace MartyrGraveManagement_DAL.UnitOfWorks.Implements
         private GenericRepository<TaskImage> _taskImageRepository;
         private GenericRepository<Service_Schedule> _serviceScheduleRepository;
         private GenericRepository<AssignmentTask> _assignmentTaskRepository;
+        private GenericRepository<AssignmentTaskImage> _assignmentTaskImageRepository;
 
 
         public UnitOfWork(ApplicationDbContext context)
@@ -104,6 +105,7 @@ namespace MartyrGraveManagement_DAL.UnitOfWorks.Implements
         public IGenericRepository<TaskImage> TaskImageRepository => _taskImageRepository ??= new GenericRepository<TaskImage>(_context);
         public IGenericRepository<Service_Schedule> ServiceScheduleRepository => _serviceScheduleRepository ??= new GenericRepository<Service_Schedule>(_context);
         public IGenericRepository<AssignmentTask> AssignmentTaskRepository => _assignmentTaskRepository ??= new GenericRepository<AssignmentTask>(_context);
+        public IGenericRepository<AssignmentTaskImage> AssignmentTaskImageRepository => _assignmentTaskImageRepository ??= new GenericRepository<AssignmentTaskImage>(_context);
 
 
         public async Task<IDbContextTransaction> BeginTransactionAsync()
