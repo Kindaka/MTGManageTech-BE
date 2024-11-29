@@ -19,5 +19,8 @@ namespace MartyrGraveManagement_BAL.ModelViews.GraveServiceDTOs
 
         public string? ImagePath { get; set; }
         public bool Status { get; set; }
+
+        public bool isScheduleService { get; set; }
+        public int RecurringType { get; set; }
     }
 }

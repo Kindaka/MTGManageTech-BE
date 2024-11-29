@@ -192,6 +192,8 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                             Price = graveService.Service.Price,
                             ImagePath = graveService.Service.ImagePath,
                             Status = graveService.Service.Status,
+                            isScheduleService = graveService.Service.isScheduleService,
+                            RecurringType = graveService.Service.RecurringType
 
                         };
                         serviceList.Add(item);
