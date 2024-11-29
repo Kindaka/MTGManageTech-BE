@@ -1,4 +1,4 @@
-﻿using MartyrGraveManagement_BAL.ModelViews.ServiceCategoryDTOs;
+﻿using MartyrGraveManagement_BAL.ModelViews.GraveServiceDTOs;
 using MartyrGraveManagement_BAL.ModelViews.ServiceDTOs;
 using System;
 using System.Collections.Generic;
@@ -10,11 +10,9 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
 {
     public interface IGraveService_Service
     {
-        Task<(bool status, string result)> AddService(ServiceDtoRequest service);
-        Task<(bool status, string result)> UpdateService(ServiceDtoRequest service, int serviceId);
-        Task<List<ServiceDtoResponse>> GetAllServices(int? categoryId);
-        Task<(List<ServiceDtoResponse> serviceList, int totalPage)> GetServicesForAdmin(int? categoryId, int page, int pageSize);
-        Task<ServiceDetailDtoResponse> GetServiceById(int serviceId);
-        Task<(bool status, string result)> ChangeStatus(int serviceId);
+        Task<(bool check, string response)> CreateServiceForGrave(GraveServiceDtoRequest request);
+        Task<(bool check, string response)> DeleteServiceOfGrave(int graveServiceId);
+        Task<(bool check, string response)> UpdateServiceForGrave(int graveServiceId, UpdateServiceForGraveDtoRequest request);
+        Task<List<GraveServiceDtoResponse>> GetAllServicesForGrave(int martyrId, int? categoryId);
     }
 }

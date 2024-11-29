@@ -13,7 +13,7 @@ namespace MartyrGraveManagement_DAL.Entities
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int DetailId { get; set; }
-        public int OrderId { get; set; }
+        public long OrderId { get; set; }
         public int ServiceId { get; set; }
         public int MartyrId { get; set; }
         public double OrderPrice { get; set; }
@@ -23,6 +23,8 @@ namespace MartyrGraveManagement_DAL.Entities
         public Order? Order { get; set; }
         public Service? Service { get; set; }
         public MartyrGrave? MartyrGrave { get; set; }
+        public Feedback? Feedback { get; set; }
+        public StaffTask? StaffTask { get; set; }
     }
 
 }

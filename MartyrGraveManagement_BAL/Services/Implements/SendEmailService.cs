@@ -130,7 +130,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             <div class='details'>
                 <p><strong>Tên mộ liệt sĩ:</strong> {grave.MartyrGraveInformations.FirstOrDefault()?.Name}</p>
                 <p><strong>Vị trí mộ:</strong> {grave.MartyrCode}</p>
-                <p><strong>Tên tài khoản đăng nhập:</strong> {account.AccountName}</p>        
+                <p><strong>Tên tài khoản đăng nhập:</strong> {account.PhoneNumber}</p>        
                 <p><strong>Mật khẩu:</strong> {randomPassword}</p>
             </div>
 
@@ -247,7 +247,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             <p>Nghĩa trang đã cập nhật tài khoản của bạn vào mộ thân nhân trong hệ thống của An Nhiên. Bạn sẽ được cấp tài khoản để sử dụng phần mềm của chúng tôi.</p>
 
             <div class='details'>
-                <p><strong>Tên tài khoản đăng nhập:</strong> {account.AccountName}</p>        
+                <p><strong>Tên tài khoản đăng nhập:</strong> {account.PhoneNumber}</p>        
                 <p><strong>Mật khẩu:</strong> {randomPassword}</p>
             </div>
 

@@ -1,0 +1,450 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>MartyrGraveManagement</name>
+    </assembly>
+    <members>
+        <member name="M:MartyrGraveManagement.Controllers.AccountController.GetStaffs(System.Int32,System.Int32,System.Nullable{System.Int32})">
+            <summary>
+            Get all Staff Account By Area (Manager Role)
+            </summary>
+            <returns>Returns a list of all Staff Account.</returns>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.AccountController.GetManagers(System.Int32,System.Int32)">
+            <summary>
+            Get all Manager Account (Admin role)
+            </summary>
+            <returns>Returns a list of all Manager Account.</returns>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.AccountController.UpdateStatus(System.Int32)">
+            <summary>
+            Update account status (Admin and Manager Role)
+            </summary>
+            <returns>Returns a list of all Manager Account.</returns>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.AccountController.UpdateProfileForStaffOrManager(System.Int32,MartyrGraveManagement_BAL.ModelViews.AccountDTOs.UpdateProfileStaffOrManagerDtoRequest)">
+            <summary>
+            Update profile for Staff or Manager (Role 2 and 3)
+            </summary>
+            <returns>Returns success or failure status.</returns>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.AreaController.CreateNewArea(MartyrGraveManagement_BAL.ModelViews.AreaDTos.AreaDtoRequest)">
+            <summary>
+            Create a new Area (Admin or Manager ROle)
+            </summary>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.AreaController.GetAllAreas">
+            <summary>
+            Get a list of active Areas (Anonymous) - Only shows active areas with Status = true
+            </summary>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.AreaController.GetAllAreasForStaffOrManager">
+            <summary>
+            Get all Areas for Staff or Manager (RequireManagerOrStaffRole) - Show both active and inactive areas
+            </summary>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.AreaController.GetAreaById(System.Int32)">
+            <summary>
+            Get an Area by ID (Anonymous)
+            </summary>
+            <param name="id">Area ID</param>
+            <returns>Returns the specified area.</returns>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.AreaController.UpdateArea(System.Int32,MartyrGraveManagement_BAL.ModelViews.AreaDTos.AreaDtoRequest)">
+            <summary>
+            Update an Area (Admin or Manager Role)
+            </summary>
+            <param name="id">Area ID</param>
+            <param name="updateArea">Updated area data</param>
+            <returns>Returns success message.</returns>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.AreaController.ToggleStatusArea(System.Int32)">
+            <summary>
+            Update the status of an Area (Admin or Manager Role).
+            </summary>
+            <param name="id">The ID of the area to toggle status.</param>
+            <returns>Returns success message.</returns>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.AreaController.DeleteArea(System.Int32)">
+            <summary>
+            Delete an Area (Admin or Manager Role)
+            </summary>
+            <param name="id">Area ID</param>
+            <returns>Returns success message.</returns>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.AuthController.Login(MartyrGraveManagement_BAL.ModelViews.AccountDTOs.UserAuthenticatingDtoRequest)">
+            <summary>
+            Authenticate users and generate tokens..
+            </summary>
+            <param name="loginInfo">The user's login information (email and password).</param>
+            <returns>
+            Returns an access token if the user is successfully authenticated, otherwise returns an error message.
+            </returns>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.AuthController.Register(MartyrGraveManagement_BAL.ModelViews.AccountDTOs.UserRegisterDtoRequest)">
+            <summary>
+            Register account for Manager / Staff / Admin
+            </summary>
+            <param name="newAccount">The new account information including email, password, and confirmation password.</param>
+            <returns>
+            Returns a success message if the account is successfully created, otherwise returns an error message.
+            </returns>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.CustomerController.UpdateProfile(System.Int32,MartyrGraveManagement_BAL.ModelViews.CustomerDTOs.UpdateProfileDtoRequest)">
+            <summary>
+            Update Profile for Customer
+            </summary>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.FeedbackController.CreateFeedback(MartyrGraveManagement_BAL.ModelViews.FeedbackDTOs.FeedbackDtoRequest)">
+            <summary>
+            Create Feedback after Order Completed (Customer Role)
+            </summary>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.FeedbackController.CreateFeedbackResponse(MartyrGraveManagement_BAL.ModelViews.FeedbackDTOs.FeedbackResponseDtoRequest)">
+            <summary>
+            Create Feedback after Order Completed (Customer Role)
+            </summary>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.FeedbackController.GetFeedbackById(System.Int32)">
+            <summary>
+            get feedback by Id
+            </summary>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.FeedbackController.GetAllFeedbacks(System.Int32,System.Int32)">
+            <summary>
+            get all feedback (Staff or Manager Role)
+            </summary>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.FeedbackController.UpdateFeedback(System.Int32,MartyrGraveManagement_BAL.ModelViews.FeedbackDTOs.FeedbackContentDtoRequest)">
+            <summary>
+            Update feedback content (Customer role)
+            </summary>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.FeedbackController.ChangeStatusFeedback(System.Int32)">
+            <summary>
+            Update feedback status (ManagerOrStaffRole)
+            </summary>       
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.FeedbackController.DeleteFeedback(System.Int32)">
+            <summary>
+            Delete Feedback 
+            </summary>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.FeedbackResponseController.CreateFeedbackResponse(MartyrGraveManagement_BAL.ModelViews.FeedbackDTOs.FeedbackDtoRequest)">
+            <summary>
+            Create Feedback after Order Completed (Customer Role)
+            </summary>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.FeedbackResponseController.GetFeedbackResponseById(System.Int32)">
+            <summary>
+            get feedback by Id
+            </summary>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.FeedbackResponseController.GetFeedbackResponseByFeedbackId(System.Int32)">
+            <summary>
+            get feedback by Id
+            </summary>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.FeedbackResponseController.GetFeedbackResponseByCustomerId(System.Int32)">
+            <summary>
+            get feedback by Id
+            </summary>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.FeedbackResponseController.GetAllFeedbackResponses(System.Int32,System.Int32)">
+            <summary>
+            get all feedback (Staff or Manager Role)
+            </summary>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.FeedbackResponseController.UpdateFeedbackResponse(System.Int32,MartyrGraveManagement_BAL.ModelViews.FeedbackDTOs.FeedbackContentDtoRequest)">
+            <summary>
+            Update feedback content (Customer role)
+            </summary>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.FeedbackResponseController.ChangeStatusFeedbackResponse(System.Int32)">
+            <summary>
+            Update feedback status (ManagerOrStaffRole)
+            </summary>       
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.FeedbackResponseController.DeleteFeedbackResponse(System.Int32)">
+            <summary>
+            Delete Feedback 
+            </summary>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.MartyrGraveController.GetMartyrGraves(System.Int32,System.Int32)">
+            <summary>
+            Gets all martyr graves.
+            </summary>
+            <returns>Returns a list of all graves.</returns>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.MartyrGraveController.GetMartyrGrave(System.Int32)">
+            <summary>
+            Gets a specific martyr grave by its ID.
+            </summary>
+            <param name="id">The ID of the martyr grave.</param>
+            <returns>Returns the martyr grave with the specified ID.</returns>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.MartyrGraveController.GetMartyrGraveByMartyrCode(System.String)">
+            <summary>
+            Gets a specific martyr grave by its customerCode.
+            </summary>
+            <param name="id">The customerCode of the martyr grave.</param>
+            <returns>Returns the martyr grave with the specified customerCode.</returns>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.MartyrGraveController.CreateMartyrGraveV2(MartyrGraveManagement_BAL.ModelViews.MartyrGraveDTOs.MartyrGraveDtoRequest)">
+            <summary>
+            Creates a new martyr grave version 2.
+            </summary>
+            <param name="martyrGraveDto">The details of the martyr grave to create.</param>
+            <returns>Returns no content if the create is successful.</returns>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.MartyrGraveController.UpdateMartyrGrave(System.Int32,MartyrGraveManagement_BAL.ModelViews.MartyrGraveDTOs.MartyrGraveDtoRequest)">
+            <summary>
+            Updates a martyr grave with the specified ID.
+            </summary>
+            <param name="id">The ID of the martyr grave to update.</param>
+            <param name="martyrGraveDto">The updated details of the martyr grave.</param>
+            <returns>Returns no content if the update is successful.</returns>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.MartyrGraveController.UpdateMartyrGraveStatus(System.Int32,System.Int32)">
+            <summary>
+            Update a martyr grave status with the specified ID.
+            </summary>
+            <param name="id">The ID of the martyr grave to update status.</param>
+            <returns>Returns no content if the deletion is successful.</returns>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.MartyrGraveController.GetAllMartyrGraves(System.Int32,System.Int32)">
+            <summary>
+            Retrieves all martyr graves with associated information for management with paging support.
+            </summary>
+            <param name="page">The current page number (default is 1)</param>
+            <param name="pageSize">The number of items per page (default is 10)</param>
+            <returns>A list of martyr graves with additional information like name, location, etc.</returns>
+            <response code="200">Returns a list of martyr graves with total pages for paging</response>
+            <response code="500">If there was an internal server error</response>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.MartyrGraveController.UpdateMartyrGraveV2(System.Int32,MartyrGraveManagement_BAL.ModelViews.MartyrGraveDTOs.MartyrGraveUpdateDtoRequest)">
+            <summary>
+            Updates a martyr grave with the specified ID (Version 2).
+            </summary>
+            <param name="id">The ID of the martyr grave to update.</param>
+            <param name="martyrGraveDto">The updated details of the martyr grave.</param>
+            <returns>Returns no content if the update is successful.</returns>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.MartyrGraveInformationController.GetAll">
+            <summary>
+            Gets all martyr grave information.
+            </summary>
+            <returns>Returns a list of all martyr grave information records.</returns>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.MartyrGraveInformationController.GetById(System.Int32)">
+            <summary>
+            Gets a specific martyr grave information by its ID.
+            </summary>
+            <param name="id">The ID of the martyr grave information.</param>
+            <returns>Returns the martyr grave information with the specified ID.</returns>
+            <response code="200">If the record is found</response>
+            <response code="404">If the record is not found</response>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.MartyrGraveInformationController.Create(MartyrGraveManagement_BAL.ModelViews.MartyrGraveInformationDTOs.MartyrGraveInformationDtoRequest)">
+            <summary>
+            Creates a new martyr grave information record.
+            </summary>
+            <param name="martyrGraveInformationDto">The details of the martyr grave information to create.</param>
+            <returns>Returns the created martyr grave information.</returns>
+            <response code="201">If the creation is successful</response>
+            <response code="404">If the MartyrId does not exist</response>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.MartyrGraveInformationController.Update(System.Int32,MartyrGraveManagement_BAL.ModelViews.MartyrGraveInformationDTOs.MartyrGraveInformationDtoRequest)">
+            <summary>
+            Updates a specific martyr grave information.
+            </summary>
+            <param name="id">The ID of the martyr grave information to update.</param>
+            <param name="martyrGraveInformationDto">The updated details of the martyr grave information.</param>
+            <returns>Returns no content if the update is successful.</returns>
+            <response code="204">If the update is successful</response>
+            <response code="404">If the MartyrId does not exist or the record is not found</response>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.MartyrGraveInformationController.Delete(System.Int32)">
+            <summary>
+            Deletes a specific martyr grave information record.
+            </summary>
+            <param name="id">The ID of the martyr grave information to delete.</param>
+            <returns>Returns no content if the deletion is successful.</returns>
+            <response code="204">If the deletion is successful</response>
+            <response code="404">If the record is not found</response>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.OrdersController.GetAllOrders">
+            <summary>
+            Gets all martyr graves.
+            </summary>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.OrdersController.GetOrdersByAreaId(System.Int32)">
+            <summary>
+            Get orders by area ID (Manager or Staff Role).
+            </summary>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.ServiceCategoryController.GetAllCategory">
+            <summary>
+            Get all service categories.
+            </summary>
+            <returns>Returns a list of all service categories.</returns>
+            <response code="200">Returns the list of categories</response>
+            <response code="500">If there is any server error</response>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.ServiceCategoryController.AddCategory(MartyrGraveManagement_BAL.ModelViews.ServiceCategoryDTOs.ServiceCategoryDto)">
+            <summary>
+            Add a new service category.
+            </summary>
+            <param name="category">Details of the new service category.</param>
+            <returns>Returns success or failure message.</returns>
+            <response code="200">If the category is created successfully</response>
+            <response code="400">If the category creation fails</response>
+            <response code="500">If there is any server error</response>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.ServiceCategoryController.UpdateCategory(MartyrGraveManagement_BAL.ModelViews.ServiceCategoryDTOs.ServiceCategoryDto,System.Int32)">
+            <summary>
+            Update an existing service category.
+            </summary>
+            <param name="category">Updated details of the service category.</param>
+            <param name="id">ID of the service category to update.</param>
+            <returns>Returns the result of the update operation.</returns>
+            <response code="200">If the category is updated successfully</response>
+            <response code="400">If the update fails</response>
+            <response code="500">If there is any server error</response>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.ServiceController.GetAllServices(System.Nullable{System.Int32})">
+            <summary>
+            Get all services.
+            </summary>
+            <returns>Returns a list of all services.</returns>
+            <response code="200">Returns the list of services</response>
+            <response code="500">If there is any server error</response>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.ServiceController.AddService(MartyrGraveManagement_BAL.ModelViews.ServiceDTOs.ServiceDtoRequest)">
+            <summary>
+            Add a new service.
+            </summary>
+            <param name="service">Details of the new service.</param>
+            <returns>Returns success or failure message.</returns>
+            <response code="200">If the service is created successfully</response>
+            <response code="400">If the service creation fails</response>
+            <response code="500">If there is any server error</response>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.ServiceController.UpdateService(MartyrGraveManagement_BAL.ModelViews.ServiceDTOs.ServiceDtoRequest,System.Int32)">
+            <summary>
+            Update an existing service.
+            </summary>
+            <param name="service">Updated details of the service.</param>
+            <param name="serviceId">ID of the service to update.</param>
+            <returns>Returns the result of the update operation.</returns>
+            <response code="200">If the service is updated successfully</response>
+            <response code="400">If the update fails</response>
+            <response code="500">If there is any server error</response>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.TaskController.GetAllTasks">
+            <summary>
+            Get all tasks.
+            </summary>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.TaskController.GetTaskById(System.Int32)">
+            <summary>
+            Get a task by ID.
+            </summary>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.TaskController.GetTasksByAccountId(System.Int32)">
+            <summary>
+            Get tasks by AccountId.
+            </summary>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.TaskController.CreateTask(System.Collections.Generic.List{MartyrGraveManagement_BAL.ModelViews.TaskDTOs.TaskDtoRequest})">
+            <summary>
+            Create a list of tasks.
+            </summary>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.TaskController.UpdateTaskStatus(System.Int32,System.Int32)">
+            <summary>
+            Update task status (Staff Role). (Status 2 3)
+            </summary>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.TaskController.UpdateTaskImages(System.Int32,MartyrGraveManagement_BAL.ModelViews.TaskDTOs.TaskImageUpdateDTO)">
+            <summary>
+            Add Image task when status = 3 Processing (Staff Role) If Order have 2 Task => 2 Tasks must have status 4 and from there Order Status also up to 4
+            </summary>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.TaskController.DeleteTask(System.Int32)">
+            <summary>
+            Delete a task by ID if the status is 0 (unassigned).
+            </summary>
+            <param name="taskId">The ID of the task to delete.</param>
+            <returns>Returns a success message or an error message if the task cannot be deleted.</returns>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.TaskController.ReassignTask(System.Int32,System.Int32)">
+            <summary>
+            Reassign a task to another staff by updating the AccountId and resetting the status to 1.
+            </summary>
+            <param name="taskId">The ID of the task to reassign.</param>
+            <param name="newAccountId">The new AccountId of the staff to assign the task to.</param>
+            <returns>Returns the updated task with the new assignee.</returns>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.WeeklyReportController.CreateWeeklyReport(MartyrGraveManagement_BAL.ModelViews.FeedbackDTOs.FeedbackDtoRequest)">
+            <summary>
+            Create Feedback after Order Completed (Customer Role)
+            </summary>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.WeeklyReportController.GetWeeklyReportById(System.Int32)">
+            <summary>
+            get feedback by Id
+            </summary>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.WeeklyReportController.GetWeeklyReportByMartyrId(System.Int32)">
+            <summary>
+            get feedback by Id
+            </summary>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.WeeklyReportController.GetAllWeeklyReport(System.Int32,System.Int32)">
+            <summary>
+            get all feedback (Staff or Manager Role)
+            </summary>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.WeeklyReportController.UpdateWeeklyReport(System.Int32,MartyrGraveManagement_BAL.ModelViews.FeedbackDTOs.FeedbackContentDtoRequest)">
+            <summary>
+            Update feedback content (Customer role)
+            </summary>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.WeeklyReportController.DeleteWeeklyReport(System.Int32)">
+            <summary>
+            Delete Feedback 
+            </summary>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.WorkPerformanceController.CreateWorkPerformance(MartyrGraveManagement_BAL.ModelViews.FeedbackDTOs.FeedbackDtoRequest)">
+            <summary>
+            Create Feedback after Order Completed (Customer Role)
+            </summary>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.WorkPerformanceController.GetWorkPerformanceById(System.Int32)">
+            <summary>
+            get feedback by Id
+            </summary>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.WorkPerformanceController.GetWorkPerformanceByStaffId(System.Int32)">
+            <summary>
+            get feedback by Id
+            </summary>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.WorkPerformanceController.GetAllWorkPerformance(System.Int32,System.Int32)">
+            <summary>
+            get all feedback (Staff or Manager Role)
+            </summary>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.WorkPerformanceController.UpdateWorkPerformance(System.Int32,MartyrGraveManagement_BAL.ModelViews.FeedbackDTOs.FeedbackContentDtoRequest)">
+            <summary>
+            Update feedback content (Customer role)
+            </summary>
+        </member>
+        <member name="M:MartyrGraveManagement.Controllers.WorkPerformanceController.DeleteWorkPerformance(System.Int32)">
+            <summary>
+            Delete Feedback 
+            </summary>
+        </member>
+    </members>
+</doc>

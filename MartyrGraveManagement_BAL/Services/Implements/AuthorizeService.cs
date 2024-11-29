@@ -17,35 +17,69 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<(bool isMatchedCustomer, bool isAuthorizedAccount)> CheckAuthorizeByAccountId(int userAccountId, int accountId)
+        public async Task<(bool isMatchedAccount, bool isAuthorizedAccount)> CheckAuthorizeByAccountId(int userAccountId, int accountId)
         {
             try
             {
                 bool isAuthorizedAccount = false;
-                bool isMatchedCustomer = false;
+                bool isMatchedAccount = false;
                 var account = (await _unitOfWork.AccountRepository.GetByIDAsync(userAccountId));
                 if (account != null)
                 {
                     if (account.AccountId == accountId)
                     {
-                        isMatchedCustomer = true;
+                        isMatchedAccount = true;
                     }
                 }
                 var accountJwt = await _unitOfWork.AccountRepository.GetByIDAsync(accountId);
                 if (accountJwt != null)
                 {
-                    if (accountJwt.RoleId == 1 || accountJwt.RoleId == 2)
+                    if (accountJwt.RoleId == 1 || accountJwt.RoleId == 2 || accountJwt.RoleId == 3 || accountJwt.RoleId == 4)
                     {
                         isAuthorizedAccount = true;
                     }
                 }
-                return (isMatchedCustomer, isAuthorizedAccount);
+                return (isMatchedAccount, isAuthorizedAccount);
             }
             catch (Exception ex)
             {
                 throw new Exception(ex.Message);
             }
         }
+
+        public async Task<(bool isMatchedStaffOrManager, bool isAuthorized)> CheckAuthorizeStaffOrManager(int userAccountId, int accountId)
+        {
+            try
+            {
+                bool isAuthorized = false;
+                bool isMatchedStaffOrManager = false;
+
+                // Lấy thông tin tài khoản từ userAccountId (người dùng hiện tại)
+                var account = await _unitOfWork.AccountRepository.GetByIDAsync(userAccountId);
+                if (account != null && account.AccountId == accountId)
+                {
+                    isMatchedStaffOrManager = true;
+                }
+
+                // Lấy thông tin tài khoản để kiểm tra quyền
+                var accountToCheck = await _unitOfWork.AccountRepository.GetByIDAsync(accountId);
+                if (accountToCheck != null)
+                {
+                    // Kiểm tra nếu tài khoản là quản lý (RoleId == 2) hoặc nhân viên (RoleId == 3)
+                    if (accountToCheck.RoleId == 2 || accountToCheck.RoleId == 3 || accountToCheck.RoleId == 1 )
+                    {
+                        isAuthorized = true;
+                    }
+                }
+
+                return (isMatchedStaffOrManager, isAuthorized);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error in authorization check: {ex.Message}");
+            }
+        }
+
 
         public async Task<bool> CheckAuthorizeByCartId(int cartId, int customerId)
         {
@@ -159,17 +193,17 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 {
                     if (account.AccountId == accountId)
                     {
-                        if (account.RoleId == 2 || account.RoleId == 4)
-                        {
+                        
+                        
                             isMatchedAccountStaff = true;
-                        }
+                        
 
                     }
                 }
                 var accountJwt = await _unitOfWork.AccountRepository.GetByIDAsync(accountId);
                 if (accountJwt != null)
                 {
-                    if (accountJwt.RoleId == 4 || accountJwt.RoleId == 2)
+                    if (accountJwt.RoleId == 3)
                     {
                         isAuthorizedAccount = true;
                     }
@@ -179,6 +213,183 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             catch (Exception ex)
             {
                 throw new Exception(ex.Message);
+            }
+        }
+
+        public async Task<(bool isMatchedAccountManager, bool isAuthorizedAccount)> CheckAuthorizeManagerByAccountId(int userAccountId, int accountId)
+        {
+            try
+            {
+                bool isAuthorizedAccount = false;
+                bool isMatchedAccountManager = false;
+                var account = (await _unitOfWork.AccountRepository.GetByIDAsync(userAccountId));
+                if (account != null)
+                {
+                    if (account.AccountId == accountId)
+                    {
+
+
+                        isMatchedAccountManager = true;
+
+
+                    }
+                }
+                var accountJwt = await _unitOfWork.AccountRepository.GetByIDAsync(accountId);
+                if (accountJwt != null)
+                {
+                    if (accountJwt.RoleId == 2)
+                    {
+                        isAuthorizedAccount = true;
+                    }
+                }
+                return (isMatchedAccountManager, isAuthorizedAccount);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        public async Task<bool> CheckAuthorizeStaffByAreaId(int taskId, int accountId, int areaId)
+        {
+            try
+            {
+                // Lấy thông tin Task dựa trên taskId
+                var task = await _unitOfWork.TaskRepository.GetByIDAsync(taskId);
+                if (task == null)
+                {
+                    throw new KeyNotFoundException("TaskId does not exist.");
+                }
+
+                // Lấy thông tin Account (nhân viên) dựa trên accountId
+                var staffAccount = await _unitOfWork.AccountRepository.GetByIDAsync(accountId);
+                if (staffAccount == null || staffAccount.RoleId != 3)
+                {
+                    throw new UnauthorizedAccessException("The account is not a valid staff account.");
+                }
+
+                // Lấy thông tin OrderDetail liên quan đến task
+                var orderDetail = await _unitOfWork.OrderDetailRepository.GetByIDAsync(task.DetailId);
+                if (orderDetail == null)
+                {
+                    throw new KeyNotFoundException("OrderDetail does not exist for this task.");
+                }
+
+                // Lấy thông tin MartyrGrave từ OrderDetail
+                var martyrGrave = await _unitOfWork.MartyrGraveRepository.GetByIDAsync(orderDetail.MartyrId);
+                if (martyrGrave == null)
+                {
+                    throw new KeyNotFoundException("MartyrGrave does not exist.");
+                }
+
+                // Kiểm tra xem nhân viên có thuộc AreaId của MartyrGrave không và task này có thuộc về nhân viên này không
+                if (martyrGrave.AreaId != areaId || task.AccountId != accountId)
+                {
+                    return false; // Nhân viên không thuộc khu vực này hoặc không phải là nhân viên phụ trách task này
+                }
+
+                // Nhân viên thuộc khu vực và có quyền làm việc với task này
+                return true;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Authorization check failed: {ex.Message}");
+            }
+        }
+
+
+        public async Task<bool> CheckAuthorizeStaffByAreaId(int accountId, int areaId)
+        {
+            try
+            {
+                // Lấy thông tin Account (nhân viên) dựa trên accountId
+                var staffAccount = await _unitOfWork.AccountRepository.GetByIDAsync(accountId);
+                if (staffAccount == null || staffAccount.RoleId != 3)
+                {
+                    // Nếu accountId không tồn tại hoặc không phải là nhân viên, trả về false
+                    return false;
+                }
+
+                // Kiểm tra nếu AreaId của nhân viên khớp với areaId yêu cầu
+                if (staffAccount.AreaId != areaId)
+                {
+                    // Nhân viên không thuộc AreaId yêu cầu
+                    return false;
+                }
+
+                // Nếu tất cả điều kiện thỏa mãn, trả về true (nhân viên thuộc khu vực này)
+                return true;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Authorization check failed: {ex.Message}");
+            }
+        }
+
+        public async Task<(bool isMatchedAccount, bool isAuthorizedAccount)> CheckAuthorizeManagerOrAdmin(int userAccountId, int accountId)
+        {
+            try
+            {
+                bool isAuthorizedAccount = false;
+                bool isMatchedAccount = false;
+                var account = (await _unitOfWork.AccountRepository.GetByIDAsync(userAccountId));
+                if (account != null)
+                {
+                    if (account.AccountId == accountId)
+                    {
+
+
+                        isMatchedAccount = true;
+
+
+                    }
+                }
+                var accountJwt = await _unitOfWork.AccountRepository.GetByIDAsync(accountId);
+                if (accountJwt != null)
+                {
+                    if (accountJwt.RoleId == 2 || accountJwt.RoleId == 1)
+                    {
+                        isAuthorizedAccount = true;
+                    }
+                }
+                return (isMatchedAccount, isAuthorizedAccount);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        public async Task<(bool isMatchedCustomer, bool isAuthorizedAccount)> CheckAuthorizeCustomerWallet(int customerId, int accountId)
+        {
+            try
+            {
+                bool isAuthorizedAccount = false;
+                bool isMatchedCustomer = false;
+
+                // Lấy thông tin account của người đang đăng nhập
+                var accountJwt = await _unitOfWork.AccountRepository.GetByIDAsync(accountId);
+                if (accountJwt == null)
+                {
+                    throw new Exception("Invalid account");
+                }
+
+                // Nếu là admin hoặc manager thì có quyền xem tất cả
+                if (accountJwt.RoleId == 1 || accountJwt.RoleId == 2)
+                {
+                    isAuthorizedAccount = true;
+                }
+                // Nếu là customer thì chỉ được xem thông tin của chính mình
+                else if (accountJwt.RoleId == 4 && accountId == customerId)
+                {
+                    isMatchedCustomer = true;
+                }
+
+                return (isMatchedCustomer, isAuthorizedAccount);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error checking customer wallet authorization: {ex.Message}");
             }
         }
     }

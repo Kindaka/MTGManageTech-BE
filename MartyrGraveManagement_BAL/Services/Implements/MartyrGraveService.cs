@@ -14,6 +14,8 @@ using MartyrGraveManagement_BAL.ModelViews.MartyrGraveInformationDTOs;
 using MartyrGraveManagement_BAL.ModelViews.EmailDTOs;
 using MartyrGraveManagement_BAL.ModelViews.CustomerDTOs;
 using System.Linq.Expressions;
+using OfficeOpenXml;
+using Microsoft.VisualBasic;
 
 namespace MartyrGraveManagement_BAL.Services.Implements
 {
@@ -47,63 +49,61 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             return $"Customer-{lastName}-{phone}";
         }
 
-        public async Task<MartyrGraveDtoResponse> CreateMartyrGraveAsync(MartyrGraveDtoRequest martyrGraveDto)
-        {
-            // Kiểm tra AreaId có tồn tại không
-            var area = await _unitOfWork.AreaRepository.GetByIDAsync(martyrGraveDto.AreaId);
-            if (area == null)
-            {
-                throw new KeyNotFoundException("AreaId does not exist.");
-            }
+        //public async Task<MartyrGraveDtoResponse> CreateMartyrGraveAsync(MartyrGraveDtoRequest martyrGraveDto)
+        //{//
+        //    // Kiểm tra AreaId có tồn tại không
+        //    var area = await _unitOfWork.AreaRepository.GetByIDAsync(martyrGraveDto.AreaId);
+        //    if (area == null)
+        //    {
+        //        throw new KeyNotFoundException("AreaId does not exist.");
+        //    }
 
-            // Tạo thực thể từ DTO
-            var martyrGrave = _mapper.Map<MartyrGrave>(martyrGraveDto);
+        //    // Tạo thực thể từ DTO
+        //    var martyrGrave = _mapper.Map<MartyrGrave>(martyrGraveDto);
 
-            // Gọi hàm GenerateMartyrCode để tạo mã MartyrCode
-            martyrGrave.MartyrCode = GenerateMartyrCode(martyrGrave.AreaNumber, martyrGrave.RowNumber, martyrGrave.MartyrNumber);
+        //    // Gọi hàm GenerateMartyrCode để tạo mã MartyrCode
+        //    //martyrGrave.MartyrCode = GenerateMartyrCode(martyrGrave.AreaNumber, martyrGrave.RowNumber, martyrGrave.MartyrNumber);
 
-            // Thêm MartyrGrave vào cơ sở dữ liệu
-            await _unitOfWork.MartyrGraveRepository.AddAsync(martyrGrave);
-            await _unitOfWork.SaveAsync();
+        //    // Thêm MartyrGrave vào cơ sở dữ liệu
+        //    await _unitOfWork.MartyrGraveRepository.AddAsync(martyrGrave);
+        //    await _unitOfWork.SaveAsync();
 
-            // Trả về DTO response
-            return _mapper.Map<MartyrGraveDtoResponse>(martyrGrave);
-        }
+        //    // Trả về DTO response
+        //    return _mapper.Map<MartyrGraveDtoResponse>(martyrGrave);
+        //}
 
-        public async Task<MartyrGraveDtoResponse> UpdateMartyrGraveAsync(int id, MartyrGraveDtoRequest martyrGraveDto)
-        {
-            // Kiểm tra AreaId có tồn tại không
-            var area = await _unitOfWork.AreaRepository.GetByIDAsync(martyrGraveDto.AreaId);
-            if (area == null)
-            {
-                throw new KeyNotFoundException("AreaId does not exist.");
-            }
+        //public async Task<MartyrGraveDtoResponse> UpdateMartyrGraveAsync(int id, MartyrGraveDtoRequest martyrGraveDto)
+        //{//
+        //    // Kiểm tra AreaId có tồn tại không
+        //    var area = await _unitOfWork.AreaRepository.GetByIDAsync(martyrGraveDto.AreaId);
+        //    if (area == null)
+        //    {
+        //        throw new KeyNotFoundException("AreaId does not exist.");
+        //    }
 
-            var martyrGrave = await _unitOfWork.MartyrGraveRepository.GetByIDAsync(id);
-            if (martyrGrave == null)
-            {
-                return null;
-            }
+        //    var martyrGrave = await _unitOfWork.MartyrGraveRepository.GetByIDAsync(id);
+        //    if (martyrGrave == null)
+        //    {
+        //        return null;
+        //    }
 
-            // Cập nhật các thuộc tính từ DTO sang thực thể
-            _mapper.Map(martyrGraveDto, martyrGrave);
+        //    // Cập nhật các thuộc tính từ DTO sang thực thể
+        //    _mapper.Map(martyrGraveDto, martyrGrave);
 
-            // Tạo lại MartyrCode dựa trên các thông tin mới
-            martyrGrave.MartyrCode = GenerateMartyrCode(martyrGrave.AreaNumber, martyrGrave.RowNumber, martyrGrave.MartyrNumber);
+        //    // Tạo lại MartyrCode dựa trên các thông tin mới
+        //    //martyrGrave.MartyrCode = GenerateMartyrCode(martyrGrave.AreaNumber, martyrGrave.RowNumber, martyrGrave.MartyrNumber);
 
-            // Cập nhật thông tin vào cơ sở dữ liệu
-            await _unitOfWork.MartyrGraveRepository.UpdateAsync(martyrGrave);
-            await _unitOfWork.SaveAsync();
+        //    // Cập nhật thông tin vào cơ sở dữ liệu
+        //    await _unitOfWork.MartyrGraveRepository.UpdateAsync(martyrGrave);
+        //    await _unitOfWork.SaveAsync();
 
-            // Trả về kết quả cập nhật
-            return _mapper.Map<MartyrGraveDtoResponse>(martyrGrave);
-        }
+        //    // Trả về kết quả cập nhật
+        //    return _mapper.Map<MartyrGraveDtoResponse>(martyrGrave);
+        //}
 
 
         public async Task<(List<MartyrGraveGetAllDtoResponse> matyrGraveList, int totalPage)> GetAllMartyrGravesAsync(int page, int pageSize)
         {
-            //var graves = await _unitOfWork.MartyrGraveRepository.GetAllAsync();
-            //return _mapper.Map<IEnumerable<MartyrGraveDtoResponse>>(graves);
             try
             {
                 var totalMatyrGrave = await _unitOfWork.MartyrGraveRepository.CountAsync();
@@ -112,7 +112,8 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 var graves = await _unitOfWork.MartyrGraveRepository.GetAllAsync(includeProperties: "MartyrGraveInformations", pageIndex: page, pageSize: pageSize);
                 if (graves.Any())
                 {
-                    foreach (var grave in graves) {
+                    foreach (var grave in graves)
+                    {
                         var graveView = _mapper.Map<MartyrGraveGetAllDtoResponse>(grave);
                         var graveInformations = await _unitOfWork.MartyrGraveInformationRepository.GetAsync(g => g.MartyrId == grave.MartyrId);
                         if (graveInformations.Any())
@@ -132,10 +133,11 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         graveList.Add(graveView);
                     }
                 }
-                
+
                 return (graveList, totalPage);
             }
-            catch (Exception ex) { 
+            catch (Exception ex)
+            {
                 throw new Exception(ex.Message);
             }
         }
@@ -146,12 +148,19 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             //return _mapper.Map<MartyrGraveDtoResponse>(grave);
             try
             {
-                var grave = (await _unitOfWork.MartyrGraveRepository.GetAsync(g => g.MartyrId == id)).FirstOrDefault();
+                var grave = (await _unitOfWork.MartyrGraveRepository.GetAsync(g => g.MartyrId == id, includeProperties: "MartyrGraveInformations,Location,Account,Area")).FirstOrDefault();
                 if (grave != null)
                 {
                     var graveView = _mapper.Map<MartyrGraveDtoResponse>(grave);
+                    graveView.AreaName = grave.Area.AreaName;
+                    graveView.AreaNumber = grave.Location.AreaNumber;
+                    graveView.RowNumber = grave.Location.RowNumber;
+                    graveView.MartyrNumber = grave.Location.MartyrNumber;
+                    graveView.CustomerName = grave.Account.FullName ?? "Unknown";
+                    graveView.CustomerEmail = grave.Account.EmailAddress ?? "Unknown";
+                    graveView.CustomerPhone = grave.Account.PhoneNumber ?? "Unknown";
                     var graveInformations = await _unitOfWork.MartyrGraveInformationRepository.GetAsync(g => g.MartyrId == grave.MartyrId);
-                    if(graveInformations.Any())
+                    if (graveInformations.Any())
                     {
                         foreach (var information in graveInformations)
                         {
@@ -172,15 +181,15 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     }
 
                     var graveImages = await _unitOfWork.GraveImageRepository.GetAsync(g => g.MartyrId == grave.MartyrId);
-                    if(graveImages.Any())
+                    if (graveImages.Any())
                     {
-                        foreach(var image in graveImages)
+                        foreach (var image in graveImages)
                         {
                             var imageView = new GraveImageDtoRequest
                             {
                                 UrlPath = image.UrlPath
                             };
-                            graveView.Images.Add(imageView);    
+                            graveView.Images.Add(imageView);
                         }
                     }
 
@@ -192,7 +201,8 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 }
 
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 throw new Exception(ex.Message);
             }
         }
@@ -206,7 +216,8 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 {
                     return false;
                 }
-                if (status < 1 || status > 3) {
+                if (status < 1 || status > 3)
+                {
                     return false;
                 }
                 martyrGrave.Status = status;
@@ -216,27 +227,30 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
 
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 throw new Exception(ex.Message);
             }
-            
+
         }
 
 
-        public async Task<(List<MartyrGraveGetAllForAdminDtoResponse> response, int totalPage)> GetAllMartyrGravesForManagerAsync(int page, int pageSize)
+        public async Task<(List<MartyrGraveGetAllForAdminDtoResponse> response, int totalPage)> GetAllMartyrGravesForManagerAsync(int page, int pageSize, int managerId)
         {
             try
             {
+                var manager = await _unitOfWork.AccountRepository.GetByIDAsync(managerId);
                 // Tính tổng số mộ liệt sĩ
-                var totalMartyrGraves = await _unitOfWork.MartyrGraveRepository.CountAsync();
+                var totalMartyrGraves = (await _unitOfWork.MartyrGraveRepository.GetAsync(t => t.AreaId == manager.AreaId)).Count();
 
                 // Tính toán tổng số trang
                 var totalPage = (int)Math.Ceiling(totalMartyrGraves / (double)pageSize);
 
+
+
                 // Lấy dữ liệu mộ liệt sĩ với phân trang
-                var martyrGraves = await _unitOfWork.MartyrGraveRepository.GetAsync(
-                    includeProperties: "MartyrGraveInformations",
+                var martyrGraves = await _unitOfWork.MartyrGraveRepository.GetAsync(g => g.AreaId == manager.AreaId,
+                    includeProperties: "MartyrGraveInformations,Account,Location,Area,GraveImages",
                     pageIndex: page,
                     pageSize: pageSize
                 );
@@ -248,22 +262,25 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 foreach (var m in martyrGraves)
                 {
                     // Tìm Account dựa trên CustomerCode (Account có thể là người thân)
-                    var customer = (await _unitOfWork.AccountRepository.FindAsync(a => a.CustomerCode == m.CustomerCode)).FirstOrDefault();
+                    //var customer = (await _unitOfWork.AccountRepository.FindAsync(a => a.AccountId == m.AccountId)).FirstOrDefault();
 
                     // Nếu tìm thấy Account thì thêm vào danh sách kết quả
-                    if (customer != null)
+
+                    var mapping = new MartyrGraveGetAllForAdminDtoResponse
                     {
-                        var mapping = new MartyrGraveGetAllForAdminDtoResponse
-                        {
-                            Code = m.MartyrCode,
-                            Name = m.MartyrGraveInformations.FirstOrDefault()?.Name, // Lấy tên từ MartyrGraveInformation
-                            Location = $"{m.AreaNumber}-{m.RowNumber}-{m.MartyrNumber}", // Định dạng vị trí
-                            RelativeName = customer.FullName, // Lấy tên người thân từ Account
-                            RelativePhone = customer.PhoneNumber, // Lấy số điện thoại người thân từ Account
-                            Status = m.Status // Lấy trạng thái của MartyrGrave
-                        };
-                        martyrGraveList.Add(mapping); // Thêm kết quả vào danh sách
-                    }
+                         martyrId = m.MartyrId,
+                         Code = m.MartyrCode,
+                         Name = m.MartyrGraveInformations.FirstOrDefault()?.Name, // Lấy tên từ MartyrGraveInformation
+                         martyrCode = m.MartyrCode,
+                         AreaDescription = m.Area.Description,
+                         GraveImage = m.GraveImages.FirstOrDefault()?.UrlPath ?? "Unknown",
+                         Location = $"{m.Location.AreaNumber}-{m.Location.RowNumber}-{m.Location.MartyrNumber}", // Định dạng vị trí
+                         RelativeName = m.Account?.FullName, // Lấy tên người thân từ Account
+                         RelativePhone = m.Account?.PhoneNumber, // Lấy số điện thoại người thân từ Account
+                         Status = m.Status // Lấy trạng thái của MartyrGrave
+                    };
+                    martyrGraveList.Add(mapping); // Thêm kết quả vào danh sách
+
                 }
 
                 // Trả về danh sách và tổng số trang
@@ -277,389 +294,298 @@ namespace MartyrGraveManagement_BAL.Services.Implements
         }
 
 
-        public async Task<(bool status, string result, string? accountName, string? password)> CreateMartyrGraveAsyncV2(MartyrGraveDtoRequest martyrGraveDto)
+        public async Task<(bool status, string result, string? phone, string? password)> CreateMartyrGraveAsyncV2(MartyrGraveDtoRequest martyrGraveDto)
         {
-            try
+            using (var transaction = await _unitOfWork.BeginTransactionAsync())
             {
-                // Kiểm tra AreaId có tồn tại không
-                var area = await _unitOfWork.AreaRepository.GetByIDAsync(martyrGraveDto.AreaId);
-                if (area == null)
+                try
                 {
-                    return (false, "Không tìm thấy khu vực", null, null);
-                }
+                    // Kiểm tra AreaId có tồn tại không
+                    var area = (await _unitOfWork.AreaRepository.GetAsync(a => a.AreaNumber == martyrGraveDto.AreaNumber)).FirstOrDefault();
 
-                if (martyrGraveDto.Customer.UserName != null && martyrGraveDto.Customer.Phone != null)
-                {
-                    var customerCode = GenerateCustomerCode(martyrGraveDto.Customer.UserName, martyrGraveDto.Customer.Phone);
-                    var existedCustomerCode = (await _unitOfWork.AccountRepository.FindAsync(c => c.CustomerCode == customerCode)).FirstOrDefault();
-
-                    if (existedCustomerCode != null)
+                    var location = (await _unitOfWork.LocationRepository.GetAsync(l => l.AreaNumber == martyrGraveDto.AreaNumber && l.MartyrNumber == martyrGraveDto.MartyrNumber && l.RowNumber == martyrGraveDto.RowNumber)).FirstOrDefault();
+                    if (area == null || location == null)
                     {
-                        // Tạo thực thể từ DTO
-                        var martyrGrave = _mapper.Map<MartyrGrave>(martyrGraveDto);
+                        return (false, "Khu vực hoặc vị trí không tìm thấy", null, null);
+                    }
 
-                        string martyrCode = GenerateMartyrCode(martyrGrave.AreaNumber, martyrGrave.RowNumber, martyrGrave.MartyrNumber);
-                        var existedMartyrGrave = (await _unitOfWork.MartyrGraveRepository.FindAsync(m => m.MartyrCode == martyrCode)).FirstOrDefault();
+                    if (martyrGraveDto.Customer.UserName != null && martyrGraveDto.Customer.Phone != null)
+                    {
+                        var customerCode = GenerateCustomerCode(martyrGraveDto.Customer.UserName, martyrGraveDto.Customer.Phone);
+                        var existedCustomer = (await _unitOfWork.AccountRepository.FindAsync(c => c.PhoneNumber == martyrGraveDto.Customer.Phone)).FirstOrDefault();
 
-                        if (existedMartyrGrave != null)
+                        if (existedCustomer != null)
                         {
-                            return (false, "MartyrCode đã tồn tại hãy kiểm tra lại", null, null);
+                            existedCustomer.CustomerCode = customerCode;
+                            await _unitOfWork.AccountRepository.UpdateAsync(existedCustomer);
+                            await _unitOfWork.SaveAsync();
+                            // Tạo thực thể từ DTO
+                            var martyrGrave = new MartyrGrave();
+
+                            string martyrCode = GenerateMartyrCode(location.AreaNumber, location.RowNumber, location.MartyrNumber);
+                            var existedMartyrGrave = (await _unitOfWork.MartyrGraveRepository.FindAsync(m => m.MartyrCode == martyrCode)).FirstOrDefault();
+
+                            if (existedMartyrGrave != null)
+                            {
+                                return (false, "MartyrCode đã tồn tại hãy kiểm tra lại", null, null);
+                            }
+
+                            // Gọi hàm GenerateMartyrCode để tạo mã MartyrCode
+                            martyrGrave.AreaId = area.AreaId;
+                            martyrGrave.LocationId = location.LocationId;
+                            martyrGrave.MartyrCode = martyrCode;
+                            martyrGrave.Status = 1; //Trạng thái 1 là mộ trạng thái đang tốt, 2 là khá, 3 là xuống cấp
+                            martyrGrave.AccountId = existedCustomer.AccountId;
+
+                            // Thêm MartyrGrave vào cơ sở dữ liệu
+                            await _unitOfWork.MartyrGraveRepository.AddAsync(martyrGrave);
+                            await _unitOfWork.SaveAsync();
+
+                            var insertedGrave = (await _unitOfWork.MartyrGraveRepository.FindAsync(m => m.MartyrCode == martyrGrave.MartyrCode)).FirstOrDefault();
+
+                            if (insertedGrave != null)
+                            {
+                                // Thêm thông tin MartyrGraveInformations
+                                if (martyrGraveDto.Informations.Any())
+                                {
+                                    foreach (var martyrGraveInformation in martyrGraveDto.Informations)
+                                    {
+                                        var information = new MartyrGraveInformation
+                                        {
+                                            MartyrId = insertedGrave.MartyrId,
+                                            Name = martyrGraveInformation.Name,
+                                            NickName = martyrGraveInformation.NickName,
+                                            Position = martyrGraveInformation.Position,
+                                            Medal = martyrGraveInformation.Medal,
+                                            HomeTown = martyrGraveInformation.HomeTown,
+                                            DateOfBirth = martyrGraveInformation.DateOfBirth,
+                                            DateOfSacrifice = martyrGraveInformation.DateOfSacrifice
+                                        };
+                                        await _unitOfWork.MartyrGraveInformationRepository.AddAsync(information);
+                                    }
+                                    await _unitOfWork.SaveAsync();
+                                }
+
+                                // Thêm hình ảnh GraveImages
+                                if (martyrGraveDto.Image.Any())
+                                {
+                                    foreach (var imageDto in martyrGraveDto.Image)
+                                    {
+                                        var graveImage = new GraveImage
+                                        {
+                                            MartyrId = insertedGrave.MartyrId,
+                                            UrlPath = imageDto.UrlPath
+                                        };
+                                        await _unitOfWork.GraveImageRepository.AddAsync(graveImage);
+                                    }
+                                    await _unitOfWork.SaveAsync();
+                                }
+                            }
+                            else
+                            {
+                                return (false, "Không tìm thấy MartyrGrave đã tạo", null, null);
+                            }
+                            await transaction.CommitAsync();
+                            // Trả về DTO response
+                            return (true, "Mộ đã được tạo thành công", null, null);
                         }
 
-                        // Gọi hàm GenerateMartyrCode để tạo mã MartyrCode
-                        martyrGrave.MartyrCode = martyrCode;
-                        martyrGrave.CustomerCode = customerCode;
-                        martyrGrave.Status = 1; //Trạng thái 1 là mộ trạng thái đang tốt, 2 là khá, 3 là xuống cấp
+                        // Tạo Account mới cho khách hàng nếu không tồn tại
+                        var accountMapping = new Account
+                        {
+                            FullName = martyrGraveDto.Customer.UserName,
+                            PhoneNumber = martyrGraveDto.Customer.Phone,
+                            Address = martyrGraveDto.Customer.Address,
+                            EmailAddress = martyrGraveDto.Customer.EmailAddress,
+                            DateOfBirth = martyrGraveDto.Customer.Dob,
+                            RoleId = 4,
+                            Status = true,
+                            CustomerCode = customerCode,
+                            CreateAt = DateTime.Now
+                        };
 
-                        // Thêm MartyrGrave vào cơ sở dữ liệu
-                        await _unitOfWork.MartyrGraveRepository.AddAsync(martyrGrave);
+                        string randomPassword = CreateRandomPassword(8);
+                        accountMapping.HashedPassword = await HashPassword(randomPassword);
+
+                        await _unitOfWork.AccountRepository.AddAsync(accountMapping);
                         await _unitOfWork.SaveAsync();
 
-                        var insertedGrave = (await _unitOfWork.MartyrGraveRepository.FindAsync(m => m.MartyrCode == martyrGrave.MartyrCode)).FirstOrDefault();
-
-                        if (insertedGrave != null)
+                        var insertedAccount = (await _unitOfWork.AccountRepository.FindAsync(a => a.CustomerCode == customerCode)).FirstOrDefault();
+                        if (insertedAccount != null)
                         {
-                            // Thêm thông tin MartyrGraveInformations
-                            if (martyrGraveDto.Informations.Any())
+                            // Tạo MartyrGrave
+                            var martyrGrave = new MartyrGrave();
+                            string martyrCode = GenerateMartyrCode(location.AreaNumber, location.RowNumber, location.MartyrNumber);
+
+                            var existedMartyrGrave = (await _unitOfWork.MartyrGraveRepository.FindAsync(m => m.MartyrCode == martyrCode)).FirstOrDefault();
+                            if (existedMartyrGrave != null)
                             {
-                                foreach (var martyrGraveInformation in martyrGraveDto.Informations)
-                                {
-                                    var information = new MartyrGraveInformation
-                                    {
-                                        MartyrId = insertedGrave.MartyrId,
-                                        Name = martyrGraveInformation.Name,
-                                        NickName = martyrGraveInformation.NickName,
-                                        Position = martyrGraveInformation.Position,
-                                        Medal = martyrGraveInformation.Medal,
-                                        HomeTown = martyrGraveInformation.HomeTown,
-                                        DateOfBirth = martyrGraveInformation.DateOfBirth,
-                                        DateOfSacrifice = martyrGraveInformation.DateOfSacrifice
-                                    };
-                                    await _unitOfWork.MartyrGraveInformationRepository.AddAsync(information);
-                                }
-                                await _unitOfWork.SaveAsync();
+                                return (false, "MartyrCode đã tồn tại hãy kiểm tra lại", null, null);
                             }
 
-                            // Thêm hình ảnh GraveImages
-                            if (martyrGraveDto.Image.Any())
-                            {
-                                foreach (var imageDto in martyrGraveDto.Image)
-                                {
-                                    var graveImage = new GraveImage
-                                    {
-                                        MartyrId = insertedGrave.MartyrId,
-                                        UrlPath = imageDto.UrlPath
-                                    };
-                                    await _unitOfWork.GraveImageRepository.AddAsync(graveImage);
-                                }
-                                await _unitOfWork.SaveAsync();
-                            }
-                        }
-                        else
-                        {
-                            return (false, "Không tìm thấy MartyrGrave đã tạo", null, null);
-                        }
+                            // Gọi hàm GenerateMartyrCode để tạo mã MartyrCode
+                            martyrGrave.AreaId = area.AreaId;
+                            martyrGrave.LocationId = location.LocationId;
+                            martyrGrave.MartyrCode = martyrCode;
+                            martyrGrave.Status = 1;
+                            martyrGrave.AccountId = insertedAccount.AccountId;
 
-                        // Trả về DTO response
-                        return (true, "Mộ đã được tạo thành công", null, null);
-                    }
-
-                    // Tạo Account mới cho khách hàng nếu không tồn tại
-                    var accountMapping = new Account
-                    {
-                        FullName = martyrGraveDto.Customer.UserName,
-                        PhoneNumber = martyrGraveDto.Customer.Phone,
-                        Address = martyrGraveDto.Customer.Address,
-                        EmailAddress = martyrGraveDto.Customer.EmailAddress,
-                        DateOfBirth = martyrGraveDto.Customer.Dob,
-                        RoleId = 4,
-                        Status = true,
-                        CustomerCode = customerCode,
-                        AccountName = $"{getLastName(martyrGraveDto.Customer.UserName)}{martyrGraveDto.Customer.Dob.Year}-{martyrGraveDto.Customer.Phone}",
-                        CreateAt = DateTime.Now
-                    };
-
-                    string randomPassword = CreateRandomPassword(8);
-                    accountMapping.HashedPassword = await HashPassword(randomPassword);
-
-                    await _unitOfWork.AccountRepository.AddAsync(accountMapping);
-                    await _unitOfWork.SaveAsync();
-
-                    var insertedAccount = (await _unitOfWork.AccountRepository.FindAsync(a => a.CustomerCode == customerCode)).FirstOrDefault();
-                    if (insertedAccount != null)
-                    {
-                        // Tạo MartyrGrave
-                        var martyrGrave = _mapper.Map<MartyrGrave>(martyrGraveDto);
-                        string martyrCode = GenerateMartyrCode(martyrGrave.AreaNumber, martyrGrave.RowNumber, martyrGrave.MartyrNumber);
-
-                        var existedMartyrGrave = (await _unitOfWork.MartyrGraveRepository.FindAsync(m => m.MartyrCode == martyrCode)).FirstOrDefault();
-                        if (existedMartyrGrave != null)
-                        {
-                            await _unitOfWork.AccountRepository.DeleteAsync(insertedAccount);
+                            // Thêm MartyrGrave vào cơ sở dữ liệu
+                            await _unitOfWork.MartyrGraveRepository.AddAsync(martyrGrave);
                             await _unitOfWork.SaveAsync();
-                            return (false, "MartyrCode đã tồn tại hãy kiểm tra lại", null, null);
-                        }
 
-                        // Gọi hàm GenerateMartyrCode để tạo mã MartyrCode
-                        martyrGrave.MartyrCode = martyrCode;
-                        martyrGrave.CustomerCode = insertedAccount.CustomerCode;
-                        martyrGrave.Status = 1;
+                            var insertedGrave = (await _unitOfWork.MartyrGraveRepository.GetAsync(m => m.MartyrCode == martyrGrave.MartyrCode, includeProperties: "MartyrGraveInformations")).FirstOrDefault();
 
-                        // Thêm MartyrGrave vào cơ sở dữ liệu
-                        await _unitOfWork.MartyrGraveRepository.AddAsync(martyrGrave);
-                        await _unitOfWork.SaveAsync();
-
-                        var insertedGrave = (await _unitOfWork.MartyrGraveRepository.GetAsync(m => m.MartyrCode == martyrGrave.MartyrCode, includeProperties: "MartyrGraveInformations")).FirstOrDefault();
-
-                        if (insertedGrave != null)
-                        {
-                            // Thêm thông tin MartyrGraveInformations
-                            if (martyrGraveDto.Informations.Any())
+                            if (insertedGrave != null)
                             {
-                                foreach (var martyrGraveInformation in martyrGraveDto.Informations)
+                                // Thêm thông tin MartyrGraveInformations
+                                if (martyrGraveDto.Informations.Any())
                                 {
-                                    var information = new MartyrGraveInformation
+                                    foreach (var martyrGraveInformation in martyrGraveDto.Informations)
                                     {
-                                        MartyrId = insertedGrave.MartyrId,
-                                        Name = martyrGraveInformation.Name,
-                                        NickName = martyrGraveInformation.NickName,
-                                        Position = martyrGraveInformation.Position,
-                                        Medal = martyrGraveInformation.Medal,
-                                        HomeTown = martyrGraveInformation.HomeTown,
-                                        DateOfBirth = martyrGraveInformation.DateOfBirth,
-                                        DateOfSacrifice = martyrGraveInformation.DateOfSacrifice
-                                    };
-                                    await _unitOfWork.MartyrGraveInformationRepository.AddAsync(information);
+                                        var information = new MartyrGraveInformation
+                                        {
+                                            MartyrId = insertedGrave.MartyrId,
+                                            Name = martyrGraveInformation.Name,
+                                            NickName = martyrGraveInformation.NickName,
+                                            Position = martyrGraveInformation.Position,
+                                            Medal = martyrGraveInformation.Medal,
+                                            HomeTown = martyrGraveInformation.HomeTown,
+                                            DateOfBirth = martyrGraveInformation.DateOfBirth,
+                                            DateOfSacrifice = martyrGraveInformation.DateOfSacrifice
+                                        };
+                                        await _unitOfWork.MartyrGraveInformationRepository.AddAsync(information);
+                                    }
+                                    await _unitOfWork.SaveAsync();
                                 }
-                                await _unitOfWork.SaveAsync();
-                            }
 
-                            // Thêm hình ảnh GraveImages
-                            if (martyrGraveDto.Image.Any())
-                            {
-                                foreach (var imageDto in martyrGraveDto.Image)
+                                // Thêm hình ảnh GraveImages
+                                if (martyrGraveDto.Image.Any())
                                 {
-                                    var graveImage = new GraveImage
+                                    foreach (var imageDto in martyrGraveDto.Image)
                                     {
-                                        MartyrId = insertedGrave.MartyrId,
-                                        UrlPath = imageDto.UrlPath
-                                    };
-                                    await _unitOfWork.GraveImageRepository.AddAsync(graveImage);
+                                        var graveImage = new GraveImage
+                                        {
+                                            MartyrId = insertedGrave.MartyrId,
+                                            UrlPath = imageDto.UrlPath
+                                        };
+                                        await _unitOfWork.GraveImageRepository.AddAsync(graveImage);
+                                    }
+                                    await _unitOfWork.SaveAsync();
                                 }
-                                await _unitOfWork.SaveAsync();
-                            }
-                            if (accountMapping.EmailAddress != null)
-                            {
-                                EmailDTO email = new EmailDTO
+                                if (accountMapping.EmailAddress != null)
                                 {
-                                    To = accountMapping.EmailAddress,
-                                    Subject = "Tài khoản đăng nhập vào phần mềm An Nhiên",
-                                    Body = _sendEmailService.emailBodyForMartyrGraveAccount(accountMapping, insertedGrave, randomPassword)
-                                };
-                                await _sendEmailService.SendEmailMartyrGraveAccount(email);
+                                    EmailDTO email = new EmailDTO
+                                    {
+                                        To = accountMapping.EmailAddress,
+                                        Subject = "Tài khoản đăng nhập vào phần mềm An Nhiên",
+                                        Body = _sendEmailService.emailBodyForMartyrGraveAccount(accountMapping, insertedGrave, randomPassword)
+                                    };
+                                    await _sendEmailService.SendEmailMartyrGraveAccount(email);
+                                }
                             }
-                        }
-                        else
-                        {
-                            return (false, "Không tìm thấy MartyrGrave đã tạo", null, null);
-                        }
-
-                        // Trả về DTO response với thông tin tài khoản
-                        return (true, "Mộ đã được tạo thành công, trả về tài khoản đăng nhập customer", accountMapping.AccountName, randomPassword);
-                    }
-
-                    return (false, "Không tìm thấy account đã tạo", null, null);
-                }
-                else
-                {
-                    // Tạo thực thể từ DTO
-                    var martyrGrave = _mapper.Map<MartyrGrave>(martyrGraveDto);
-
-                    string martyrCode = GenerateMartyrCode(martyrGrave.AreaNumber, martyrGrave.RowNumber, martyrGrave.MartyrNumber);
-                    var existedMartyrGrave = (await _unitOfWork.MartyrGraveRepository.FindAsync(m => m.MartyrCode == martyrCode)).FirstOrDefault();
-
-                    if (existedMartyrGrave != null)
-                    {
-                        return (false, "MartyrCode đã tồn tại hãy kiểm tra lại", null, null);
-                    }
-
-                    // Gọi hàm GenerateMartyrCode để tạo mã MartyrCode
-                    martyrGrave.MartyrCode = martyrCode;
-                    martyrGrave.Status = 1; //Trạng thái 1 là mộ trạng thái đang tốt, 2 là khá, 3 là xuống cấp
-
-                    // Thêm MartyrGrave vào cơ sở dữ liệu
-                    await _unitOfWork.MartyrGraveRepository.AddAsync(martyrGrave);
-                    await _unitOfWork.SaveAsync();
-
-                    var insertedGrave = (await _unitOfWork.MartyrGraveRepository.FindAsync(m => m.MartyrCode == martyrGrave.MartyrCode)).FirstOrDefault();
-
-                    if (insertedGrave != null)
-                    {
-                        // Thêm thông tin MartyrGraveInformations
-                        if (martyrGraveDto.Informations.Any())
-                        {
-                            foreach (var martyrGraveInformation in martyrGraveDto.Informations)
+                            else
                             {
-                                var information = new MartyrGraveInformation
-                                {
-                                    MartyrId = insertedGrave.MartyrId,
-                                    Name = martyrGraveInformation.Name,
-                                    NickName = martyrGraveInformation.NickName,
-                                    Position = martyrGraveInformation.Position,
-                                    Medal = martyrGraveInformation.Medal,
-                                    HomeTown = martyrGraveInformation.HomeTown,
-                                    DateOfBirth = martyrGraveInformation.DateOfBirth,
-                                    DateOfSacrifice = martyrGraveInformation.DateOfSacrifice
-                                };
-                                await _unitOfWork.MartyrGraveInformationRepository.AddAsync(information);
+                                return (false, "Không tìm thấy MartyrGrave đã tạo", null, null);
                             }
-                            await _unitOfWork.SaveAsync();
+                            await transaction.CommitAsync();
+                            // Trả về DTO response với thông tin tài khoản
+                            return (true, "Mộ đã được tạo thành công, trả về tài khoản đăng nhập customer", accountMapping.PhoneNumber, randomPassword);
                         }
 
-                        // Thêm hình ảnh GraveImages
-                        if (martyrGraveDto.Image.Any())
-                        {
-                            foreach (var imageDto in martyrGraveDto.Image)
-                            {
-                                var graveImage = new GraveImage
-                                {
-                                    MartyrId = insertedGrave.MartyrId,
-                                    UrlPath = imageDto.UrlPath
-                                };
-                                await _unitOfWork.GraveImageRepository.AddAsync(graveImage);
-                            }
-                            await _unitOfWork.SaveAsync();
-                        }
+                        return (false, "Không tìm thấy account đã tạo", null, null);
                     }
                     else
                     {
-                        return (false, "Không tìm thấy MartyrGrave đã tạo", null, null);
+                        return (false, "Cần phải nhập data của Customer, bắt buộc có SĐT và UserName", null, null);
                     }
-
-                    // Trả về DTO response
-                    return (true, "Mộ đã được tạo thành công", null, null);
                 }
-            }
-            catch (Exception ex)
-            {
-                // Rollback các thay đổi khi xảy ra lỗi
-                var customerCode = GenerateCustomerCode(martyrGraveDto.Customer.UserName, martyrGraveDto.Customer.Phone);
-                var martyrCode = GenerateMartyrCode(martyrGraveDto.AreaNumber, martyrGraveDto.RowNumber, martyrGraveDto.MartyrNumber);
-                var insertedAccount = (await _unitOfWork.AccountRepository.FindAsync(a => a.CustomerCode == customerCode)).FirstOrDefault();
-                var insertedGrave = (await _unitOfWork.MartyrGraveRepository.FindAsync(a => a.MartyrCode == martyrCode)).FirstOrDefault();
-
-                if (insertedAccount != null)
+                catch (Exception ex)
                 {
-                    await _unitOfWork.AccountRepository.DeleteAsync(insertedAccount);
-                    await _unitOfWork.SaveAsync();
+                    await transaction.RollbackAsync();
+                    throw new Exception(ex.Message);
                 }
-                if (insertedGrave != null)
-                {
-                    await _unitOfWork.MartyrGraveRepository.DeleteAsync(insertedGrave);
-                    await _unitOfWork.SaveAsync();
-                }
-
-                throw new Exception(ex.Message);
             }
         }
 
         public async Task<(bool status, string result)> UpdateMartyrGraveAsyncV2(int id, MartyrGraveUpdateDtoRequest martyrGraveDto)
-        {
-            try
+        {//
+            using (var transaction = await _unitOfWork.BeginTransactionAsync())
             {
-                // Kiểm tra AreaId có tồn tại không
-                var area = await _unitOfWork.AreaRepository.GetByIDAsync(martyrGraveDto.AreaId);
-                if (area == null)
+                try
                 {
-                    return (false, "Không tìm thấy khu vực");
-                }
 
-                // Kiểm tra MartyrGrave có tồn tại không
-                var existingGrave = await _unitOfWork.MartyrGraveRepository.GetByIDAsync(id);
-                if (existingGrave == null)
-                {
-                    return (false, "Không tìm thấy MartyrGrave");
-                }
-
-                // Cập nhật thông tin MartyrGrave từ DTO
-                _mapper.Map(martyrGraveDto, existingGrave);
-
-                // Tạo lại mã MartyrCode
-                string martyrCode = GenerateMartyrCode(existingGrave.AreaNumber, existingGrave.RowNumber, existingGrave.MartyrNumber);
-                var existedMartyrGrave = (await _unitOfWork.MartyrGraveRepository.FindAsync(m => m.MartyrCode == martyrCode && m.MartyrId != id)).FirstOrDefault();
-
-                if (existedMartyrGrave != null)
-                {
-                    return (false, "MartyrCode đã tồn tại, hãy kiểm tra lại");
-                }
-
-                existingGrave.MartyrCode = martyrCode;
-
-                // Cập nhật MartyrGrave vào cơ sở dữ liệu
-                await _unitOfWork.MartyrGraveRepository.UpdateAsync(existingGrave);
-                await _unitOfWork.SaveAsync();
-
-                // Cập nhật các thông tin MartyrGraveInformations
-                var existingInformations = await _unitOfWork.MartyrGraveInformationRepository.GetAsync(m => m.MartyrId == existingGrave.MartyrId);
-
-                // Xóa các thông tin cũ
-                foreach (var existingInformation in existingInformations)
-                {
-                    await _unitOfWork.MartyrGraveInformationRepository.DeleteAsync(existingInformation);
-                }
-                await _unitOfWork.SaveAsync();
-
-                // Thêm lại các thông tin mới từ DTO
-                if (martyrGraveDto.Informations.Any())
-                {
-                    foreach (var martyrGraveInformation in martyrGraveDto.Informations)
+                    // Kiểm tra MartyrGrave có tồn tại không
+                    var existingGrave = await _unitOfWork.MartyrGraveRepository.GetByIDAsync(id);
+                    if (existingGrave == null)
                     {
-                        var information = new MartyrGraveInformation
+                        return (false, "Không tìm thấy MartyrGrave");
+                    }
+
+
+
+                    // Cập nhật các thông tin MartyrGraveInformations
+                    var existingInformations = await _unitOfWork.MartyrGraveInformationRepository.GetAsync(m => m.MartyrId == existingGrave.MartyrId);
+
+                    // Xóa các thông tin cũ
+                    foreach (var existingInformation in existingInformations)
+                    {
+                        if (martyrGraveDto.Informations.Any())
                         {
-                            MartyrId = existingGrave.MartyrId,
-                            Name = martyrGraveInformation.Name,
-                            NickName = martyrGraveInformation.NickName,
-                            Position = martyrGraveInformation.Position,
-                            Medal = martyrGraveInformation.Medal,
-                            HomeTown = martyrGraveInformation.HomeTown,
-                            DateOfBirth = martyrGraveInformation.DateOfBirth,
-                            DateOfSacrifice = martyrGraveInformation.DateOfSacrifice
-                        };
-                        await _unitOfWork.MartyrGraveInformationRepository.AddAsync(information);
+                            foreach (var martyrGraveInformation in martyrGraveDto.Informations)
+                            {
+                                existingInformation.Name = martyrGraveInformation.Name;
+                                existingInformation.NickName = martyrGraveInformation.NickName;
+                                existingInformation.Position = martyrGraveInformation.Position;
+                                existingInformation.Medal = martyrGraveInformation.Medal;
+                                existingInformation.HomeTown = martyrGraveInformation.HomeTown;
+                                existingInformation.DateOfBirth = martyrGraveInformation.DateOfBirth;
+                                existingInformation.DateOfSacrifice = martyrGraveInformation.DateOfSacrifice;
+
+                                await _unitOfWork.MartyrGraveInformationRepository.UpdateAsync(existingInformation);
+                                break;
+                            }
+                        }
+                        //await _unitOfWork.MartyrGraveInformationRepository.DeleteAsync(existingInformation);
                     }
                     await _unitOfWork.SaveAsync();
-                }
 
-                // Cập nhật hình ảnh GraveImages
-                var existingImages = await _unitOfWork.GraveImageRepository.GetAsync(i => i.MartyrId == existingGrave.MartyrId);
+                    // Thêm lại các thông tin mới từ DTO
+                    
 
-                // Xóa các ảnh cũ
-                foreach (var existingImage in existingImages)
-                {
-                    await _unitOfWork.GraveImageRepository.DeleteAsync(existingImage);
-                }
-                await _unitOfWork.SaveAsync();
+                    
 
-                // Thêm các ảnh mới
-                if (martyrGraveDto.Image.Any())
-                {
-                    foreach (var imageDto in martyrGraveDto.Image)
+                    // Thêm các ảnh mới
+                    if (martyrGraveDto.Image.Any())
                     {
-                        var graveImage = new GraveImage
-                        {
-                            MartyrId = existingGrave.MartyrId,
-                            UrlPath = imageDto.UrlPath
-                        };
-                        await _unitOfWork.GraveImageRepository.AddAsync(graveImage);
-                    }
-                    await _unitOfWork.SaveAsync();
-                }
+                        // Cập nhật hình ảnh GraveImages
+                        var existingImages = await _unitOfWork.GraveImageRepository.GetAsync(i => i.MartyrId == existingGrave.MartyrId);
 
-                return (true, "Mộ đã được cập nhật thành công");
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Error while updating MartyrGrave: {ex.Message}", ex);
+                        // Xóa các ảnh cũ
+                        foreach (var existingImage in existingImages)
+                        {
+                            await _unitOfWork.GraveImageRepository.DeleteAsync(existingImage);
+                        }
+                        await _unitOfWork.SaveAsync();
+                        foreach (var imageDto in martyrGraveDto.Image)
+                        {
+                            var graveImage = new GraveImage
+                            {
+                                MartyrId = existingGrave.MartyrId,
+                                UrlPath = imageDto.UrlPath
+                            };
+                            await _unitOfWork.GraveImageRepository.AddAsync(graveImage);
+                        }
+                        await _unitOfWork.SaveAsync();
+                    }
+                    await transaction.CommitAsync();
+                    return (true, "Mộ đã được cập nhật thành công");
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    throw new Exception($"Error while updating MartyrGrave: {ex.Message}", ex);
+                }
             }
         }
 
@@ -706,98 +632,14 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             return new string(result);
         }
 
-        public async Task<(bool status, string result, string? accountName, string? password)> CreateRelativeGraveAsync(int martyrGraveId, CustomerDtoRequest customer)
-        {
-            using (var transaction = await _unitOfWork.BeginTransactionAsync())
-            {
-                try
-                {
-                    var existedGrave = await _unitOfWork.MartyrGraveRepository.GetByIDAsync(martyrGraveId);
-                    if (existedGrave != null)
-                    {
-                        if (existedGrave.CustomerCode == null)
-                        {
-                            var customerCode = GenerateCustomerCode(customer.UserName, customer.Phone);
-                            var existedCustomerCode = (await _unitOfWork.AccountRepository.FindAsync(c => c.CustomerCode == customerCode)).FirstOrDefault();
-                            if (existedCustomerCode == null)
-                            {
-                                var accountMapping = new Account
-                                {
-                                    FullName = customer.UserName,
-                                    PhoneNumber = customer.Phone,
-                                    Address = customer.Address,
-                                    EmailAddress = customer.EmailAddress,
-                                    DateOfBirth = customer.Dob,
-                                    RoleId = 4,
-                                    Status = true,
-                                    CustomerCode = customerCode,
-                                    AccountName = $"{getLastName(customer.UserName)}{customer.Dob.Year}-{customer.Phone}",
-                                    CreateAt = DateTime.Now
-                                };
+        
 
-                                string randomPassword = CreateRandomPassword(8);
-                                accountMapping.HashedPassword = await HashPassword(randomPassword);
-
-                                await _unitOfWork.AccountRepository.AddAsync(accountMapping);
-                                await _unitOfWork.SaveAsync();
-
-                                var insertedAccount = (await _unitOfWork.AccountRepository.FindAsync(a => a.CustomerCode == customerCode)).FirstOrDefault();
-                                if (insertedAccount != null)
-                                {
-                                    existedGrave.CustomerCode = customerCode;
-                                    await _unitOfWork.MartyrGraveRepository.UpdateAsync(existedGrave);
-                                    await _unitOfWork.SaveAsync();
-                                    if (accountMapping.EmailAddress != null)
-                                    {
-                                        EmailDTO email = new EmailDTO
-                                        {
-                                            To = accountMapping.EmailAddress,
-                                            Subject = "Tài khoản đăng nhập vào phần mềm An Nhiên",
-                                            Body = _sendEmailService.emailBodyForUpdateMartyrGraveAccount(accountMapping, existedGrave, randomPassword)
-                                        };
-                                        await _sendEmailService.SendEmailMartyrGraveAccount(email);
-                                    }
-                                    await transaction.CommitAsync();
-                                    return (true, "Đã cập nhật thân nhân mộ thành công", accountMapping.AccountName, randomPassword);
-                                }
-                                else
-                                {
-                                    return (false, "Không tìm thấy customer đã tạo", null, null);
-                                }
-                            }
-                            else
-                            {
-                                existedGrave.CustomerCode = customerCode;
-                                await _unitOfWork.MartyrGraveRepository.UpdateAsync(existedGrave);
-                                await _unitOfWork.SaveAsync();
-                                await transaction.CommitAsync();
-                                return (false, "Đã cập nhật thân nhân mộ thành công", null, null);
-                            }
-                        }
-                        else
-                        {
-                            return (false, "Mộ này đã có người thân", null, null);
-                        }
-                    }
-                    else
-                    {
-                        return (false, "Không tìm thấy mộ", null, null);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    await transaction.RollbackAsync();
-                    throw new Exception(ex.Message);
-                }
-            }
-        }
-
-        public async Task<List<MartyrGraveDtoResponse>> GetMartyrGraveByCustomerCode(string customerCode)
+        public async Task<List<MartyrGraveDtoResponse>> GetMartyrGraveByCustomerId(int customerId)
         {
             try
             {
                 List<MartyrGraveDtoResponse> graveList = new List<MartyrGraveDtoResponse>();
-                var graves = await _unitOfWork.MartyrGraveRepository.GetAsync(g => g.CustomerCode == customerCode);
+                var graves = await _unitOfWork.MartyrGraveRepository.GetAsync(g => g.AccountId == customerId);
                 if (graves.Any())
                 {
                     foreach (var grave in graves)
@@ -852,30 +694,372 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
         public async Task<List<MartyrGraveSearchDtoResponse>> SearchMartyrGravesAsync(MartyrGraveSearchDtoRequest searchCriteria)
         {
-            // Tạo điều kiện tìm kiếm linh hoạt
-            Expression<Func<MartyrGraveInformation, bool>> filter = m =>
-                (string.IsNullOrEmpty(searchCriteria.Name) || m.Name.Contains(searchCriteria.Name)) &&
-                (!searchCriteria.YearOfBirth.HasValue || m.DateOfBirth.HasValue && m.DateOfBirth.Value.Year == searchCriteria.YearOfBirth.Value) &&
-                (!searchCriteria.YearOfSacrifice.HasValue || m.DateOfSacrifice.Year == searchCriteria.YearOfSacrifice.Value) &&
-                (string.IsNullOrEmpty(searchCriteria.HomeTown) || m.HomeTown.Contains(searchCriteria.HomeTown));
+            // Lấy tất cả dữ liệu trước khi xử lý
+            var martyrGraves = await _unitOfWork.MartyrGraveInformationRepository
+                .GetAsync(includeProperties: "MartyrGrave");
 
-            // Sử dụng GenericRepository để lấy danh sách MartyrGraveInformation
-            var martyrGraves = await _unitOfWork.MartyrGraveInformationRepository.GetAsync(filter, includeProperties: "MartyrGrave");
+            // Nếu tên tìm kiếm không trống, chuyển đổi sang dạng không dấu và chữ thường
+            string unaccentedSearchName = string.IsNullOrEmpty(searchCriteria.Name)
+                ? string.Empty
+                : ConvertToUnaccentedLowercaseString(searchCriteria.Name);
+
+            var filteredMartyrGraves = martyrGraves
+                .AsEnumerable() // Thực hiện xử lý phía client
+                .Where(m =>
+                    (string.IsNullOrEmpty(searchCriteria.Name) || ConvertToUnaccentedLowercaseString(m.Name).Contains(unaccentedSearchName)) &&
+                    (!searchCriteria.YearOfBirth.HasValue || m.DateOfBirth.HasValue && m.DateOfBirth.Value.Year == searchCriteria.YearOfBirth.Value) &&
+                    (!searchCriteria.YearOfSacrifice.HasValue || m.DateOfSacrifice.HasValue && m.DateOfSacrifice.Value.Year == searchCriteria.YearOfSacrifice.Value) &&
+                    (string.IsNullOrEmpty(searchCriteria.HomeTown) || m.HomeTown != null && ConvertToUnaccentedLowercaseString(m.HomeTown).Contains(ConvertToUnaccentedLowercaseString(searchCriteria.HomeTown)))
+                );
 
             // Ánh xạ từ entity sang DTO
-            var result = martyrGraves.Select(m => new MartyrGraveSearchDtoResponse
+            var result = new List<MartyrGraveSearchDtoResponse>();
+            foreach (var m in filteredMartyrGraves)
             {
-                MartyrId = m.MartyrId,
-                Name = m.Name,
-                NickName = m.NickName,
-                HomeTown = m.HomeTown,
-                DateOfBirth = m.DateOfBirth,
-                DateOfSacrifice = m.DateOfSacrifice,
-                MartyrCode = m.MartyrGrave?.MartyrCode
-            }).ToList();
+                var graveDto = new MartyrGraveSearchDtoResponse
+                {
+                    MartyrId = m.MartyrId,
+                    Name = m.Name,
+                    NickName = m.NickName,
+                    HomeTown = m.HomeTown,
+                    DateOfBirth = m.DateOfBirth,
+                    DateOfSacrifice = m.DateOfSacrifice,
+                    MartyrCode = m.MartyrGrave?.MartyrCode,
+                    ImageUrls = new List<GraveImageDtoResponse>() // Khởi tạo danh sách cho URL ảnh
+                };
+
+                // Lấy tất cả ảnh liên quan đến MartyrGrave này
+                var graveImages = await _unitOfWork.GraveImageRepository.GetAsync(g => g.MartyrId == m.MartyrId);
+                foreach (var image in graveImages)
+                {
+                    if (!string.IsNullOrEmpty(image.UrlPath))
+                    {
+                        graveDto.ImageUrls.Add(new GraveImageDtoResponse
+                        {
+                            Image = image.UrlPath
+                        });
+                    }
+                }
+
+                result.Add(graveDto);
+            }
 
             return result;
         }
+
+        private string ConvertToUnaccentedLowercaseString(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return string.Empty;
+
+            var normalizedString = input.Normalize(NormalizationForm.FormD);
+            var stringBuilder = new StringBuilder();
+
+            foreach (var c in normalizedString)
+            {
+                var unicodeCategory = System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c);
+                if (unicodeCategory != System.Globalization.UnicodeCategory.NonSpacingMark)
+                {
+                    stringBuilder.Append(c);
+                }
+            }
+
+            return stringBuilder.ToString().Normalize(NormalizationForm.FormC).ToLowerInvariant();
+        }
+
+        private async Task<(bool status, string result, List<(string? phone, string? password)> outputList)> CreateMartyrGraveListAsyncV3(List<MartyrGraveDtoRequest> martyrGraveList)
+        {
+            var outputList = new List<(string? phone, string? password)>();
+
+            using (var transaction = await _unitOfWork.BeginTransactionAsync())
+            {
+                try
+                {
+                    foreach (var martyrGraveDto in martyrGraveList)
+                    {
+                        // Perform validation and retrieve Area and Location
+                        var area = (await _unitOfWork.AreaRepository.GetAsync(a => a.AreaNumber == martyrGraveDto.AreaNumber)).FirstOrDefault();
+                        var location = (await _unitOfWork.LocationRepository.GetAsync(l =>
+                            l.AreaNumber == martyrGraveDto.AreaNumber &&
+                            l.RowNumber == martyrGraveDto.RowNumber &&
+                            l.MartyrNumber == martyrGraveDto.MartyrNumber)).FirstOrDefault();
+
+                        if (area == null || location == null)
+                        {
+                            // Log issue or add error handling for missing Area/Location
+                            continue;
+                        }
+
+                        var customerPhone = martyrGraveDto.Customer.Phone;
+                        var customerUserName = martyrGraveDto.Customer.UserName;
+                        if (string.IsNullOrEmpty(customerPhone) || string.IsNullOrEmpty(customerUserName))
+                        {
+                            // Log issue or skip record if mandatory customer data is missing
+                            continue;
+                        }
+
+                        var customerCode = GenerateCustomerCode(customerUserName, customerPhone);
+                        var existingCustomer = (await _unitOfWork.AccountRepository.FindAsync(c => c.PhoneNumber == customerPhone)).FirstOrDefault();
+                        string? password = null;
+
+                        // If customer does not exist, create new account
+                        if (existingCustomer == null)
+                        {
+                            // Generate a random password
+                            password = CreateRandomPassword(8);
+
+                            var account = new Account
+                            {
+                                FullName = customerUserName,
+                                PhoneNumber = customerPhone,
+                                Address = martyrGraveDto.Customer.Address,
+                                EmailAddress = martyrGraveDto.Customer.EmailAddress,
+                                DateOfBirth = martyrGraveDto.Customer.Dob,
+                                RoleId = 4,
+                                Status = true,
+                                CustomerCode = customerCode,
+                                CreateAt = DateTime.Now,
+                                HashedPassword = await HashPassword(password)
+                            };
+
+                            await _unitOfWork.AccountRepository.AddAsync(account);
+                            await _unitOfWork.SaveAsync();
+                            existingCustomer = account;
+                        }
+
+                        // Proceed to add MartyrGrave
+                        var martyrCode = GenerateMartyrCode(location.AreaNumber, location.RowNumber, location.MartyrNumber);
+                        if ((await _unitOfWork.MartyrGraveRepository.FindAsync(m => m.MartyrCode == martyrCode)).Any())
+                        {
+                            // Log or skip if martyr code already exists
+                            continue;
+                        }
+
+                        var martyrGrave = new MartyrGrave
+                        {
+                            AreaId = area.AreaId,
+                            LocationId = location.LocationId,
+                            MartyrCode = martyrCode,
+                            Status = 1,
+                            AccountId = existingCustomer.AccountId
+                        };
+
+                        await _unitOfWork.MartyrGraveRepository.AddAsync(martyrGrave);
+                        await _unitOfWork.SaveAsync();
+
+                        var insertedGrave = (await _unitOfWork.MartyrGraveRepository.FindAsync(m => m.MartyrCode == martyrGrave.MartyrCode)).FirstOrDefault();
+
+                        if (insertedGrave != null)
+                        {
+                            // Thêm thông tin MartyrGraveInformations
+                            if (martyrGraveDto.Informations.Any())
+                            {
+                                foreach (var martyrGraveInformation in martyrGraveDto.Informations)
+                                {
+                                    var information = new MartyrGraveInformation
+                                    {
+                                        MartyrId = insertedGrave.MartyrId,
+                                        Name = martyrGraveInformation.Name,
+                                        NickName = martyrGraveInformation.NickName,
+                                        Position = martyrGraveInformation.Position,
+                                        Medal = martyrGraveInformation.Medal,
+                                        HomeTown = martyrGraveInformation.HomeTown,
+                                        DateOfBirth = martyrGraveInformation.DateOfBirth,
+                                        DateOfSacrifice = martyrGraveInformation.DateOfSacrifice
+                                    };
+                                    await _unitOfWork.MartyrGraveInformationRepository.AddAsync(information);
+                                }
+                                await _unitOfWork.SaveAsync();
+                            }
+
+                            // Thêm hình ảnh GraveImages
+                            if (martyrGraveDto.Image.Any())
+                            {
+                                foreach (var imageDto in martyrGraveDto.Image)
+                                {
+                                    var graveImage = new GraveImage
+                                    {
+                                        MartyrId = insertedGrave.MartyrId,
+                                        UrlPath = imageDto.UrlPath
+                                    };
+                                    await _unitOfWork.GraveImageRepository.AddAsync(graveImage);
+                                }
+                                await _unitOfWork.SaveAsync();
+                            }
+                        }
+
+
+                        // Save details for output and email notifications
+                        outputList.Add((existingCustomer.PhoneNumber, password));
+
+                        // Optionally send emails here or collect emails to send after batch processing
+                    }
+
+                    await transaction.CommitAsync();
+                    return (true, "All records processed successfully", outputList);
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    throw new Exception("Error during bulk insertion: " + ex.Message);
+                }
+            }
+        }
+
+
+
+
+        public async Task<(bool status, string message)> ImportMartyrGraves(string excelFilePath, string filePath)
+        {
+            var outputList = new List<(string PhoneNumber, string Password)>();
+            var martyrGraveList = new List<MartyrGraveDtoRequest>();
+
+            // Set ExcelPackage License
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+            try
+            {
+                using (var package = new ExcelPackage(new FileInfo(excelFilePath)))
+                {
+                    var worksheet = package.Workbook.Worksheets[0]; // Assuming data is in the first sheet
+
+                    // Loop through the rows and create MartyrGraveDtoRequest objects
+                    for (int row = 2; row <= worksheet.Dimension.End.Row; row++) // Start at row 2 to skip headers
+                    {
+                        // Map data from the Excel sheet to the DTO
+                        var martyrGraveDto = new MartyrGraveDtoRequest
+                        {
+                            AreaNumber = int.Parse(worksheet.Cells[row, 8].Text),
+                            RowNumber = int.Parse(worksheet.Cells[row, 9].Text),
+                            MartyrNumber = int.Parse(worksheet.Cells[row, 10].Text),
+                            Customer = new CustomerDtoRequest
+                            {
+                                UserName = worksheet.Cells[row, 11].Text,
+                                Phone = worksheet.Cells[row, 12].Text,
+                                Address = worksheet.Cells[row, 13].Text,
+                                Dob = DateTime.Parse(worksheet.Cells[row, 14].Text)
+                            },
+                            Informations = new List<MartyrGraveInformationDtoRequest>
+                            {
+                                new MartyrGraveInformationDtoRequest
+                                {
+                                    Name = worksheet.Cells[row, 1].Text,
+                                    NickName = worksheet.Cells[row, 2].Text,
+                                    Position = worksheet.Cells[row, 3].Text,
+                                    Medal = worksheet.Cells[row, 4].Text,
+                                    HomeTown = worksheet.Cells[row, 5].Text,
+                                    DateOfBirth = DateTime.Parse(worksheet.Cells[row, 6].Text),
+                                    DateOfSacrifice = DateTime.Parse(worksheet.Cells[row, 7].Text)
+                                }
+                            },
+                        };
+
+                        martyrGraveList.Add(martyrGraveDto);
+                    }
+
+                    // Now pass the entire list to CreateMartyrGraveAsyncV3 in one batch
+                    var (status, result, phonePasswordPairs) = await CreateMartyrGraveListAsyncV3(martyrGraveList);
+
+                    if (status)
+                    {
+                        outputList.AddRange(phonePasswordPairs);
+                        // Commit the transaction after processing all records
+                        await _unitOfWork.SaveAsync();
+                    }
+                    else
+                    {
+                        // Handle failure if needed
+                        return (false, "Failed to process all martyr graves: " + result);
+                    }
+                }
+
+                // Export the phone and password data to an output Excel file
+                var outputFilePath = ExportPhoneAndPasswordsToExcel(outputList, filePath);
+                return (true, $"Data processed successfully. Exported to {outputFilePath}");
+            }
+            catch (Exception ex)
+            {
+                return (false, "Error reading or processing the Excel file: " + ex.Message);
+            }
+        }
+
+
+        private string ExportPhoneAndPasswordsToExcel(List<(string PhoneNumber, string Password)> phonePasswordList, string filePath)
+        {
+            var outputFilePath = filePath; 
+
+            using (var package = new ExcelPackage())
+            {
+                var worksheet = package.Workbook.Worksheets.Add("Accounts");
+
+                // Define headers for the export file
+                worksheet.Cells[1, 1].Value = "PhoneNumber";
+                worksheet.Cells[1, 2].Value = "Password";
+
+                // Populate the worksheet with phone and password data
+                for (int i = 0; i < phonePasswordList.Count; i++)
+                {
+                    worksheet.Cells[i + 2, 1].Value = phonePasswordList[i].PhoneNumber;
+                    worksheet.Cells[i + 2, 2].Value = phonePasswordList[i].Password;
+                }
+
+                // Save the file to the specified output path
+                package.SaveAs(new FileInfo(outputFilePath));
+            }
+
+            return outputFilePath;
+        }
+
+        public async Task<(List<MartyrGraveByAreaDtoResponse> martyrGraves, int totalPage)> GetMartyrGraveByAreaIdAsync(int areaId, int pageIndex, int pageSize)
+        {
+            try
+            {
+                var totalMartyrGraves = (await _unitOfWork.MartyrGraveRepository.GetAsync(g => g.AreaId == areaId)).Count();
+                var totalPage = (int)Math.Ceiling(totalMartyrGraves / (double)pageSize);
+
+                var martyrGraves = await _unitOfWork.MartyrGraveRepository.GetAsync(
+                    filter: g => g.AreaId == areaId,
+                    includeProperties: "MartyrGraveInformations,GraveImages,Location,Area",
+                    pageIndex: pageIndex,
+                    pageSize: pageSize
+                );
+
+                var martyrGraveList = new List<MartyrGraveByAreaDtoResponse>();
+
+                foreach (var grave in martyrGraves)
+                {
+                    var graveDto = new MartyrGraveByAreaDtoResponse
+                    {
+                        MartyrId = grave.MartyrId,
+                        MartyrCode = grave.MartyrCode,
+                        Status = grave.Status,
+                        AreaName = grave.Area?.AreaName ?? "Unknown",
+                        LocationDescription = $"{grave.Location?.AreaNumber}-{grave.Location?.RowNumber}-{grave.Location?.MartyrNumber}",
+                        Images = grave.GraveImages?.Select(img => new GraveImageDtoResponse { Image = img.UrlPath }).ToList(),
+                        MatyrGraveInformations = grave.MartyrGraveInformations?.Select(info => new MartyrGraveDTOsInformationDtoResponse
+                        {
+                            InformationId = info.InformationId,
+                            Name = info.Name,
+                            NickName = info.NickName,
+                            Position = info.Position,
+                            Medal = info.Medal,
+                            HomeTown = info.HomeTown,
+                            DateOfBirth = info.DateOfBirth,
+                            DateOfSacrifice = info.DateOfSacrifice
+                        }).ToList()
+                    };
+
+                    martyrGraveList.Add(graveDto);
+                }
+
+                return (martyrGraveList, totalPage);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error while fetching martyr graves by area: {ex.Message}", ex);
+            }
+        }
+
 
 
     }

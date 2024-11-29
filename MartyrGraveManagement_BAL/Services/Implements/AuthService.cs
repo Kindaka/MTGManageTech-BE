@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using MartyrGraveManagement_BAL.ModelViews.AccountDTOs;
+using MartyrGraveManagement_BAL.ModelViews.CustomerDTOs;
 using MartyrGraveManagement_BAL.Services.Interfaces;
 using MartyrGraveManagement_DAL.Entities;
 using MartyrGraveManagement_DAL.UnitOfWorks.Interfaces;
@@ -11,6 +12,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography;
+using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -37,7 +39,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 string hashedPassword = await HashPassword(loginInfo.Password);
 
                 var account = (await _unitOfWork.AccountRepository
-                    .FindAsync(a => a.AccountName == loginInfo.AccountName && a.HashedPassword == hashedPassword))
+                    .FindAsync(a => a.PhoneNumber == loginInfo.PhoneNumber && a.HashedPassword == hashedPassword))
                     .FirstOrDefault();
 
                 if (account != null)
@@ -52,10 +54,16 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     }
 
                     response.AccountId = account.AccountId;
-                    response.AccountName = account.AccountName;
+                    response.PhoneNumber = account.PhoneNumber;
 
                     response.RoleId = account.RoleId;
                     response.Status = account.Status;
+
+                    if (account.RoleId == 3 || account.RoleId == 2)
+                    {
+                        response.AreaId = account.AreaId;
+                    }
+
                     return response;
                 }
                 return null;
@@ -89,16 +97,16 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
         }
 
-        public async Task<bool> CreateAccount(UserRegisterDtoRequest newAccount)
+        public async Task<(bool status, string response)> CreateAccount(UserRegisterDtoRequest newAccount)
         {
             try
             {
-                // Kiểm tra xem email đã tồn tại chưa
+                // Kiểm tra xem phone đã tồn tại chưa
                 var existingAccount = await _unitOfWork.AccountRepository
-                    .FindAsync(a => a.AccountName == newAccount.AccountName);
+                    .FindAsync(a => a.PhoneNumber == newAccount.PhoneNumber);
                 if (existingAccount.Any())
                 {
-                    throw new Exception("Email đã tồn tại.");
+                    return (false, "Số điện thoại đã tồn tại.");
                 }
 
                 // Hash mật khẩu
@@ -107,42 +115,27 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 var existingRole = await _unitOfWork.RoleRepository.GetByIDAsync(newAccount.RoleId);
                 if (existingRole == null)
                 {
-                    return false;
+                    return (false, "Role này không tồn tại");
                 }
 
-                if (existingRole.RoleId == 3)
+                if (newAccount.RoleId == 2)
                 {
-                    if (newAccount.AreaId == null)
+                    var existingManager = (await _unitOfWork.AccountRepository.GetAsync(m => m.RoleId == 2 && m.AreaId == newAccount.AreaId)).FirstOrDefault();
+                    if (existingManager != null)
                     {
-                        return false;
+                        return (false, "Manager của khu này đã tồn tại (chỉ 1 người manager quản lý 1 khu)");
                     }
                 }
-
-                if (newAccount.RoleId == 3)
-                {
-                    var account = _mapper.Map<Account>(newAccount);
-                    account.Status = true;
-                    account.CreateAt = DateTime.Now;
+                var account = _mapper.Map<Account>(newAccount);
+                account.Status = true;
+                account.CreateAt = DateTime.Now;
 
                     // Lưu tài khoản vào cơ sở dữ liệu
-                    await _unitOfWork.AccountRepository.AddAsync(account);
-                    await _unitOfWork.SaveAsync();
+                await _unitOfWork.AccountRepository.AddAsync(account);
+                await _unitOfWork.SaveAsync();
 
-                    return true; // Lưu thành công
-                }
-                else
-                {
-                    var account = _mapper.Map<Account>(newAccount);
-                    account.Status = true;
-                    account.AreaId = null;
-                    account.CreateAt = DateTime.Now;
-
-                    // Lưu tài khoản vào cơ sở dữ liệu
-                    await _unitOfWork.AccountRepository.AddAsync(account);
-                    await _unitOfWork.SaveAsync();
-
-                    return true; // Lưu thành công
-                }
+                return (true, "Tài khoản đã được tạo thành công"); // Lưu thành công
+                
             }
             catch (Exception ex)
             {
@@ -166,18 +159,27 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 var claims = new List<Claim>
                 {
                     new Claim("accountId", account.AccountId.ToString()),
-                    new Claim("accountName", account.AccountName),
-                    new Claim("customerCode", account.customerCode),
+                    new Claim("phone", account.PhoneNumber),
                     new Claim(ClaimTypes.Role, account.RoleId.ToString()),
                     new Claim(JwtRegisteredClaimNames.Sub, account.AccountId.ToString()),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
                 };
 
+                if ((account.RoleId == 3 || account.RoleId == 2) && account.AreaId.HasValue)
+                {
+                    claims.Add(new Claim("areaId", account.AreaId.Value.ToString()));
+                }
+
+                if (account.customerCode?.ToString() != null)
+                {
+                    claims.Add(new Claim("customerCode", account.customerCode.ToString()));
+                }
+
                 var token = new JwtSecurityToken(
                     _configuration["Jwt:Issuer"],
                     _configuration["Jwt:Audience"],
                     claims,
-                    expires: DateTime.Now.AddMinutes(30),
+                    expires: DateTime.Now.AddHours(3),
                     signingCredentials: credentials);
 
                 return new JwtSecurityTokenHandler().WriteToken(token);
@@ -188,20 +190,60 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
         }
 
-        public async Task<bool> GetAccountByAccountName(string accountName)
+        public async Task<(bool status, UserAuthenticatingDtoResponse? guest)> GetAccountByPhoneNumber(string phone)
         {
             try
             {
-                var account = (await _unitOfWork.AccountRepository.GetAsync(c => c.AccountName == accountName)).FirstOrDefault();
+                var account = (await _unitOfWork.AccountRepository.GetAsync(c => c.PhoneNumber == phone)).FirstOrDefault();
                 if (account == null)
                 {
-                    return false;
+                    return (false, null);
                 }
-                return true;
+                var accountResponse = _mapper.Map<UserAuthenticatingDtoResponse>(account);
+                return (true, accountResponse);
             }
             catch (Exception ex)
             {
                 throw new Exception($"Lỗi khi tìm kiếm tài khoản qua name: {ex.Message}");
+            }
+        }
+
+        public async Task<bool> CreateAccountCustomer(CustomerRegisterDtoRequest newCustomer)
+        {
+            try
+            {
+                // Kiểm tra xem phone đã tồn tại chưa
+                var existingAccount = await _unitOfWork.AccountRepository
+                    .FindAsync(a => a.PhoneNumber == newCustomer.PhoneNumber);
+                if (existingAccount.Any())
+                {
+                    throw new Exception("SĐT đã tồn tại.");
+                }
+                // Hash mật khẩu
+                var hashedPassword = await HashPassword(newCustomer.Password);
+                var account = new Account
+                {
+                    PhoneNumber = newCustomer.PhoneNumber,
+                    HashedPassword = hashedPassword,
+                    Status = true,
+                    CreateAt = DateTime.Now,
+                    RoleId = 4
+                };
+                
+
+                // Lưu tài khoản vào cơ sở dữ liệu
+                await _unitOfWork.AccountRepository.AddAsync(account);
+                await _unitOfWork.SaveAsync();
+
+                return true; // Lưu thành công
+
+
+
+
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Lỗi khi tạo tài khoản: {ex.Message}");
             }
         }
     }

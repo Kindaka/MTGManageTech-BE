@@ -12,21 +12,21 @@ namespace MartyrGraveManagement_DAL.Entities
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int OrderId { get; set; }
+        public long OrderId { get; set; }
         public int AccountId { get; set; }
         public DateTime OrderDate { get; set; }
-        public DateTime StartDate { get; set; }
-        public DateTime EndDate { get; set; }
+        public DateTime ExpectedCompletionDate { get; set; }
+        [Column(TypeName = "decimal(18, 2)")]
         public decimal TotalPrice { get; set; }
         public int Status { get; set; }
+        [Column(TypeName = "nvarchar(500)")]
         public string? Note { get; set; }
         public string? ImagePath { get; set; }
+        [Column(TypeName = "nvarchar(500)")]
         public string? ResponseContent { get; set; }
         public Account? Account { get; set; }
         public IEnumerable<OrderDetail>? OrderDetails { get; set; }
-        public Payment? Payment { get; set; }
-        public Feedback? Feedback { get; set; }
-        public StaffTask? Task { get; set; }
+        public IEnumerable<Payment>? Payments { get; set; }
     }
 
 }

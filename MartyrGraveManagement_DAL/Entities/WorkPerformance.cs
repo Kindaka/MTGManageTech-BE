@@ -14,11 +14,14 @@ namespace MartyrGraveManagement_DAL.Entities
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int WorkId { get; set; }
         public int AccountId { get; set; }
-        public int QualityMaintenancePoint { get; set; }
-        public int TimeCompletePoint { get; set; }
-        public int InteractionPoint { get; set; }
+        public double QualityMaintenancePoint { get; set; }
+        public double TimeCompletePoint { get; set; }
+        public double InteractionPoint { get; set; }
+        [Column(TypeName = "nvarchar(MAX)")]
         public string Description { get; set; }
         public DateTime UploadTime { get; set; }
+        public DateOnly StartDate { get; set; }
+        public DateOnly EndDate { get; set; }
         public bool Status { get; set; }
 
         public Account? Account { get; set; }

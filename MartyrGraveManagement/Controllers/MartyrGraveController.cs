@@ -1,6 +1,8 @@
 ﻿using MartyrGraveManagement_BAL.ModelViews.CustomerDTOs;
 using MartyrGraveManagement_BAL.ModelViews.MartyrGraveDTOs;
+using MartyrGraveManagement_BAL.Services.Implements;
 using MartyrGraveManagement_BAL.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -12,13 +14,15 @@ namespace MartyrGraveManagement.Controllers
     public class MartyrGraveController : ControllerBase
     {
         private readonly IMartyrGraveService _martyrGraveService;
+        private readonly IAuthorizeService _authorizeService;
 
-        public MartyrGraveController(IMartyrGraveService martyrGraveService)
+        public MartyrGraveController(IMartyrGraveService martyrGraveService, IAuthorizeService authorizeService)
         {
             _martyrGraveService = martyrGraveService;
+            _authorizeService = authorizeService;
         }
 
-
+        [AllowAnonymous]
         [HttpGet("search")]
         public async Task<IActionResult> SearchMartyrGraves([FromQuery] MartyrGraveSearchDtoRequest searchCriteria)
         {
@@ -44,6 +48,7 @@ namespace MartyrGraveManagement.Controllers
         /// Gets all martyr graves.
         /// </summary>
         /// <returns>Returns a list of all graves.</returns>
+        [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<MartyrGraveDtoResponse>>> GetMartyrGraves([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
@@ -63,6 +68,7 @@ namespace MartyrGraveManagement.Controllers
         /// </summary>
         /// <param name="id">The ID of the martyr grave.</param>
         /// <returns>Returns the martyr grave with the specified ID.</returns>
+        [AllowAnonymous]
         [HttpGet("{id}")]
         public async Task<ActionResult<MartyrGraveDtoResponse>> GetMartyrGrave(int id)
         {
@@ -79,10 +85,11 @@ namespace MartyrGraveManagement.Controllers
         /// </summary>
         /// <param name="id">The customerCode of the martyr grave.</param>
         /// <returns>Returns the martyr grave with the specified customerCode.</returns>
-        [HttpGet("getMartyrGraveByCustomerCode/{customerCode}")]
-        public async Task<ActionResult<IEnumerable<MartyrGraveDtoResponse>>> GetMartyrGraveByMartyrCode(string customerCode)
+        [Authorize(Policy = "RequireCustomerRole")]
+        [HttpGet("getMartyrGraveByCustomerId/{customerId}")]
+        public async Task<ActionResult<IEnumerable<MartyrGraveDtoResponse>>> GetMartyrGraveByCustomerId(int customerId)
         {
-            var graves = await _martyrGraveService.GetMartyrGraveByCustomerCode(customerCode);
+            var graves = await _martyrGraveService.GetMartyrGraveByCustomerId(customerId);
             if (graves == null)
             {
                 return NotFound();
@@ -95,25 +102,77 @@ namespace MartyrGraveManagement.Controllers
         /// </summary>
         /// <param name="martyrGraveDto">The details of the martyr grave to create.</param>
         /// <returns>Returns the created martyr grave.</returns>
-        [HttpPost]
-        public async Task<ActionResult<MartyrGraveDtoResponse>> CreateMartyrGrave(MartyrGraveDtoRequest martyrGraveDto)
+        //[HttpPost]
+        //public async Task<ActionResult<MartyrGraveDtoResponse>> CreateMartyrGrave(MartyrGraveDtoRequest martyrGraveDto)
+        //{
+        //    try
+        //    {
+        //        var createdGrave = await _martyrGraveService.CreateMartyrGraveAsync(martyrGraveDto);
+        //        return CreatedAtAction(nameof(GetMartyrGrave), new { id = createdGrave.MartyrId }, createdGrave);
+        //    }
+        //    catch (KeyNotFoundException ex)
+        //    {
+        //        return NotFound(new { message = ex.Message });
+        //    }
+        //}
+
+
+        /// <summary>
+        /// Import excel file to add martyr graves.
+        /// </summary>
+        /// <param name="excelFile">The excel file.</param>
+        /// <returns>Returns file path that stores customer phone number and password.</returns>
+        [Authorize(Policy = "RequireAdminRole")]
+        [HttpPost("import-graves")]
+        public async Task<ActionResult<MartyrGraveDtoResponse>> ImportMartyrGraves(IFormFile file, [FromQuery] string folderPath)
         {
+            if (file == null || file.Length == 0 || folderPath == null)
+                return BadRequest("No file uploaded.");
+
+            var filePath = Path.GetTempFileName(); // Temporary file path for processing
+
             try
             {
-                var createdGrave = await _martyrGraveService.CreateMartyrGraveAsync(martyrGraveDto);
-                return CreatedAtAction(nameof(GetMartyrGrave), new { id = createdGrave.MartyrId }, createdGrave);
+                // Save the file temporarily
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+                // Create the full output file path by appending a filename to the selected folder path
+                var outputFilePath = Path.Combine(folderPath, "MartyrGrave_Accounts.xlsx");
+                // Import locations from the Excel file
+                var (status, message) = await _martyrGraveService.ImportMartyrGraves(filePath, outputFilePath);
+
+                if (status)
+                {
+                    return Ok(new { message = "File imported successfully.", details = message });
+                }
+                else
+                {
+                    return BadRequest(new { message = "Error importing file.", details = message });
+                }
             }
-            catch (KeyNotFoundException ex)
+            catch (Exception ex)
             {
-                return NotFound(new { message = ex.Message });
+                return StatusCode(500, new { message = "Internal server error.", details = ex.Message });
+            }
+            finally
+            {
+                // Delete the temporary file
+                if (System.IO.File.Exists(filePath))
+                {
+                    System.IO.File.Delete(filePath);
+                }
             }
         }
+    
 
         /// <summary>
         /// Creates a new martyr grave version 2.
         /// </summary>
         /// <param name="martyrGraveDto">The details of the martyr grave to create.</param>
         /// <returns>Returns no content if the create is successful.</returns>
+        [Authorize(Policy = "RequireManagerRole")]
         [HttpPost("create-grave-v2")]
         public async Task<ActionResult<MartyrGraveDtoResponse>> CreateMartyrGraveV2([FromBody] MartyrGraveDtoRequest martyrGraveDto)
         {
@@ -122,7 +181,7 @@ namespace MartyrGraveManagement.Controllers
                 var createGrave = await _martyrGraveService.CreateMartyrGraveAsyncV2(martyrGraveDto);
                 if(createGrave.status)
                 {
-                    return Ok(new { result = createGrave.result, accountName = createGrave.accountName, password = createGrave.password});
+                    return Ok(new { result = createGrave.result, phone = createGrave.phone, password = createGrave.password});
                 }
                 else
                 {
@@ -135,30 +194,7 @@ namespace MartyrGraveManagement.Controllers
             }
         }
 
-        [HttpPost("create-relative-grave-v2")]
-        public async Task<IActionResult> CreateRelativeGrave([FromBody] CustomerDtoRequest customerDtoRequest, int graveId)
-        {
-            try
-            {
-                if(customerDtoRequest.UserName == null || customerDtoRequest.Phone == null)
-                {
-                    return BadRequest("Username or phone must be required");
-                }
-                var createGrave = await _martyrGraveService.CreateRelativeGraveAsync(graveId, customerDtoRequest);
-                if (createGrave.status)
-                {
-                    return Ok(new { result = createGrave.result, accountName = createGrave.accountName, password = createGrave.password });
-                }
-                else
-                {
-                    return BadRequest($"{createGrave.result}");
-                }
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
-            }
-        }
+
 
         /// <summary>
         /// Updates a martyr grave with the specified ID.
@@ -166,29 +202,31 @@ namespace MartyrGraveManagement.Controllers
         /// <param name="id">The ID of the martyr grave to update.</param>
         /// <param name="martyrGraveDto">The updated details of the martyr grave.</param>
         /// <returns>Returns no content if the update is successful.</returns>
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateMartyrGrave(int id, MartyrGraveDtoRequest martyrGraveDto)
-        {
-            try
-            {
-                var updatedGrave = await _martyrGraveService.UpdateMartyrGraveAsync(id, martyrGraveDto);
-                if (updatedGrave == null)
-                {
-                    return NotFound();
-                }
-                return Ok("Update Successfully");
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-        }
+        //[Authorize(Policy = "RequireManagerRole")]
+        //[HttpPut("{id}")]
+        //public async Task<IActionResult> UpdateMartyrGrave(int id, MartyrGraveDtoRequest martyrGraveDto)
+        //{
+        //    try
+        //    {
+        //        var updatedGrave = await _martyrGraveService.UpdateMartyrGraveAsync(id, martyrGraveDto);
+        //        if (updatedGrave == null)
+        //        {
+        //            return NotFound();
+        //        }
+        //        return Ok("Update Successfully");
+        //    }
+        //    catch (KeyNotFoundException ex)
+        //    {
+        //        return NotFound(new { message = ex.Message });
+        //    }
+        //}
 
         /// <summary>
         /// Update a martyr grave status with the specified ID.
         /// </summary>
         /// <param name="id">The ID of the martyr grave to update status.</param>
         /// <returns>Returns no content if the deletion is successful.</returns>
+        [Authorize(Policy = "RequireManagerRole")]
         [HttpPut("updateStatus/{id}")]
         public async Task<IActionResult> UpdateMartyrGraveStatus(int id, int status)
         {
@@ -210,13 +248,35 @@ namespace MartyrGraveManagement.Controllers
         /// <returns>A list of martyr graves with additional information like name, location, etc.</returns>
         /// <response code="200">Returns a list of martyr graves with total pages for paging</response>
         /// <response code="500">If there was an internal server error</response>
+        [Authorize(Policy = "RequireManagerRole")]
         [HttpGet("GetAllForManager")]
-        public async Task<IActionResult> GetAllMartyrGraves([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetAllMartyrGraves(int managerId, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             try
             {
+                // Lấy AccountId từ token
+                var tokenAccountIdClaim = User.FindFirst("AccountId");
+                if (tokenAccountIdClaim == null || string.IsNullOrEmpty(tokenAccountIdClaim.Value))
+                {
+                    return Forbid("Không tìm thấy AccountId trong token.");
+                }
+
+                var tokenAccountId = int.Parse(tokenAccountIdClaim.Value);
+
+                // Kiểm tra nếu AccountId trong URL có khớp với AccountId trong token không
+                if (tokenAccountId != managerId)
+                {
+                    return Forbid("Bạn không có quyền.");
+                }
+
+                // Sử dụng hàm mới để kiểm tra quyền của nhân viên hoặc quản lý
+                var checkAuthorize = await _authorizeService.CheckAuthorizeManagerByAccountId(tokenAccountId, managerId);
+                if (!checkAuthorize.isMatchedAccountManager || !checkAuthorize.isAuthorizedAccount)
+                {
+                    return Forbid();
+                }
                 // Gọi phương thức từ service để lấy danh sách mộ liệt sĩ có phân trang
-                var graves = await _martyrGraveService.GetAllMartyrGravesForManagerAsync(page, pageSize);
+                var graves = await _martyrGraveService.GetAllMartyrGravesForManagerAsync(page, pageSize, managerId);
 
                 // Kiểm tra nếu dữ liệu không rỗng và trả về kết quả
                 if (graves.response != null && graves.response.Any())
@@ -240,6 +300,7 @@ namespace MartyrGraveManagement.Controllers
         /// <param name="id">The ID of the martyr grave to update.</param>
         /// <param name="martyrGraveDto">The updated details of the martyr grave.</param>
         /// <returns>Returns no content if the update is successful.</returns>
+        [Authorize(Policy = "RequireManagerRole")]
         [HttpPut("update-grave-v2/{id}")]
         public async Task<IActionResult> UpdateMartyrGraveV2(int id, MartyrGraveUpdateDtoRequest martyrGraveDto)
         {
@@ -266,6 +327,21 @@ namespace MartyrGraveManagement.Controllers
             }
         }
 
+
+
+        [HttpGet("area/{areaId}")]
+        public async Task<IActionResult> GetMartyrGraveByAreaId(int areaId, int pageIndex = 1, int pageSize = 10)
+        {
+            try
+            {
+                var result = await _martyrGraveService.GetMartyrGraveByAreaIdAsync(areaId, pageIndex, pageSize);
+                return Ok(new { martyrGraves = result.martyrGraves, totalPage = result.totalPage });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred.", details = ex.Message });
+            }
+        }
 
     }
 }

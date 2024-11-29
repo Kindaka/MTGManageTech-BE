@@ -13,7 +13,10 @@ namespace MartyrGraveManagement_DAL.Entities
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int AreaId { get; set; }
+        [Column(TypeName = "nvarchar(100)")]
         public string AreaName { get; set; }
+        public int AreaNumber { get; set; }
+        [Column(TypeName = "nvarchar(255)")]
         public string? Description { get; set; }
         public bool Status { get; set; }
 

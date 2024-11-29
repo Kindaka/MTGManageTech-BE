@@ -1,4 +1,5 @@
 ﻿using MartyrGraveManagement_BAL.ModelViews.AccountDTOs;
+using MartyrGraveManagement_BAL.ModelViews.CustomerDTOs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,9 +14,11 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
 
         Task<string> GenerateAccessToken(UserAuthenticatingDtoResponse account);
 
-        Task<bool> CreateAccount(UserRegisterDtoRequest newAccount);
+        Task<(bool status, string response)> CreateAccount(UserRegisterDtoRequest newAccount);
 
-        Task<bool> GetAccountByAccountName(string accountName);
+        Task<bool> CreateAccountCustomer(CustomerRegisterDtoRequest newCustomer);
+
+        Task<(bool status, UserAuthenticatingDtoResponse? guest)> GetAccountByPhoneNumber(string phone);
 
     }
 }

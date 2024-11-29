@@ -33,6 +33,16 @@ namespace MartyrGraveManagement_DAL.Repositories.Implements
             await _context.SaveChangesAsync();
         }
 
+        public async Task UpdateRangeAsync(IEnumerable<TEntity> entities)
+        {
+            foreach (var entity in entities)
+            {
+                dbSet.Attach(entity);
+                _context.Entry(entity).State = EntityState.Modified;
+            }
+            await _context.SaveChangesAsync();
+        }
+
         public async Task DeleteAsync(object id)
         {
             TEntity entityToDelete = await dbSet.FindAsync(id);

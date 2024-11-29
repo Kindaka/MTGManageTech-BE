@@ -10,6 +10,7 @@ using MartyrGraveManagement_BAL.Services.Implements;
 using MartyrGraveManagement_BAL.Services.Interfaces;
 using MartyrGraveManagement_BAL.ModelViews.CartItemsDTOs;
 using Microsoft.AspNetCore.Authorization;
+using MartyrGraveManagement_BAL.ModelViews.ServiceDTOs;
 
 namespace MartyrGraveManagement.Controllers
 {
@@ -55,32 +56,57 @@ namespace MartyrGraveManagement.Controllers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [Authorize(Policy = "RequireCustomerRole")]
         [HttpPost]
-        public async Task<ActionResult<CartItemsDTOResponse>> CreateCartItems(CartItemsDTORequest cartItemDTO)
+        public async Task<ActionResult> CreateCartItems(List<CartItemsDTORequest> cartItemsDTOs)
         {
             try
             {
+                // Lấy AccountId từ thông tin đăng nhập của người dùng
                 var accountId = User.FindFirst("AccountId")?.Value;
                 if (accountId == null)
                 {
                     return Forbid();
                 }
-                var checkMatchedId = await _authorizeService.CheckAuthorizeByCustomerId(cartItemDTO.AccountId, int.Parse(accountId));
-                if (!checkMatchedId.isMatchedCustomer)
+
+                // Kiểm tra tất cả các mục trong danh sách có hợp lệ với AccountId của người dùng không
+                foreach (var cartItemDTO in cartItemsDTOs)
                 {
-                    return Forbid();
+                    var checkMatchedId = await _authorizeService.CheckAuthorizeByCustomerId(cartItemDTO.AccountId, int.Parse(accountId));
+                    if (!checkMatchedId.isMatchedCustomer)
+                    {
+                        return Forbid();
+                    }
+
+                    if (cartItemDTO == null)
+                    {
+                        return BadRequest("Cannot add empty object to cart");
+                    }
                 }
-                if (cartItemDTO == null)
-                {
-                    return BadRequest("Cannot add empty object to cart");
-                }
-                var createCartItem = await _cartItemsService.CreateCartItemsAsync(cartItemDTO);
-                return CreatedAtAction(nameof(GetCartItem), new { id = createCartItem.CartId }, createCartItem);
+
+                // Gọi service để tạo danh sách CartItems và lấy kết quả
+                var (responses, messages) = await _cartItemsService.CreateCartItemsAsync(cartItemsDTOs);
+
+                // Trả về kết quả bao gồm danh sách phản hồi và thông báo
+                return Ok(new { responses, messages });
             }
             catch (KeyNotFoundException ex)
             {
+                // Xử lý lỗi không tìm thấy dữ liệu
                 return NotFound(new { message = ex.Message });
             }
+            catch (InvalidOperationException ex)
+            {
+                // Xử lý lỗi liên quan đến logic kinh doanh (vd: GraveService không tồn tại)
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                // Xử lý lỗi không mong muốn
+                return StatusCode(500, new { message = "An error occurred while processing your request.", details = ex.Message });
+            }
         }
+
+
+
 
 
         [Authorize(Policy = "RequireCustomerRole")]
@@ -105,7 +131,7 @@ namespace MartyrGraveManagement.Controllers
                 // Kiểm tra nếu không có giỏ hàng nào được tìm thấy
                 if (cartItems.cartitemList == null || !cartItems.cartitemList.Any())
                 {
-                    return NotFound(new { message = "No cart items found for this account." });
+                    return Ok(cartItems);
                 }
 
                 // Trả về danh sách các mục trong giỏ hàng
@@ -134,13 +160,13 @@ namespace MartyrGraveManagement.Controllers
                 {
                     return Forbid();
                 }
-                // Gọi service để lấy giỏ hàng của accountId
+
                 var cartItems = await _cartItemsService.GetCheckoutByAccountId(customerId);
 
-                // Kiểm tra nếu không có giỏ hàng nào được tìm thấy
+                
                 if (cartItems.cartitemList == null || !cartItems.cartitemList.Any())
                 {
-                    return NotFound(new { message = "No cart items found for this account." });
+                    return Ok(cartItems);
                 }
 
                 // Trả về danh sách các mục trong giỏ hàng
@@ -185,8 +211,8 @@ namespace MartyrGraveManagement.Controllers
         }
 
         [Authorize(Policy = "RequireCustomerRole")]
-        [HttpPut("/updateItemStatus/{cartItemId}")]
-        public async Task<IActionResult> UpdateCartItemStatus(int cartItemId)
+        [HttpPut("/api/updateItemStatus/{cartItemId}/{status}")]
+        public async Task<IActionResult> UpdateCartItemStatus(int cartItemId, bool status)
         {
             try
             {
@@ -200,7 +226,7 @@ namespace MartyrGraveManagement.Controllers
                 {
                     return Forbid();
                 }
-                var check = await _cartItemsService.UpdateCartItemStatusByAccountId(cartItemId);
+                var check = await _cartItemsService.UpdateCartItemStatusByAccountId(cartItemId, status);
                 if (check)
                 {
                     return Ok("Thay đổi trạng thái Cart Item thành công");
@@ -216,5 +242,30 @@ namespace MartyrGraveManagement.Controllers
             }
         }
 
+        /// <summary>
+        /// Get service and martyrGrave information for anonymous guest in cart.
+        /// </summary>
+        [AllowAnonymous]
+        [HttpPost("service-martyrGrave/anonymous/cart")]
+        public async Task<IActionResult> GetServiceMartyrGraveInCart(List<ServiceMartyrGraveDtoRequest> request)
+        {
+            try
+            {
+                var cartList = await _cartItemsService.GetCartForGuest(request);
+                if (cartList.cartitemList.Any())
+                {
+                    return Ok(new { cartItemList = cartList.cartitemList, totalPrice = cartList.totalPriceInCart });
+                }
+                else
+                {
+                    return Ok(cartList);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
     }
 }

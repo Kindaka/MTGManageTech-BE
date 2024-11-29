@@ -13,8 +13,10 @@ namespace MartyrGraveManagement_DAL.Entities
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int CategoryId { get; set; }
+        [Column(TypeName = "nvarchar(255)")]
         public string CategoryName { get; set; }
         public bool Status { get; set; }
+        [Column(TypeName = "nvarchar(500)")]
         public string? Description { get; set; }
         public string? UrlImageCategory { get; set; }
 

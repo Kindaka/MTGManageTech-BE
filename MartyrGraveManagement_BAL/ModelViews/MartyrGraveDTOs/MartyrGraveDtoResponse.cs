@@ -11,7 +11,14 @@ namespace MartyrGraveManagement_BAL.ModelViews.MartyrGraveDTOs
     {
         public int MartyrId { get; set; }
         public int AreaId { get; set; }
+        public string AreaName { get; set; }
         public string MartyrCode { get; set; }
+        public int RowNumber { get; set; }
+        public int MartyrNumber { get; set; }
+        public int AreaNumber { get; set; }
+        public string? CustomerName { get; set; }
+        public string? CustomerEmail { get; set; }
+        public string? CustomerPhone { get; set; }
 
         public List<GraveImageDtoRequest> Images { get; set; } = new List<GraveImageDtoRequest>();
         public List<MartyrGraveInformationDtoResponse> MatyrGraveInformations { get; set; } = new List<MartyrGraveInformationDtoResponse>();

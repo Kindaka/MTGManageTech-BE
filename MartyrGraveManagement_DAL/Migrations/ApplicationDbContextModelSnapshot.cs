@@ -30,12 +30,8 @@ namespace MartyrGraveManagement_DAL.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AccountId"));
 
-                    b.Property<string>("AccountName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Address")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<int?>("AreaId")
                         .HasColumnType("int");
@@ -56,13 +52,14 @@ namespace MartyrGraveManagement_DAL.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FullName")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<string>("HashedPassword")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PhoneNumber")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("RoleId")
@@ -88,10 +85,13 @@ namespace MartyrGraveManagement_DAL.Migrations
 
                     b.Property<string>("AreaName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("AreaNumber")
+                        .HasColumnType("int");
 
                     b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<bool>("Status")
                         .HasColumnType("bit");
@@ -101,7 +101,146 @@ namespace MartyrGraveManagement_DAL.Migrations
                     b.ToTable("Areas");
                 });
 
-            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.CartItem", b =>
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.AssignmentTask", b =>
+                {
+                    b.Property<int>("AssignmentTaskId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AssignmentTaskId"));
+
+                    b.Property<DateTime>("CreateAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ImageWorkSpace")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Reason")
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("ServiceScheduleId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StaffId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.HasKey("AssignmentTaskId");
+
+                    b.HasIndex("ServiceScheduleId");
+
+                    b.HasIndex("StaffId");
+
+                    b.ToTable("AssignmentTask");
+                });
+
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.AssignmentTaskImage", b =>
+                {
+                    b.Property<int>("ImageId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ImageId"));
+
+                    b.Property<int>("AssignmentTaskId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreateAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ImagePath")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("ImageId");
+
+                    b.HasIndex("AssignmentTaskId");
+
+                    b.ToTable("AssignmentTaskImage");
+                });
+
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Blog", b =>
+                {
+                    b.Property<int>("BlogId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BlogId"));
+
+                    b.Property<int>("AccountId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("BlogContent")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(MAX)");
+
+                    b.Property<string>("BlogDescription")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("BlogName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("HistoryId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Status")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("BlogId");
+
+                    b.HasIndex("AccountId");
+
+                    b.HasIndex("HistoryId");
+
+                    b.ToTable("Blogs");
+                });
+
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.BlogCategory", b =>
+                {
+                    b.Property<int>("HistoryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("HistoryId"));
+
+                    b.Property<string>("BlogCategoryName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(MAX)");
+
+                    b.Property<bool>("Status")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("UpdatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("HistoryId");
+
+                    b.ToTable("BlogCategory");
+                });
+
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.CartItemCustomer", b =>
                 {
                     b.Property<int>("CartId")
                         .ValueGeneratedOnAdd()
@@ -132,6 +271,165 @@ namespace MartyrGraveManagement_DAL.Migrations
                     b.ToTable("CartItems");
                 });
 
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Comment", b =>
+                {
+                    b.Property<int>("CommentId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CommentId"));
+
+                    b.Property<int>("AccountId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("BlogId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(MAX)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("Status")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("UpdatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("CommentId");
+
+                    b.HasIndex("AccountId");
+
+                    b.HasIndex("BlogId");
+
+                    b.ToTable("Comments");
+                });
+
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Comment_Icon", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AccountId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CommentId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("IconId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Status")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId");
+
+                    b.HasIndex("CommentId");
+
+                    b.HasIndex("IconId");
+
+                    b.ToTable("Comment_Icons");
+                });
+
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Comment_Report", b =>
+                {
+                    b.Property<int>("ReportId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReportId"));
+
+                    b.Property<int>("AccountId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CommentId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(MAX)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("Status")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<DateTime>("UpdatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ReportId");
+
+                    b.HasIndex("AccountId");
+
+                    b.HasIndex("CommentId");
+
+                    b.ToTable("CommentReports");
+                });
+
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.CustomerWallet", b =>
+                {
+                    b.Property<int>("WalletId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("WalletId"));
+
+                    b.Property<decimal>("CustomerBalance")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdateAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("WalletId");
+
+                    b.HasIndex("CustomerId")
+                        .IsUnique();
+
+                    b.ToTable("CustomerWallet");
+                });
+
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Event_Image", b =>
+                {
+                    b.Property<int>("ImageId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ImageId"));
+
+                    b.Property<int>("EventId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ImagePath")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("ImageId");
+
+                    b.HasIndex("EventId");
+
+                    b.ToTable("EventImages");
+                });
+
             modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Feedback", b =>
                 {
                     b.Property<int>("FeedbackId")
@@ -145,12 +443,21 @@ namespace MartyrGraveManagement_DAL.Migrations
 
                     b.Property<string>("Content")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("OrderId")
+                    b.Property<int>("DetailId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ResponseContent")
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int?>("StaffId")
                         .HasColumnType("int");
 
                     b.Property<bool>("Status")
@@ -163,47 +470,10 @@ namespace MartyrGraveManagement_DAL.Migrations
 
                     b.HasIndex("AccountId");
 
-                    b.HasIndex("OrderId")
+                    b.HasIndex("DetailId")
                         .IsUnique();
 
                     b.ToTable("Feedbacks");
-                });
-
-            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.FeedbackResponse", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("AccountId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("FeedbackId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("Status")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AccountId");
-
-                    b.HasIndex("FeedbackId")
-                        .IsUnique();
-
-                    b.ToTable("FeedbackResponses");
                 });
 
             modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.GraveImage", b =>
@@ -224,7 +494,156 @@ namespace MartyrGraveManagement_DAL.Migrations
 
                     b.HasIndex("MartyrId");
 
-                    b.ToTable("GraveImage");
+                    b.ToTable("GraveImages");
+                });
+
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.GraveService", b =>
+                {
+                    b.Property<int>("GraveServiceId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("GraveServiceId"));
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("MartyrId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ServiceId")
+                        .HasColumnType("int");
+
+                    b.HasKey("GraveServiceId");
+
+                    b.HasIndex("MartyrId");
+
+                    b.HasIndex("ServiceId");
+
+                    b.ToTable("GraveServices");
+                });
+
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.HistoricalImage", b =>
+                {
+                    b.Property<int>("ImageId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ImageId"));
+
+                    b.Property<int>("BlogId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ImagePath")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("ImageId");
+
+                    b.HasIndex("BlogId");
+
+                    b.ToTable("HistoricalImages");
+                });
+
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.HistoricalRelatedMartyr", b =>
+                {
+                    b.Property<int>("RelatedId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RelatedId"));
+
+                    b.Property<int>("BlogId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("InformationId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Status")
+                        .HasColumnType("bit");
+
+                    b.HasKey("RelatedId");
+
+                    b.HasIndex("BlogId");
+
+                    b.HasIndex("InformationId");
+
+                    b.ToTable("HistoricalRelatedMartyrs");
+                });
+
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Holiday_Event", b =>
+                {
+                    b.Property<int>("EventId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("EventId"));
+
+                    b.Property<int>("AccountId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(MAX)");
+
+                    b.Property<DateOnly>("EventDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("EventName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("Status")
+                        .HasColumnType("bit");
+
+                    b.HasKey("EventId");
+
+                    b.HasIndex("AccountId");
+
+                    b.ToTable("HolidayEvents");
+                });
+
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Icon", b =>
+                {
+                    b.Property<int>("IconId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IconId"));
+
+                    b.Property<string>("IconImage")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("IconName")
+                        .HasColumnType("nvarchar(500)");
+
+                    b.HasKey("IconId");
+
+                    b.ToTable("Icons");
+                });
+
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Location", b =>
+                {
+                    b.Property<int>("LocationId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("LocationId"));
+
+                    b.Property<int>("AreaNumber")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MartyrNumber")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RowNumber")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Status")
+                        .HasColumnType("bit");
+
+                    b.HasKey("LocationId");
+
+                    b.ToTable("Locations");
                 });
 
             modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.MartyrGrave", b =>
@@ -235,31 +654,30 @@ namespace MartyrGraveManagement_DAL.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MartyrId"));
 
+                    b.Property<int>("AccountId")
+                        .HasColumnType("int");
+
                     b.Property<int>("AreaId")
                         .HasColumnType("int");
 
-                    b.Property<int>("AreaNumber")
+                    b.Property<int>("LocationId")
                         .HasColumnType("int");
-
-                    b.Property<string>("CustomerCode")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("MartyrCode")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("MartyrNumber")
-                        .HasColumnType("int");
-
-                    b.Property<int>("RowNumber")
-                        .HasColumnType("int");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
                     b.HasKey("MartyrId");
 
+                    b.HasIndex("AccountId");
+
                     b.HasIndex("AreaId");
+
+                    b.HasIndex("LocationId")
+                        .IsUnique();
 
                     b.ToTable("MartyrGraves");
                 });
@@ -275,27 +693,33 @@ namespace MartyrGraveManagement_DAL.Migrations
                     b.Property<DateTime?>("DateOfBirth")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("DateOfSacrifice")
+                    b.Property<DateTime?>("DateOfSacrifice")
                         .HasColumnType("datetime2");
 
+                    b.Property<bool>("Gender")
+                        .HasColumnType("bit");
+
                     b.Property<string>("HomeTown")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<int>("MartyrId")
                         .HasColumnType("int");
 
                     b.Property<string>("Medal")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("NickName")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Position")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<string>("ReasonOfSacrifice")
+                        .HasColumnType("nvarchar(1000)");
 
                     b.HasKey("InformationId");
 
@@ -313,62 +737,136 @@ namespace MartyrGraveManagement_DAL.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaterialId"));
 
                     b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<string>("ImagePath")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("MaterialName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(100)");
 
-                    b.Property<double>("Price")
-                        .HasColumnType("float");
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<bool>("Status")
+                        .HasColumnType("bit");
+
+                    b.HasKey("MaterialId");
+
+                    b.ToTable("Materials");
+                });
+
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Material_Service", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreateAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("MaterialId")
+                        .HasColumnType("int");
 
                     b.Property<int>("ServiceId")
                         .HasColumnType("int");
 
-                    b.HasKey("MaterialId");
+                    b.HasKey("Id");
+
+                    b.HasIndex("MaterialId");
 
                     b.HasIndex("ServiceId");
 
-                    b.ToTable("Material");
+                    b.ToTable("Material_Services");
                 });
 
-            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Order", b =>
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Notification", b =>
                 {
-                    b.Property<int>("OrderId")
+                    b.Property<int>("NotificationId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("OrderId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("NotificationId"));
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(MAX)");
+
+                    b.Property<bool>("Status")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(500)");
+
+                    b.HasKey("NotificationId");
+
+                    b.ToTable("Notifications");
+                });
+
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.NotificationAccount", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int>("AccountId")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("EndDate")
+                    b.Property<int>("NotificationId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Status")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId");
+
+                    b.HasIndex("NotificationId");
+
+                    b.ToTable("NotificationAccounts");
+                });
+
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Order", b =>
+                {
+                    b.Property<long>("OrderId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("OrderId"));
+
+                    b.Property<int>("AccountId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("ExpectedCompletionDate")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("ImagePath")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Note")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<DateTime>("OrderDate")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("ResponseContent")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("StartDate")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
                     b.Property<decimal>("TotalPrice")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("decimal(18, 2)");
 
                     b.HasKey("OrderId");
 
@@ -388,8 +886,8 @@ namespace MartyrGraveManagement_DAL.Migrations
                     b.Property<int>("MartyrId")
                         .HasColumnType("int");
 
-                    b.Property<int>("OrderId")
-                        .HasColumnType("int");
+                    b.Property<long>("OrderId")
+                        .HasColumnType("bigint");
 
                     b.Property<double>("OrderPrice")
                         .HasColumnType("float");
@@ -433,14 +931,14 @@ namespace MartyrGraveManagement_DAL.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("OrderId")
-                        .HasColumnType("int");
+                    b.Property<long>("OrderId")
+                        .HasColumnType("bigint");
 
                     b.Property<DateTime>("PayDate")
                         .HasColumnType("datetime2");
 
                     b.Property<decimal>("PaymentAmount")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("decimal(18, 2)");
 
                     b.Property<string>("PaymentInfo")
                         .IsRequired()
@@ -459,8 +957,7 @@ namespace MartyrGraveManagement_DAL.Migrations
 
                     b.HasKey("PaymentId");
 
-                    b.HasIndex("OrderId")
-                        .IsUnique();
+                    b.HasIndex("OrderId");
 
                     b.ToTable("Payments");
                 });
@@ -474,11 +971,11 @@ namespace MartyrGraveManagement_DAL.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RoleId"));
 
                     b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("RoleName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<bool>("Status")
                         .HasColumnType("bit");
@@ -486,6 +983,45 @@ namespace MartyrGraveManagement_DAL.Migrations
                     b.HasKey("RoleId");
 
                     b.ToTable("Roles");
+                });
+
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.ScheduleDetail", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AccountId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("AssignmentTaskId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("TaskId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdateAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId");
+
+                    b.ToTable("ScheduleDetail");
                 });
 
             modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Service", b =>
@@ -500,19 +1036,25 @@ namespace MartyrGraveManagement_DAL.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("ImagePath")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<double>("Price")
-                        .HasColumnType("float");
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<int>("RecurringType")
+                        .HasColumnType("int");
 
                     b.Property<string>("ServiceName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<bool>("Status")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("isScheduleService")
                         .HasColumnType("bit");
 
                     b.HasKey("ServiceId");
@@ -532,10 +1074,10 @@ namespace MartyrGraveManagement_DAL.Migrations
 
                     b.Property<string>("CategoryName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<bool>("Status")
                         .HasColumnType("bit");
@@ -546,6 +1088,52 @@ namespace MartyrGraveManagement_DAL.Migrations
                     b.HasKey("CategoryId");
 
                     b.ToTable("ServiceCategories");
+                });
+
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Service_Schedule", b =>
+                {
+                    b.Property<int>("ServiceScheduleId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ServiceScheduleId"));
+
+                    b.Property<int>("AccountId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<int>("DayOfMonth")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DayOfWeek")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MartyrId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateOnly>("ScheduleDate")
+                        .HasColumnType("date");
+
+                    b.Property<int>("ServiceId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Status")
+                        .HasColumnType("bit");
+
+                    b.HasKey("ServiceScheduleId");
+
+                    b.HasIndex("AccountId");
+
+                    b.HasIndex("MartyrId");
+
+                    b.HasIndex("ServiceId");
+
+                    b.ToTable("Service_Schedule");
                 });
 
             modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.StaffTask", b =>
@@ -560,24 +1148,22 @@ namespace MartyrGraveManagement_DAL.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<int>("DetailId")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("ImagePath")
+                    b.Property<string>("ImageWorkSpace")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("NameOfWork")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("OrderId")
-                        .HasColumnType("int");
+                    b.Property<long>("OrderId")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("Reason")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
@@ -585,20 +1171,72 @@ namespace MartyrGraveManagement_DAL.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
-                    b.Property<int>("TypeOfWork")
-                        .HasColumnType("int");
-
-                    b.Property<string>("UrlImage")
-                        .HasColumnType("nvarchar(max)");
-
                     b.HasKey("TaskId");
 
                     b.HasIndex("AccountId");
 
-                    b.HasIndex("OrderId")
+                    b.HasIndex("DetailId")
                         .IsUnique();
 
                     b.ToTable("Tasks");
+                });
+
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.TaskImage", b =>
+                {
+                    b.Property<int>("ImageId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ImageId"));
+
+                    b.Property<DateTime>("CreateAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ImageWorkSpace")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("TaskId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ImageId");
+
+                    b.HasIndex("TaskId");
+
+                    b.ToTable("TaskImage");
+                });
+
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.TransactionBalanceHistory", b =>
+                {
+                    b.Property<long>("TransactionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("TransactionId"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<decimal>("BalanceAfterTransaction")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("TransactionDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("TransactionType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("TransactionId");
+
+                    b.HasIndex("CustomerId");
+
+                    b.ToTable("TransactionBalanceHistory");
                 });
 
             modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.WeeklyReportGrave", b =>
@@ -614,7 +1252,7 @@ namespace MartyrGraveManagement_DAL.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<int>("DisciplinePoint")
                         .HasColumnType("int");
@@ -651,19 +1289,25 @@ namespace MartyrGraveManagement_DAL.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(MAX)");
 
-                    b.Property<int>("InteractionPoint")
-                        .HasColumnType("int");
+                    b.Property<DateOnly>("EndDate")
+                        .HasColumnType("date");
 
-                    b.Property<int>("QualityMaintenancePoint")
-                        .HasColumnType("int");
+                    b.Property<double>("InteractionPoint")
+                        .HasColumnType("float");
+
+                    b.Property<double>("QualityMaintenancePoint")
+                        .HasColumnType("float");
+
+                    b.Property<DateOnly>("StartDate")
+                        .HasColumnType("date");
 
                     b.Property<bool>("Status")
                         .HasColumnType("bit");
 
-                    b.Property<int>("TimeCompletePoint")
-                        .HasColumnType("int");
+                    b.Property<double>("TimeCompletePoint")
+                        .HasColumnType("float");
 
                     b.Property<DateTime>("UploadTime")
                         .HasColumnType("datetime2");
@@ -686,7 +1330,56 @@ namespace MartyrGraveManagement_DAL.Migrations
                     b.Navigation("Role");
                 });
 
-            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.CartItem", b =>
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.AssignmentTask", b =>
+                {
+                    b.HasOne("MartyrGraveManagement_DAL.Entities.Service_Schedule", "Service_Schedule")
+                        .WithMany("AssignmentTasks")
+                        .HasForeignKey("ServiceScheduleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MartyrGraveManagement_DAL.Entities.Account", "Account")
+                        .WithMany("AssignmentTasks")
+                        .HasForeignKey("StaffId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Account");
+
+                    b.Navigation("Service_Schedule");
+                });
+
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.AssignmentTaskImage", b =>
+                {
+                    b.HasOne("MartyrGraveManagement_DAL.Entities.AssignmentTask", "AssignmentTask")
+                        .WithMany("AssignmentTaskImages")
+                        .HasForeignKey("AssignmentTaskId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AssignmentTask");
+                });
+
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Blog", b =>
+                {
+                    b.HasOne("MartyrGraveManagement_DAL.Entities.Account", "Account")
+                        .WithMany("Blogs")
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MartyrGraveManagement_DAL.Entities.BlogCategory", "HistoricalEvent")
+                        .WithMany("Blogs")
+                        .HasForeignKey("HistoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Account");
+
+                    b.Navigation("HistoricalEvent");
+                });
+
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.CartItemCustomer", b =>
                 {
                     b.HasOne("MartyrGraveManagement_DAL.Entities.Account", "Account")
                         .WithMany("CartItems")
@@ -713,6 +1406,93 @@ namespace MartyrGraveManagement_DAL.Migrations
                     b.Navigation("Service");
                 });
 
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Comment", b =>
+                {
+                    b.HasOne("MartyrGraveManagement_DAL.Entities.Account", "Account")
+                        .WithMany("Comments")
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MartyrGraveManagement_DAL.Entities.Blog", "Blog")
+                        .WithMany("Comments")
+                        .HasForeignKey("BlogId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Account");
+
+                    b.Navigation("Blog");
+                });
+
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Comment_Icon", b =>
+                {
+                    b.HasOne("MartyrGraveManagement_DAL.Entities.Account", "Account")
+                        .WithMany("Comment_Icons")
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MartyrGraveManagement_DAL.Entities.Comment", "Comment")
+                        .WithMany("Comment_Icons")
+                        .HasForeignKey("CommentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MartyrGraveManagement_DAL.Entities.Icon", "Icon")
+                        .WithMany("Comment_Icons")
+                        .HasForeignKey("IconId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Account");
+
+                    b.Navigation("Comment");
+
+                    b.Navigation("Icon");
+                });
+
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Comment_Report", b =>
+                {
+                    b.HasOne("MartyrGraveManagement_DAL.Entities.Account", "Account")
+                        .WithMany("Comment_Reports")
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MartyrGraveManagement_DAL.Entities.Comment", "Comment")
+                        .WithMany("Comment_Reports")
+                        .HasForeignKey("CommentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Account");
+
+                    b.Navigation("Comment");
+                });
+
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.CustomerWallet", b =>
+                {
+                    b.HasOne("MartyrGraveManagement_DAL.Entities.Account", "Account")
+                        .WithOne("CustomerWallet")
+                        .HasForeignKey("MartyrGraveManagement_DAL.Entities.CustomerWallet", "CustomerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Account");
+                });
+
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Event_Image", b =>
+                {
+                    b.HasOne("MartyrGraveManagement_DAL.Entities.Holiday_Event", "Holiday_Event")
+                        .WithMany("EventImages")
+                        .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Holiday_Event");
+                });
+
             modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Feedback", b =>
                 {
                     b.HasOne("MartyrGraveManagement_DAL.Entities.Account", "Account")
@@ -721,34 +1501,15 @@ namespace MartyrGraveManagement_DAL.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("MartyrGraveManagement_DAL.Entities.Order", "Order")
+                    b.HasOne("MartyrGraveManagement_DAL.Entities.OrderDetail", "OrderDetail")
                         .WithOne("Feedback")
-                        .HasForeignKey("MartyrGraveManagement_DAL.Entities.Feedback", "OrderId")
+                        .HasForeignKey("MartyrGraveManagement_DAL.Entities.Feedback", "DetailId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Account");
 
-                    b.Navigation("Order");
-                });
-
-            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.FeedbackResponse", b =>
-                {
-                    b.HasOne("MartyrGraveManagement_DAL.Entities.Account", "Account")
-                        .WithMany("FeedbackResponses")
-                        .HasForeignKey("AccountId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("MartyrGraveManagement_DAL.Entities.Feedback", "Feedback")
-                        .WithOne("Response")
-                        .HasForeignKey("MartyrGraveManagement_DAL.Entities.FeedbackResponse", "FeedbackId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Account");
-
-                    b.Navigation("Feedback");
+                    b.Navigation("OrderDetail");
                 });
 
             modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.GraveImage", b =>
@@ -762,15 +1523,91 @@ namespace MartyrGraveManagement_DAL.Migrations
                     b.Navigation("MartyrGrave");
                 });
 
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.GraveService", b =>
+                {
+                    b.HasOne("MartyrGraveManagement_DAL.Entities.MartyrGrave", "MartyrGrave")
+                        .WithMany("GraveServices")
+                        .HasForeignKey("MartyrId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MartyrGraveManagement_DAL.Entities.Service", "Service")
+                        .WithMany("GraveServices")
+                        .HasForeignKey("ServiceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("MartyrGrave");
+
+                    b.Navigation("Service");
+                });
+
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.HistoricalImage", b =>
+                {
+                    b.HasOne("MartyrGraveManagement_DAL.Entities.Blog", "Blog")
+                        .WithMany("HistoricalImages")
+                        .HasForeignKey("BlogId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Blog");
+                });
+
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.HistoricalRelatedMartyr", b =>
+                {
+                    b.HasOne("MartyrGraveManagement_DAL.Entities.Blog", "Blog")
+                        .WithMany("HistoricalRelatedMartyrs")
+                        .HasForeignKey("BlogId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MartyrGraveManagement_DAL.Entities.MartyrGraveInformation", "MartyrGraveInformation")
+                        .WithMany("HistoricalRelatedMartyrs")
+                        .HasForeignKey("InformationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Blog");
+
+                    b.Navigation("MartyrGraveInformation");
+                });
+
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Holiday_Event", b =>
+                {
+                    b.HasOne("MartyrGraveManagement_DAL.Entities.Account", "Account")
+                        .WithMany("Holiday_Events")
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Account");
+                });
+
             modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.MartyrGrave", b =>
                 {
+                    b.HasOne("MartyrGraveManagement_DAL.Entities.Account", "Account")
+                        .WithMany("MartyrGraves")
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("MartyrGraveManagement_DAL.Entities.Area", "Area")
                         .WithMany("MartyrGraves")
                         .HasForeignKey("AreaId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("MartyrGraveManagement_DAL.Entities.Location", "Location")
+                        .WithOne("MartyrGraves")
+                        .HasForeignKey("MartyrGraveManagement_DAL.Entities.MartyrGrave", "LocationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Account");
+
                     b.Navigation("Area");
+
+                    b.Navigation("Location");
                 });
 
             modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.MartyrGraveInformation", b =>
@@ -784,15 +1621,42 @@ namespace MartyrGraveManagement_DAL.Migrations
                     b.Navigation("MartyrGrave");
                 });
 
-            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Material", b =>
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Material_Service", b =>
                 {
+                    b.HasOne("MartyrGraveManagement_DAL.Entities.Material", "Material")
+                        .WithMany("Material_Services")
+                        .HasForeignKey("MaterialId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("MartyrGraveManagement_DAL.Entities.Service", "Service")
-                        .WithMany("Materials")
+                        .WithMany("Material_Services")
                         .HasForeignKey("ServiceId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.Navigation("Material");
+
                     b.Navigation("Service");
+                });
+
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.NotificationAccount", b =>
+                {
+                    b.HasOne("MartyrGraveManagement_DAL.Entities.Account", "Account")
+                        .WithMany("NotificationAccounts")
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MartyrGraveManagement_DAL.Entities.Notification", "Notification")
+                        .WithMany("NotificationAccounts")
+                        .HasForeignKey("NotificationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Account");
+
+                    b.Navigation("Notification");
                 });
 
             modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Order", b =>
@@ -836,12 +1700,23 @@ namespace MartyrGraveManagement_DAL.Migrations
             modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Payment", b =>
                 {
                     b.HasOne("MartyrGraveManagement_DAL.Entities.Order", "Order")
-                        .WithOne("Payment")
-                        .HasForeignKey("MartyrGraveManagement_DAL.Entities.Payment", "OrderId")
+                        .WithMany("Payments")
+                        .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Order");
+                });
+
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.ScheduleDetail", b =>
+                {
+                    b.HasOne("MartyrGraveManagement_DAL.Entities.Account", "Account")
+                        .WithMany("ScheduleTasks")
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Account");
                 });
 
             modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Service", b =>
@@ -855,6 +1730,33 @@ namespace MartyrGraveManagement_DAL.Migrations
                     b.Navigation("ServiceCategory");
                 });
 
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Service_Schedule", b =>
+                {
+                    b.HasOne("MartyrGraveManagement_DAL.Entities.Account", "Account")
+                        .WithMany("ServiceSchedules")
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MartyrGraveManagement_DAL.Entities.MartyrGrave", "MartyrGrave")
+                        .WithMany("ServiceSchedules")
+                        .HasForeignKey("MartyrId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MartyrGraveManagement_DAL.Entities.Service", "Service")
+                        .WithMany("ServiceSchedules")
+                        .HasForeignKey("ServiceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Account");
+
+                    b.Navigation("MartyrGrave");
+
+                    b.Navigation("Service");
+                });
+
             modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.StaffTask", b =>
                 {
                     b.HasOne("MartyrGraveManagement_DAL.Entities.Account", "Account")
@@ -863,15 +1765,37 @@ namespace MartyrGraveManagement_DAL.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("MartyrGraveManagement_DAL.Entities.Order", "Order")
-                        .WithOne("Task")
-                        .HasForeignKey("MartyrGraveManagement_DAL.Entities.StaffTask", "OrderId")
+                    b.HasOne("MartyrGraveManagement_DAL.Entities.OrderDetail", "OrderDetail")
+                        .WithOne("StaffTask")
+                        .HasForeignKey("MartyrGraveManagement_DAL.Entities.StaffTask", "DetailId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Account");
 
-                    b.Navigation("Order");
+                    b.Navigation("OrderDetail");
+                });
+
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.TaskImage", b =>
+                {
+                    b.HasOne("MartyrGraveManagement_DAL.Entities.StaffTask", "StaffTask")
+                        .WithMany("TaskImages")
+                        .HasForeignKey("TaskId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("StaffTask");
+                });
+
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.TransactionBalanceHistory", b =>
+                {
+                    b.HasOne("MartyrGraveManagement_DAL.Entities.Account", "Account")
+                        .WithMany("TransactionBalanceHistorys")
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Account");
                 });
 
             modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.WeeklyReportGrave", b =>
@@ -898,15 +1822,37 @@ namespace MartyrGraveManagement_DAL.Migrations
 
             modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Account", b =>
                 {
+                    b.Navigation("AssignmentTasks");
+
+                    b.Navigation("Blogs");
+
                     b.Navigation("CartItems");
 
-                    b.Navigation("FeedbackResponses");
+                    b.Navigation("Comment_Icons");
+
+                    b.Navigation("Comment_Reports");
+
+                    b.Navigation("Comments");
+
+                    b.Navigation("CustomerWallet");
 
                     b.Navigation("Feedbacks");
 
+                    b.Navigation("Holiday_Events");
+
+                    b.Navigation("MartyrGraves");
+
+                    b.Navigation("NotificationAccounts");
+
                     b.Navigation("Orders");
 
+                    b.Navigation("ScheduleTasks");
+
+                    b.Navigation("ServiceSchedules");
+
                     b.Navigation("Tasks");
+
+                    b.Navigation("TransactionBalanceHistorys");
 
                     b.Navigation("WorkPerformances");
                 });
@@ -916,9 +1862,45 @@ namespace MartyrGraveManagement_DAL.Migrations
                     b.Navigation("MartyrGraves");
                 });
 
-            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Feedback", b =>
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.AssignmentTask", b =>
                 {
-                    b.Navigation("Response");
+                    b.Navigation("AssignmentTaskImages");
+                });
+
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Blog", b =>
+                {
+                    b.Navigation("Comments");
+
+                    b.Navigation("HistoricalImages");
+
+                    b.Navigation("HistoricalRelatedMartyrs");
+                });
+
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.BlogCategory", b =>
+                {
+                    b.Navigation("Blogs");
+                });
+
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Comment", b =>
+                {
+                    b.Navigation("Comment_Icons");
+
+                    b.Navigation("Comment_Reports");
+                });
+
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Holiday_Event", b =>
+                {
+                    b.Navigation("EventImages");
+                });
+
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Icon", b =>
+                {
+                    b.Navigation("Comment_Icons");
+                });
+
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Location", b =>
+                {
+                    b.Navigation("MartyrGraves");
                 });
 
             modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.MartyrGrave", b =>
@@ -927,22 +1909,44 @@ namespace MartyrGraveManagement_DAL.Migrations
 
                     b.Navigation("GraveImages");
 
+                    b.Navigation("GraveServices");
+
                     b.Navigation("MartyrGraveInformations");
 
                     b.Navigation("OrderDetails");
 
+                    b.Navigation("ServiceSchedules");
+
                     b.Navigation("WeeklyReportGraves");
+                });
+
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.MartyrGraveInformation", b =>
+                {
+                    b.Navigation("HistoricalRelatedMartyrs");
+                });
+
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Material", b =>
+                {
+                    b.Navigation("Material_Services");
+                });
+
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Notification", b =>
+                {
+                    b.Navigation("NotificationAccounts");
                 });
 
             modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Order", b =>
                 {
-                    b.Navigation("Feedback");
-
                     b.Navigation("OrderDetails");
 
-                    b.Navigation("Payment");
+                    b.Navigation("Payments");
+                });
 
-                    b.Navigation("Task");
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.OrderDetail", b =>
+                {
+                    b.Navigation("Feedback");
+
+                    b.Navigation("StaffTask");
                 });
 
             modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Role", b =>
@@ -954,14 +1958,28 @@ namespace MartyrGraveManagement_DAL.Migrations
                 {
                     b.Navigation("CartItems");
 
-                    b.Navigation("Materials");
+                    b.Navigation("GraveServices");
+
+                    b.Navigation("Material_Services");
 
                     b.Navigation("OrderDetails");
+
+                    b.Navigation("ServiceSchedules");
                 });
 
             modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.ServiceCategory", b =>
                 {
                     b.Navigation("Services");
+                });
+
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.Service_Schedule", b =>
+                {
+                    b.Navigation("AssignmentTasks");
+                });
+
+            modelBuilder.Entity("MartyrGraveManagement_DAL.Entities.StaffTask", b =>
+                {
+                    b.Navigation("TaskImages");
                 });
 #pragma warning restore 612, 618
         }

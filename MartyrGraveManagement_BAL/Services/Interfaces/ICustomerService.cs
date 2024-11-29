@@ -10,5 +10,7 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
     public interface ICustomerService
     {
         Task<(bool status, string responseContent)> ChangePasswordCustomer(ChangePasswordCustomerRequest request);
+        Task<bool> UpdateProfile(int accountId, UpdateProfileDtoRequest updateProfileDto);
+
     }
 }

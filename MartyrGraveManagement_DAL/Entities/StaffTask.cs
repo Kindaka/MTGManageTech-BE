@@ -13,20 +13,23 @@ namespace MartyrGraveManagement_DAL.Entities
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int TaskId { get; set; }
-        public int AccountId { get; set; } // check role 3, staff khu nào làm khu đó
-        public int OrderId { get; set; } // Check exisst, check status 1
-        public string NameOfWork { get; set; }
-        public int TypeOfWork { get; set; }
-        public DateTime StartDate { get; set; }
+        public int AccountId { get; set; } 
+        public long OrderId { get; set; }
+        public int  DetailId { get; set; }
+        public DateTime StartDate { get; set; } // Create At
         public DateTime EndDate { get; set; }
-        public string Description { get; set; }
-        public string? ImagePath { get; set; }
+        [Column(TypeName = "nvarchar(255)")]
+        public string? Description { get; set; }
+        public string? ImageWorkSpace { get; set; }
+        [Column(TypeName = "nvarchar(500)")]
+        public string? Reason { get; set; }
         public int Status { get; set; }
         public Account? Account { get; set; }
-        public Order? Order { get; set; }
-        //----------------------------------
-        public string? UrlImage { get; set; }
-        public string? Reason { get; set; }
+        public OrderDetail? OrderDetail { get; set; }
+        //public IEnumerable<ScheduleDetail>? ScheduleTasks { get; set; }
+        public IEnumerable<TaskImage>? TaskImages { get; set; }
+
+
     }
 
 }

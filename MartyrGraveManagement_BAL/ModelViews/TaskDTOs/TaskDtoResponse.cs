@@ -11,14 +11,22 @@ namespace MartyrGraveManagement_BAL.ModelViews.TaskDTOs
         public int TaskId { get; set; }
         public int AccountId { get; set; }
         public string? Fullname { get; set; }
-        public int OrderId { get; set; }
-        public string NameOfWork { get; set; }
-        public int TypeOfWork { get; set; }
+        public long OrderId { get; set; }
+        public int DetailId { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         public string Description { get; set; }
         public int Status { get; set; }
-        public string? UrlImage { get; set; }
+        public string? ImageWorkSpace { get; set; }
+        public List<string> TaskImages { get; set; } = new List<string>();
         public string? Reason { get; set; }
+
+
+        // Các thuộc tính mới
+        public string? ServiceName { get; set; }
+        public string? ServiceDescription { get; set; }
+        public string? ServiceImage { get; set; }
+        public string? CategoryName { get; set; }
+        public string? GraveLocation { get; set; }
     }
 }

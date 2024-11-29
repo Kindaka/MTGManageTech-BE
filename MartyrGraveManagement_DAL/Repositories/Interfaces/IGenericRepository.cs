@@ -34,6 +34,9 @@ namespace MartyrGraveManagement_DAL.Repositories.Interfaces
 
         Task UpdateAsync(TEntity entityToUpdate);
 
+        Task UpdateRangeAsync(IEnumerable<TEntity> entities);
+
+
         Task DeleteAsync(object id);
 
         Task DeleteAsync(TEntity entityToDelete);

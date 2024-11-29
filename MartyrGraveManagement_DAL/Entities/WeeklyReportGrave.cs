@@ -18,6 +18,7 @@ namespace MartyrGraveManagement_DAL.Entities
         public int QualityOfTotalGravePoint { get; set; }
         public int QualityOfFlowerPoint { get; set; }
         public int DisciplinePoint { get; set; }
+        [Column(TypeName = "nvarchar(255)")]
         public string Description { get; set; }
         public bool Status { get; set; }
 

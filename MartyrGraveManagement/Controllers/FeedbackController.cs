@@ -54,12 +54,59 @@ namespace MartyrGraveManagement.Controllers
         }
 
         /// <summary>
+        /// Staff response feedback
+        /// </summary>    
+        [Authorize(Policy = "RequireStaffRole")]
+        [HttpPost("Create-Feedback-Response")]
+        public async Task<IActionResult> CreateFeedbackResponse([FromBody] FeedbackResponseDtoRequest feedbackDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            // Lấy StaffId từ token
+            var staffIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(staffIdClaim))
+            {
+                return Forbid("Token không chứa StaffId.");
+            }
+
+            feedbackDto.StaffId = int.Parse(staffIdClaim); // Gán StaffId từ token
+
+            var result = await _feedbackService.CreateFeedbackResponseAsync(feedbackDto);
+            if (!result.success)
+            {
+                return BadRequest(result.message);
+            }
+
+            return Ok(result.message);
+        }
+
+
+        /// <summary>
         /// get feedback by Id
         /// </summary>
         [HttpGet("{id}")]
         public async Task<IActionResult> GetFeedbackById(int id)
         {
             var result = await _feedbackService.GetFeedbackByIdAsync(id);
+
+            if (!result.success)
+            {
+                return NotFound(result.message);
+            }
+
+            return Ok(result.feedback);  // Trả về đối tượng feedback đã chứa FullName và CustomerCode
+        }
+
+        /// <summary>
+        /// get feedback by detailId
+        /// </summary>
+        [HttpGet("getFeedbackWithDetailId/{detailId}")]
+        public async Task<IActionResult> GetFeedbackByDetailId(int detailId)
+        {
+            var result = await _feedbackService.GetFeedbackByIdAsync(detailId);
 
             if (!result.success)
             {
@@ -140,6 +187,40 @@ namespace MartyrGraveManagement.Controllers
 
             return Ok(result.message);
         }
+
+        /// <summary>
+        /// Staff update response feeback
+        /// </summary>    
+        [Authorize(Policy = "RequireStaffRole")]
+        [HttpPut("Update-Feedback-Response/{feedbackId}")]
+        public async Task<IActionResult> UpdateFeedbackResponse(int feedbackId, [FromBody] FeedbackResponseDtoRequest feedbackDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            // Lấy StaffId từ token để xác thực quyền của nhân viên
+            var staffIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(staffIdClaim))
+            {
+                return Forbid("Token does not contain StaffId.");
+            }
+
+            // Gán StaffId từ token vào DTO để đảm bảo an toàn
+            feedbackDto.StaffId = int.Parse(staffIdClaim);
+
+            // Gọi phương thức trong FeedbackService để cập nhật nội dung phản hồi
+            var result = await _feedbackService.UpdateFeedbackResponseAsync(feedbackId, feedbackDto);
+
+            if (!result.success)
+            {
+                return BadRequest(result.message);
+            }
+
+            return Ok(result.message);
+        }
+
 
 
     }

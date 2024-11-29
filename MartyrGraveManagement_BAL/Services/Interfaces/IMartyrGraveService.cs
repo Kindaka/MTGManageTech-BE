@@ -13,16 +13,17 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
     {
         Task<(List<MartyrGraveGetAllDtoResponse> matyrGraveList, int totalPage)> GetAllMartyrGravesAsync(int page, int pageSize);
         Task<MartyrGraveDtoResponse> GetMartyrGraveByIdAsync(int id);
-        Task<List<MartyrGraveDtoResponse>> GetMartyrGraveByCustomerCode(string customerCode);
-        Task<MartyrGraveDtoResponse> CreateMartyrGraveAsync(MartyrGraveDtoRequest martyrGraveDto);
-        Task<(bool status, string result, string? accountName, string? password)> CreateMartyrGraveAsyncV2(MartyrGraveDtoRequest martyrGraveDto);
-        Task<(bool status, string result, string? accountName, string? password)> CreateRelativeGraveAsync(int martyrGraveId,CustomerDtoRequest customer);
-        Task<MartyrGraveDtoResponse> UpdateMartyrGraveAsync(int id, MartyrGraveDtoRequest martyrGraveDto);
+        Task<List<MartyrGraveDtoResponse>> GetMartyrGraveByCustomerId(int customerId);
+        //Task<MartyrGraveDtoResponse> CreateMartyrGraveAsync(MartyrGraveDtoRequest martyrGraveDto);
+        Task<(bool status, string result, string? phone, string? password)> CreateMartyrGraveAsyncV2(MartyrGraveDtoRequest martyrGraveDto);
+        Task<(bool status, string message)> ImportMartyrGraves(string excelFilePath, string outputFilePath);
+        //Task<MartyrGraveDtoResponse> UpdateMartyrGraveAsync(int id, MartyrGraveDtoRequest martyrGraveDto);
         Task<bool> UpdateStatusMartyrGraveAsync(int id, int status);
-        Task<(List<MartyrGraveGetAllForAdminDtoResponse> response, int totalPage)> GetAllMartyrGravesForManagerAsync(int page, int pageSize);
+        Task<(List<MartyrGraveGetAllForAdminDtoResponse> response, int totalPage)> GetAllMartyrGravesForManagerAsync(int page, int pageSize, int managerId);
 
         Task<(bool status, string result)> UpdateMartyrGraveAsyncV2(int id, MartyrGraveUpdateDtoRequest martyrGraveDto);
         Task<List<MartyrGraveSearchDtoResponse>> SearchMartyrGravesAsync(MartyrGraveSearchDtoRequest searchCriteria);
 
+        Task<(List<MartyrGraveByAreaDtoResponse> martyrGraves, int totalPage)> GetMartyrGraveByAreaIdAsync(int areaId, int pageIndex, int pageSize);
     }
 }

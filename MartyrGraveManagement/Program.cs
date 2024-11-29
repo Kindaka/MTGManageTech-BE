@@ -14,6 +14,8 @@ using Hangfire;
 using Hangfire.SqlServer;
 using MartyrGraveManagement.BackgroundServices.Implements;
 using MartyrGraveManagement.BackgroundServices.Interfaces;
+using MartyrGraveManagement_BAL.BackgroundServices.Interfaces;
+using MartyrGraveManagement_BAL.BackgroundServices.Implements;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -86,6 +88,7 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("RequireManagerRole", policy => policy.RequireClaim(ClaimTypes.Role, "2"));
     options.AddPolicy("RequireManagerOrStaffRole", policy => policy.RequireClaim(ClaimTypes.Role, "3", "2"));
     options.AddPolicy("RequireManagerOrStaffOrCustomerRole", policy => policy.RequireClaim(ClaimTypes.Role, "3", "4", "2"));
+    options.AddPolicy("RequireManagerOrStaffOrAdminRole", policy => policy.RequireClaim(ClaimTypes.Role, "1", "2", "3"));
     options.AddPolicy("RequireManagerOrAdminRole", policy => policy.RequireClaim(ClaimTypes.Role, "1", "2"));
 });
 
@@ -121,9 +124,18 @@ builder.Services.AddCors(options =>
         });
 });
 
+// Add Memory Cache
+builder.Services.AddMemoryCache();
+
+builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
+
 
 // Đăng ký TaskBackgroundService
 builder.Services.AddScoped<ITaskBackgroundService, TaskBackgroundService>();
+builder.Services.AddScoped<IOrderBackgroundService, OrderBackgroundService>();
+builder.Services.AddScoped<IHolidayEventBackgroundService, HolidayEventBackgroundService>();
+//builder.Services.AddScoped<IAttendanceBackgroundService, AttendanceBackgroundService>();
+builder.Services.AddScoped<IRecurringTaskService, RecurringTaskService>();
 
 
 // Đăng ký các dịch vụ của bạn
@@ -133,7 +145,7 @@ builder.Services.AddScoped<IAreaService, AreaService>();
 builder.Services.AddScoped<IMartyrGraveService, MartyrGraveService>();
 builder.Services.AddScoped<IMartyrGraveInformationService, MartyrGraveInformationService>();
 builder.Services.AddScoped<IServiceCategory_Service, ServiceCategory_Service>();
-builder.Services.AddScoped<IGraveService_Service, GraveService_Service>();
+builder.Services.AddScoped<IService_Service, Service_Service>();
 builder.Services.AddScoped<ICartService, CartItemsService>();
 builder.Services.AddScoped<ITaskService, TaskService>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
@@ -143,15 +155,39 @@ builder.Services.AddScoped<ISendEmailService, SendEmailService>();
 builder.Services.AddScoped<IFeedbackService, FeedbackService>();
 builder.Services.AddScoped<IAuthorizeService, AuthorizeService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
+builder.Services.AddScoped<IGraveService_Service, GraveService_Service>();
+builder.Services.AddScoped<IHistoricalEventService, HistoricalEventService>();
+builder.Services.AddScoped<IBlogService, BlogService>();
+builder.Services.AddScoped<IScheduleDetailService, ScheduleDetailService>();
+builder.Services.AddScoped<ICommentService, CommentService>();
+builder.Services.AddScoped<ICommentIconService, CommentIconService>();
+builder.Services.AddScoped<ICommentReportService, CommentReportService>();
+builder.Services.AddScoped<IHolidayEventService, HolidayEventService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<ILocationService, LocationService>();
+builder.Services.AddScoped<IOtpService, OtpService>();
+builder.Services.AddScoped<ISmsService, TwillioService>();
+builder.Services.AddScoped<IMaterialService, MaterialService>();
+builder.Services.AddScoped<IBlogCategoryService, BlogCategoryService>();
+builder.Services.AddScoped<IWalletService, WalletService>();
+builder.Services.AddScoped<IServiceSchedule_Service, ServiceSchedule_Service>();
+builder.Services.AddScoped<IAssignmentTaskService, AssignmentTaskService>();
+
+// Đăng ký ML
+builder.Services.AddScoped<ITrendingRecommendationService, TrendingRecommendationService>();
+
+
+
+
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+
+app.UseSwagger();
+app.UseSwaggerUI();
+
+app.Map("/", () => "server online");
 
 app.UseHttpsRedirection();
 app.UseAuthentication();
@@ -164,8 +200,33 @@ app.UseHangfireDashboard("/hangfire");
 RecurringJob.AddOrUpdate<ITaskBackgroundService>(
     "check-expired-tasks",
     service => service.CheckExpiredTasks(),
-    Cron.MinuteInterval(1)
+    Cron.Hourly()
 );
+
+RecurringJob.AddOrUpdate<IOrderBackgroundService>(
+    "check-expired-orders-payment",
+    service => service.CheckExpiredOrderPayment(),
+    Cron.Hourly()
+);
+
+RecurringJob.AddOrUpdate<IHolidayEventBackgroundService>(
+    "check-and-send-holiday-event-notifications",
+    service => service.UpdateNotificationAccountsForUpcomingDay(),
+    Cron.Hourly()
+);
+
+//RecurringJob.AddOrUpdate<IAttendanceBackgroundService>(
+//    "mark-absent-attendance",
+//    service => service.MarkAbsentAttendanceAsync(),
+//    Cron.Minutely
+//);
+
+RecurringJob.AddOrUpdate<IRecurringTaskService>(
+    "CreateRecurringTasks",
+    service => service.CreateRecurringTasksAsync(),
+    Cron.Hourly());
+
+
 
 app.MapControllers();
 app.Run();

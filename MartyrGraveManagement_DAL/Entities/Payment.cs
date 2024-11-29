@@ -13,7 +13,7 @@ namespace MartyrGraveManagement_DAL.Entities
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int PaymentId { get; set; }
-        public int OrderId { get; set; }
+        public long OrderId { get; set; }
         public string PaymentMethod { get; set; }
         public string BankCode { get; set; }
         public string? BankTransactionNo { get; set; }
@@ -22,6 +22,7 @@ namespace MartyrGraveManagement_DAL.Entities
         public DateTime PayDate { get; set; }
         public string TransactionNo { get; set; }
         public int TransactionStatus { get; set; }
+        [Column(TypeName = "decimal(18, 2)")]
         public decimal PaymentAmount { get; set; }
 
         public Order Order { get; set; }
