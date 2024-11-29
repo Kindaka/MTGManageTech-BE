@@ -15,5 +15,6 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
         Task<(bool success, string message)> CreateMaterial(MaterialDtoRequest materialDto);
         Task<(bool success, string message)> UpdateMaterial(int id, MaterialDtoRequest materialDto);
         Task<(bool success, string message)> UpdateStatus(int id);
+        Task<List<MaterialDtoResponse>> GetMaterialsByServiceIdAsync(int serviceId);
     }
 }

@@ -102,6 +102,38 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 throw new Exception(ex.Message);
             }
         }
+        public async Task<List<MaterialDtoResponse>> GetMaterialsByServiceIdAsync(int serviceId)
+        {
+            try
+            {
+                // Use the GetAsync method to filter MaterialServices by ServiceId and include related Materials
+                var materialServices = await _unitOfWork.MaterialServiceRepository.GetAsync(
+                    filter: ms => ms.ServiceId == serviceId,
+                    includeProperties: "Material"
+                );
+
+                if (!materialServices.Any())
+                {
+                    return new List<MaterialDtoResponse>();
+                }
+
+                // Map the results to a list of MaterialDtoResponse
+                return materialServices
+                    .Select(ms => new MaterialDtoResponse
+                    {
+                        MaterialId = ms.Material.MaterialId,
+                        MaterialName = ms.Material.MaterialName,
+                        Description = ms.Material.Description,
+                        Price = ms.Material.Price,
+                        Status = ms.Material.Status
+                    })
+                    .ToList();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error fetching materials for service ID {serviceId}: {ex.Message}");
+            }
+        }
 
         public async Task<(bool success, string message)> UpdateMaterial(int id, MaterialDtoRequest materialDto)
         {

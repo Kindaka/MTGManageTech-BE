@@ -70,6 +70,25 @@ namespace MartyrGraveManagement.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
+        
+        /// <summary>
+        /// Get material by ServiceID
+        /// </summary>
+        [HttpGet("admin/{id}")]
+        public async Task<IActionResult> GetMaterialByServiceId(int id)
+        {
+            try
+            {
+                var material = await _materialService.GetMaterialsByServiceIdAsync(id);
+                if (material == null)
+                    return NotFound("Material not found");
+                return Ok(material);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
 
         /// <summary>
         /// Create new material
