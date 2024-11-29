@@ -11,10 +11,11 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
     public interface IScheduleDetailService
     {
         Task<List<string>> CreateScheduleDetail(List<ScheduleDetailDtoRequest> requests, int accountId);
+        Task<List<string>> CreateScheduleDetailForRecurringService(List<ScheduleDetailDtoRequest> requests, int accountId);
         //Task<string> UpdateScheduleDetail(int slotId, DateTime Date, int accountId, int Id);
         Task<string> DeleteScheduleDetail(int accountId, int Id);
         Task<List<ScheduleDetailListDtoResponse>> GetScheduleDetailStaff(int accountId, DateTime Date);
-        Task<ScheduleDetailDtoResponse> GetScheduleDetailById(int accountId, int scheduleDetailId);
+        Task<ScheduleDetailForTaskDtoResponse> GetScheduleDetailById(int accountId, int scheduleDetailId);
         Task<List<ScheduleDetailListDtoResponse>> GetSchedulesStaff(int accountId, DateTime FromDate, DateTime ToDate);
     }
 }

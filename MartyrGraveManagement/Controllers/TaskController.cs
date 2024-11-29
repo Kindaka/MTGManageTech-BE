@@ -297,7 +297,13 @@ namespace MartyrGraveManagement.Controllers
                 // Gọi service để cập nhật hình ảnh của task
                 var updatedTask = await _taskService.UpdateTaskImagesAsync(taskId, imageUpdateDto);
 
-                return Ok(new { message = "Task images updated successfully.", updatedTask });
+                if (updatedTask) { 
+                    return Ok(new { message = "Task images updated successfully." });
+                }
+                else
+                {
+                    return Forbid("Update fail");
+                }
             }
             catch (KeyNotFoundException ex)
             {

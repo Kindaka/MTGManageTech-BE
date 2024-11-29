@@ -101,7 +101,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     };
                     if (service.RecurringType == 1)
                     {
-                        if (request.DayOfService >= 1 && request.DayOfService <= 7)
+                        if (request.DayOfService >= 1 && request.DayOfService <= 7) //7 là chủ nhật, 1 là thứ 2
                         {
                             serviceSchedule.DayOfWeek = request.DayOfService;
                         }
@@ -112,7 +112,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     }
                     else if (service.RecurringType == 2)
                     {
-                        if (request.DayOfService >= 1 && request.DayOfService <= 30)
+                        if (request.DayOfService >= 1 && request.DayOfService <= 31)
                         {
                             serviceSchedule.DayOfMonth = request.DayOfService;
                         }

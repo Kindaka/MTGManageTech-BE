@@ -41,6 +41,29 @@ namespace MartyrGraveManagement.Controllers
             }
         }
 
+        /// <summary>
+        /// Get Assignment Task by StaffId (Staff Role)
+        /// </summary>
+        [HttpGet("notScheduling/staff")]
+        [Authorize(Policy = "RequireStaffRole")]
+        public async Task<IActionResult> GetTasksNotSchedulingByStaffId([FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10, [FromQuery] DateTime date = default)
+        {
+            try
+            {
+                var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+                var (tasks, totalPage) = await _assignmentTaskService.GetAssignmentTasksNotSchedulingByAccountIdAsync(accountId, pageIndex, pageSize, date);
+                return Ok(new { tasks, totalPage });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
 
         /// <summary>
         /// Get Assignment Task by Manager (Manager Role)

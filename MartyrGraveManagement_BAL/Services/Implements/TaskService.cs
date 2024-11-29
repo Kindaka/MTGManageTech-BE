@@ -326,7 +326,11 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 {
                     if (image.ImageWorkSpace != null)
                     {
-                        taskDto.TaskImages.Add(image.ImageWorkSpace);
+                        var taskImage = new TaskImageDtoResponse
+                        {
+                            images = image.ImageWorkSpace,
+                        };
+                        taskDto.TaskImages.Add(taskImage);
                     }
                 }
             }
@@ -1069,7 +1073,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
         //}
 
 
-        public async Task<TaskDtoResponse> UpdateTaskImagesAsync(int taskId, TaskImageUpdateDTO imageUpdateDto)
+        public async Task<bool> UpdateTaskImagesAsync(int taskId, TaskImageUpdateDTO imageUpdateDto)
         {
             using (var transaction = await _unitOfWork.BeginTransactionAsync())
             {
@@ -1138,13 +1142,11 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         }
                     }
 
-                    // 6. Lưu thay đổi
-                    await _unitOfWork.SaveAsync();
 
                     // 7. Commit transaction nếu không có lỗi
                     await transaction.CommitAsync();
 
-                    return _mapper.Map<TaskDtoResponse>(task);
+                    return true;
                 }
                 catch (Exception ex)
                 {

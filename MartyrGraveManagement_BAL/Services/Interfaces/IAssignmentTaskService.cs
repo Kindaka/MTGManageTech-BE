@@ -23,6 +23,11 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
             int pageIndex, 
             int pageSize, 
             DateTime Date);
+        Task<(IEnumerable<AssignmentTaskResponse> taskList, int totalPage)> GetAssignmentTasksNotSchedulingByAccountIdAsync(
+            int accountId,
+            int pageIndex,
+            int pageSize,
+            DateTime Date);
 
         Task<(IEnumerable<AssignmentTaskResponse> taskList, int totalPage)> GetAssignmentTasksForManager(
             int managerId, 

@@ -1,9 +1,11 @@
 ﻿using AutoMapper;
 using MartyrGraveManagement_BAL.ModelViews.AttendanceDTOs;
 using MartyrGraveManagement_BAL.ModelViews.ScheduleDetailDTOs;
+using MartyrGraveManagement_BAL.ModelViews.TaskDTOs;
 using MartyrGraveManagement_BAL.Services.Interfaces;
 using MartyrGraveManagement_DAL.Entities;
 using MartyrGraveManagement_DAL.UnitOfWorks.Interfaces;
+using OfficeOpenXml.Sorting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -152,6 +154,76 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
         }
 
+        public async Task<List<string>> CreateScheduleDetailForRecurringService(List<ScheduleDetailDtoRequest> requests, int accountId)
+        {
+            using (var transaction = await _unitOfWork.BeginTransactionAsync())
+            {
+                try
+                {
+                    var results = new List<string>();
+
+                    foreach (var request in requests)
+                    {
+                        if (DateOnly.FromDateTime(request.Date) <= DateOnly.FromDateTime(DateTime.Now))
+                        {
+                            results.Add($"Thời gian để tạo lịch này đã quá hạn (Phải tạo lịch 1 ngày trước khi bắt đầu ngày làm việc).");
+                            continue;
+                        }
+
+                        var task = await _unitOfWork.AssignmentTaskRepository.GetByIDAsync(request.TaskId);
+                        if (task == null)
+                        {
+                            results.Add($"Task ID {request.TaskId} không tồn tại.");
+                            continue;
+                        }
+                        if (task.StaffId != accountId)
+                        {
+                            results.Add($"Task này không phải là của bạn.");
+                            continue;
+                        }
+                        if (task.Status == 4 || task.Status == 5 || task.Status == 2)
+                        {
+                            results.Add($"Task này đã hoàn thành hoặc đã thất bại hoặc đã hủy.");
+                            continue;
+                        }
+
+                        var existingScheduleDetails = await _unitOfWork.ScheduleDetailRepository.GetAsync(
+                            s => s.AccountId == accountId && s.Date == DateOnly.FromDateTime(request.Date));
+                        if (existingScheduleDetails.Count() <= 10)
+                        {
+                            task.Status = 3;
+                            await _unitOfWork.AssignmentTaskRepository.UpdateAsync(task);
+                            var newScheduleDetail = new ScheduleDetail
+                            {
+                                AccountId = accountId,
+                                AssignmentTaskId = request.TaskId,
+                                Date = DateOnly.FromDateTime(request.Date),
+                                CreatedAt = DateTime.Now,
+                                UpdateAt = DateTime.Now,
+                                Status = 1,
+                            };
+                            await _unitOfWork.ScheduleDetailRepository.AddAsync(newScheduleDetail);
+                            results.Add($"Lịch trình đã được tạo thành công.");
+                        }
+                        else
+                        {
+                            results.Add($"Một ngày bạn chỉ được thêm tối đa 10 công việc vào lịch làm việc.");
+                            continue;
+                        }
+                       
+
+                    }
+                    await transaction.CommitAsync();
+                    return results;
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    throw new Exception(ex.Message);
+                }
+            }
+        }
+
         public async Task<string> DeleteScheduleDetail(int accountId, int Id)
         {
             using (var transaction = await _unitOfWork.BeginTransactionAsync())
@@ -163,42 +235,64 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     {
                         return "Không tìm thấy task của lịch (Sai Id)";
                     }
-                    var taskInSchedule = await _unitOfWork.TaskRepository.GetByIDAsync(scheduleDetail.Id);
-                    if (taskInSchedule.Status == 2 || taskInSchedule.Status == 4 || taskInSchedule.Status == 5)
+                    if (scheduleDetail.TaskId.HasValue)
                     {
-                        return "Task này đã hoàn thành hoặc đã thất bại hoặc đã hủy.";
-                    }
-
-                    if (scheduleDetail.Date > DateOnly.FromDateTime(DateTime.Now))
-                    {
-                        if (scheduleDetail.AccountId == accountId)
+                        var taskInSchedule = await _unitOfWork.TaskRepository.GetByIDAsync(scheduleDetail.TaskId);
+                        if (taskInSchedule.Status == 2 || taskInSchedule.Status == 4 || taskInSchedule.Status == 5)
                         {
-                            await _unitOfWork.ScheduleDetailRepository.DeleteAsync(scheduleDetail);
-                            //var existingAttendance = (await _unitOfWork.AttendanceRepository.GetAsync(
-                            //s => s.SlotId == scheduleDetail.SlotId && s.AccountId == accountId && s.Date == scheduleDetail.Date
-                            //)).FirstOrDefault();
-                            //var existingScheduleDetail = (await _unitOfWork.ScheduleDetailRepository.GetAsync(
-                            //s => s.SlotId == scheduleDetail.SlotId && s.AccountId == accountId && s.Date == scheduleDetail.Date && s.Id != Id
-                            //)).FirstOrDefault();
-                            //if (existingScheduleDetail == null && existingAttendance != null && existingAttendance.Status == 0)
-                            //{
-                            //    await _unitOfWork.AttendanceRepository.DeleteAsync(existingAttendance);
-                            //}
-                            var existingTask = (await _unitOfWork.TaskRepository.GetAsync(t => t.TaskId == scheduleDetail.TaskId)).FirstOrDefault();
-                            if (existingTask != null)
+                            return "Task này đã hoàn thành hoặc đã thất bại hoặc đã hủy.";
+                        }
+
+                        if (scheduleDetail.Date > DateOnly.FromDateTime(DateTime.Now))
+                        {
+                            if (scheduleDetail.AccountId == accountId)
                             {
-                                existingTask.Status = 1;
-                                await _unitOfWork.TaskRepository.UpdateAsync(existingTask);
+                                await _unitOfWork.ScheduleDetailRepository.DeleteAsync(scheduleDetail);
+                                var existingTask = (await _unitOfWork.TaskRepository.GetAsync(t => t.TaskId == scheduleDetail.TaskId)).FirstOrDefault();
+                                if (existingTask != null)
+                                {
+                                    existingTask.Status = 1;
+                                    await _unitOfWork.TaskRepository.UpdateAsync(existingTask);
+                                }
+                            }
+                            else
+                            {
+                                return "Lịch trình này không phải của bạn";
                             }
                         }
                         else
                         {
-                            return "Lịch trình này không phải của bạn";
+                            return "Đã quá hạn thời gian để hủy lịch trình (phải cập nhật 1 ngày trước ngày làm việc)";
                         }
                     }
-                    else
-                    {
-                        return "Đã quá hạn thời gian để hủy lịch trình (phải cập nhật 1 ngày trước ngày làm việc)";
+                    else if (scheduleDetail.AssignmentTaskId.HasValue) {
+                        var taskInSchedule = await _unitOfWork.AssignmentTaskRepository.GetByIDAsync(scheduleDetail.AssignmentTaskId);
+                        if (taskInSchedule.Status == 2 || taskInSchedule.Status == 4 || taskInSchedule.Status == 5)
+                        {
+                            return "Task này đã hoàn thành hoặc đã thất bại hoặc đã hủy.";
+                        }
+
+                        if (scheduleDetail.Date > DateOnly.FromDateTime(DateTime.Now))
+                        {
+                            if (scheduleDetail.AccountId == accountId)
+                            {
+                                await _unitOfWork.ScheduleDetailRepository.DeleteAsync(scheduleDetail);
+                                var existingTask = (await _unitOfWork.AssignmentTaskRepository.GetAsync(t => t.AssignmentTaskId == scheduleDetail.AssignmentTaskId)).FirstOrDefault();
+                                if (existingTask != null)
+                                {
+                                    existingTask.Status = 1;
+                                    await _unitOfWork.AssignmentTaskRepository.UpdateAsync(existingTask);
+                                }
+                            }
+                            else
+                            {
+                                return "Lịch trình này không phải của bạn";
+                            }
+                        }
+                        else
+                        {
+                            return "Đã quá hạn thời gian để hủy lịch trình (phải cập nhật 1 ngày trước ngày làm việc)";
+                        }
                     }
                     await transaction.CommitAsync();
                     return "Lịch trình đã được hủy thành công.";
@@ -212,12 +306,12 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
         }
 
-        public async Task<ScheduleDetailDtoResponse> GetScheduleDetailById(int accountId, int scheduleDetailId)
+        public async Task<ScheduleDetailForTaskDtoResponse> GetScheduleDetailById(int accountId, int scheduleDetailId)
         {
             try
             {
                 var scheduleDetailStaff = (await _unitOfWork.ScheduleDetailRepository.GetAsync(sds => sds.Id == scheduleDetailId,
-                    includeProperties: "Account,StaffTask.OrderDetail.Service,StaffTask.OrderDetail.MartyrGrave.Location")).FirstOrDefault();
+                    includeProperties: "Account")).FirstOrDefault();
 
 
                 if (scheduleDetailStaff == null)
@@ -228,33 +322,99 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 {
                     return null;
                 }
-                var task = (await _unitOfWork.TaskRepository.GetAsync(sds => sds.TaskId == scheduleDetailStaff.TaskId,
-                    includeProperties: "OrderDetail.Service,OrderDetail.MartyrGrave.Location")).FirstOrDefault();
-
-                if (task == null) {
-                    return null;
-                }
-
-                var scheduleStaff = new ScheduleDetailDtoResponse
+                ScheduleDetailForTaskDtoResponse scheduleStaff = new ScheduleDetailForTaskDtoResponse();
+                if (scheduleDetailStaff.TaskId.HasValue)
                 {
-                    ScheduleDetailId = scheduleDetailStaff.Id,
-                    StaffName = scheduleDetailStaff.Account.FullName,
-                    Date = scheduleDetailStaff.Date,
-                    StartDate = DateOnly.FromDateTime(task.StartDate),
-                    EndDate = DateOnly.FromDateTime(task.EndDate),
-                    Description = task.Description,
-                    ServiceName = task.OrderDetail.Service.ServiceName,
-                    ServiceDescription = task.OrderDetail.Service.Description,
-                    MartyrCode = task.OrderDetail.MartyrGrave.MartyrCode,
-                    TaskId = scheduleDetailStaff.TaskId,
-                    ImagePath1 = task.ImageWorkSpace,
-                    //ImagePath2 = scheduleDetailStaff.StaffTask.ImagePath2,
-                    //ImagePath3 = scheduleDetailStaff.StaffTask.ImagePath3,
-                    AreaNumber = task.OrderDetail.MartyrGrave.Location.AreaNumber,
-                    RowNumber = task.OrderDetail.MartyrGrave.Location.RowNumber,
-                    MartyrNumber = task.OrderDetail.MartyrGrave.Location.MartyrNumber,
-                    Status = task.Status,
-                };
+                    var task = (await _unitOfWork.TaskRepository.GetAsync(sds => sds.TaskId == scheduleDetailStaff.TaskId,
+                        includeProperties: "OrderDetail.Service,OrderDetail.MartyrGrave.Location")).FirstOrDefault();
+
+                    if (task == null)
+                    {
+                        return null;
+                    }
+
+
+                    scheduleStaff = new ScheduleDetailForTaskDtoResponse
+                    {
+                        ScheduleDetailId = scheduleDetailStaff.Id,
+                        StaffName = scheduleDetailStaff.Account.FullName,
+                        Date = scheduleDetailStaff.Date,
+                        StartDate = DateOnly.FromDateTime(task.StartDate),
+                        EndDate = DateOnly.FromDateTime(task.EndDate),
+                        Description = task.Description,
+                        ServiceName = task.OrderDetail.Service.ServiceName,
+                        ServiceDescription = task.OrderDetail.Service.Description,
+                        MartyrCode = task.OrderDetail.MartyrGrave.MartyrCode,
+                        TaskId = scheduleDetailStaff.TaskId,
+                        ImageWorkSpace = task.ImageWorkSpace,
+                        AreaNumber = task.OrderDetail.MartyrGrave.Location.AreaNumber,
+                        RowNumber = task.OrderDetail.MartyrGrave.Location.RowNumber,
+                        MartyrNumber = task.OrderDetail.MartyrGrave.Location.MartyrNumber,
+                        Status = task.Status,
+                    };
+
+                    var taskImages = await _unitOfWork.TaskImageRepository.GetAsync(t => t.TaskId == task.TaskId);
+                    if (taskImages != null)
+                    {
+                        foreach (var image in taskImages)
+                        {
+                            if (image.ImageWorkSpace != null)
+                            {
+                                var imageTask = new TaskImageDtoResponse
+                                {
+                                    images = image.ImageWorkSpace,
+                                };
+                                scheduleStaff.ImageTaskImages.Add(imageTask);
+                            }
+                        }
+                    }
+                }
+                else if(scheduleDetailStaff.AssignmentTaskId.HasValue)
+                {
+                    var task = (await _unitOfWork.AssignmentTaskRepository.GetAsync(sds => sds.AssignmentTaskId == scheduleDetailStaff.AssignmentTaskId,
+                        includeProperties: "Service_Schedule.Service,Service_Schedule.MartyrGrave.Location")).FirstOrDefault();
+
+                    if (task == null)
+                    {
+                        return null;
+                    }
+
+
+                    scheduleStaff = new ScheduleDetailForTaskDtoResponse
+                    {
+                        ScheduleDetailId = scheduleDetailStaff.Id,
+                        StaffName = scheduleDetailStaff.Account.FullName,
+                        Date = scheduleDetailStaff.Date,
+                        StartDate = DateOnly.FromDateTime(task.CreateAt),
+                        EndDate = DateOnly.FromDateTime(task.EndDate),
+                        Description = task.Description,
+                        ServiceName = task.Service_Schedule.Service.ServiceName,
+                        ServiceDescription = task.Service_Schedule.Service.Description,
+                        MartyrCode = task.Service_Schedule.MartyrGrave.MartyrCode,
+                        AssignmentTaskId = scheduleDetailStaff.AssignmentTaskId,
+                        ImageWorkSpace = task.ImageWorkSpace,
+                        AreaNumber = task.Service_Schedule.MartyrGrave.Location.AreaNumber,
+                        RowNumber = task.Service_Schedule.MartyrGrave.Location.RowNumber,
+                        MartyrNumber = task.Service_Schedule.MartyrGrave.Location.MartyrNumber,
+                        Status = task.Status,
+                    };
+
+                    var taskImages = await _unitOfWork.AssignmentTaskImageRepository.GetAsync(t => t.AssignmentTaskId == task.AssignmentTaskId);
+                    if (taskImages != null)
+                    {
+                        foreach (var image in taskImages)
+                        {
+                            if (image.ImagePath != null)
+                            {
+                                var imageTask = new TaskImageDtoResponse
+                                {
+                                    images = image.ImagePath,
+                                };
+                                scheduleStaff.ImageTaskImages.Add(imageTask);
+                            }
+                        }
+                    }
+                }
 
                 return scheduleStaff;
             }
@@ -276,16 +436,31 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 var scheduleDetailList = new List<ScheduleDetailListDtoResponse>();
                 foreach (var scheduleDetail in scheduleDetailStaff)
                 {
-                    var task = await _unitOfWork.TaskRepository.GetByIDAsync(scheduleDetail.TaskId);
-                    var scheduleStaff = new ScheduleDetailListDtoResponse
+                    if (scheduleDetail.TaskId.HasValue)
                     {
-                        ScheduleDetailId = scheduleDetail.Id,
-                        Date = scheduleDetail.Date,
-                        Description = scheduleDetail.Description,
-                        ServiceName = task.OrderDetail.Service.ServiceName,
-                        MartyrCode = task.OrderDetail.MartyrGrave.MartyrCode
-                    };
-                    scheduleDetailList.Add(scheduleStaff);
+                        var task = await _unitOfWork.TaskRepository.GetByIDAsync(scheduleDetail.TaskId);
+                        var scheduleStaff = new ScheduleDetailListDtoResponse
+                        {
+                            ScheduleDetailId = scheduleDetail.Id,
+                            Date = scheduleDetail.Date,
+                            Description = scheduleDetail.Description,
+                            ServiceName = task.OrderDetail.Service.ServiceName,
+                            MartyrCode = task.OrderDetail.MartyrGrave.MartyrCode
+                        };
+                        scheduleDetailList.Add(scheduleStaff);
+                    }
+                    else if (scheduleDetail.AssignmentTaskId.HasValue) {
+                        var task = await _unitOfWork.AssignmentTaskRepository.GetByIDAsync(scheduleDetail.AssignmentTaskId);
+                        var scheduleStaff = new ScheduleDetailListDtoResponse
+                        {
+                            ScheduleDetailId = scheduleDetail.Id,
+                            Date = scheduleDetail.Date,
+                            Description = scheduleDetail.Description,
+                            ServiceName = task.Service_Schedule.Service.ServiceName,
+                            MartyrCode = task.Service_Schedule.MartyrGrave.MartyrCode
+                        };
+                        scheduleDetailList.Add(scheduleStaff);
+                    }
                 }
                 return scheduleDetailList;
             }
@@ -307,16 +482,34 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 var scheduleDetailList = new List<ScheduleDetailListDtoResponse>();
                 foreach (var scheduleDetail in scheduleDetailStaff)
                 {
-                    var task = await _unitOfWork.TaskRepository.GetByIDAsync(scheduleDetail.TaskId);
-                    var scheduleStaff = new ScheduleDetailListDtoResponse
+                    if (scheduleDetail.TaskId.HasValue)
                     {
-                        ScheduleDetailId = scheduleDetail.Id,
-                        Date = scheduleDetail.Date,
-                        Description = scheduleDetail.Description,
-                        ServiceName = task.OrderDetail.Service.ServiceName,
-                        MartyrCode = task.OrderDetail.MartyrGrave.MartyrCode
-                    };
-                    scheduleDetailList.Add(scheduleStaff);
+                        var task = (await _unitOfWork.TaskRepository.GetAsync(t => t.TaskId == scheduleDetail.TaskId, includeProperties: "OrderDetail.Service,OrderDetail.MartyrGrave")).FirstOrDefault();
+                        var scheduleStaff = new ScheduleDetailListDtoResponse
+                        {
+                            ScheduleDetailId = scheduleDetail.Id,
+                            Date = scheduleDetail.Date,
+                            Description = scheduleDetail.Description,
+                            ServiceName = task.OrderDetail.Service.ServiceName,
+                            MartyrCode = task.OrderDetail.MartyrGrave.MartyrCode,
+                            Status = task.Status
+                        };
+                        scheduleDetailList.Add(scheduleStaff);
+                    }
+                    else if (scheduleDetail.AssignmentTaskId.HasValue) {
+                        var task = (await _unitOfWork.AssignmentTaskRepository.GetAsync(t => t.AssignmentTaskId == scheduleDetail.AssignmentTaskId, includeProperties: "Service_Schedule.Service,Service_Schedule.MartyrGrave")).FirstOrDefault();
+                        var scheduleStaff = new ScheduleDetailListDtoResponse
+                        {
+                            ScheduleDetailId = scheduleDetail.Id,
+                            Date = scheduleDetail.Date,
+                            Description = scheduleDetail.Description,
+                            ServiceName = task.Service_Schedule.Service.ServiceName,
+                            MartyrCode = task.Service_Schedule.MartyrGrave.MartyrCode,
+                            Status = task.Status
+                        };
+                        scheduleDetailList.Add(scheduleStaff);
+                    }
+                    
                 }
                 return scheduleDetailList;
             }

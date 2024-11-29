@@ -138,6 +138,7 @@ namespace MartyrGraveManagement_BAL.BackgroundServices.Implements
                         Console.WriteLine($"Error in CheckServiceSchedule: {ex.Message}");
                     }
                 }
+                await Task.Delay(10000);
             }
         }
 

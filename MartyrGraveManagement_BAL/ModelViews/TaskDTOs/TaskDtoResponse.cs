@@ -18,7 +18,7 @@ namespace MartyrGraveManagement_BAL.ModelViews.TaskDTOs
         public string Description { get; set; }
         public int Status { get; set; }
         public string? ImageWorkSpace { get; set; }
-        public List<string> TaskImages { get; set; } = new List<string>();
+        public List<TaskImageDtoResponse> TaskImages { get; set; } = new List<TaskImageDtoResponse>();
         public string? Reason { get; set; }
 
 

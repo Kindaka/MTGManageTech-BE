@@ -28,7 +28,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
         {
             try
             {
-                var taskResponses = new List<TaskDtoResponse>();
+                //var taskResponses = new List<TaskDtoResponse>();
 
 
                     // Kiểm tra xem OrderId có tồn tại không
@@ -347,6 +347,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
         {
             try
             {
+                var taskResponses = new List<AssignmentTaskResponse>();
                 // Kiểm tra xem AccountId có tồn tại không
                 var account = await _unitOfWork.AccountRepository.GetByIDAsync(accountId);
                 if (account == null)
@@ -392,18 +393,24 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 // Lấy thông tin vị trí cho tất cả các task
                 foreach (var task in tasks)
                 {
-                    var martyr = task.Service_Schedule?.MartyrGrave;
-                    if (martyr != null)
+                    var taskAssignment = _mapper.Map<AssignmentTaskResponse>(task);
+                    // Ghép vị trí mộ từ AreaNumber, RowNumber, và MartyrNumber
+                    var martyrGrave = task.Service_Schedule?.MartyrGrave;
+                    if (martyrGrave != null)
                     {
-                        var location = await _unitOfWork.LocationRepository.GetByIDAsync(martyr.LocationId);
-                        if (location != null)
-                        {
-                            task.Service_Schedule.MartyrGrave.Location = location;
-                        }
+                        var location = await _unitOfWork.LocationRepository.GetByIDAsync(martyrGrave.LocationId);
+                        taskAssignment.GraveLocation = $"K{location.AreaNumber}-R{location.RowNumber}-{location.MartyrNumber}";
                     }
+                    var service = task.Service_Schedule.Service;
+                    if (service != null)
+                    {
+                        var serviceImage = await _unitOfWork.ServiceRepository.GetByIDAsync(service.ServiceId);
+                        taskAssignment.ServiceImage = serviceImage.ImagePath;
+                    }
+                    taskResponses.Add(taskAssignment);
                 }
 
-                var taskResponses = tasks.Select(t => _mapper.Map<AssignmentTaskResponse>(t));
+                
                 return (taskResponses, totalPage);
             }
             catch (Exception ex)
@@ -520,5 +527,80 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
         }
 
+        public async Task<(IEnumerable<AssignmentTaskResponse> taskList, int totalPage)> GetAssignmentTasksNotSchedulingByAccountIdAsync(int accountId, int pageIndex, int pageSize, DateTime Date)
+        {
+            try
+            {
+                var taskResponses = new List<AssignmentTaskResponse>();
+                // Kiểm tra xem AccountId có tồn tại không
+                var account = await _unitOfWork.AccountRepository.GetByIDAsync(accountId);
+                if (account == null)
+                {
+                    throw new KeyNotFoundException("Account not found.");
+                }
+
+                int totalPage = 0;
+                int totalTask = 0;
+                IEnumerable<AssignmentTask> tasks;
+
+                if (Date == DateTime.MinValue)
+                {
+                    totalTask = (await _unitOfWork.AssignmentTaskRepository.GetAsync(s => s.StaffId == accountId && s.Status == 1)).Count();
+                    totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
+
+                    tasks = await _unitOfWork.AssignmentTaskRepository.GetAsync(
+                        t => t.StaffId == accountId && t.Status == 1,
+                        includeProperties: "Service_Schedule.Service,Service_Schedule.MartyrGrave,Service_Schedule.Account,Account,AssignmentTaskImages",
+                        pageIndex: pageIndex,
+                        pageSize: pageSize
+                    );
+                }
+                else
+                {
+                    totalTask = (await _unitOfWork.AssignmentTaskRepository.GetAsync(
+                        s => s.StaffId == accountId && s.EndDate.Date == Date.Date && s.Status == 1)).Count();
+                    totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
+
+                    tasks = await _unitOfWork.AssignmentTaskRepository.GetAsync(
+                        t => t.StaffId == accountId && t.EndDate.Date == Date.Date && t.Status == 1,
+                        includeProperties: "Service_Schedule.Service,Service_Schedule.MartyrGrave,Service_Schedule.Account,Account,AssignmentTaskImages",
+                        pageIndex: pageIndex,
+                        pageSize: pageSize
+                    );
+                }
+
+                if (!tasks.Any())
+                {
+                    return (new List<AssignmentTaskResponse>(), 0);
+                }
+
+                // Lấy thông tin vị trí cho tất cả các task
+                foreach (var task in tasks)
+                {
+                    var taskAssignment = _mapper.Map<AssignmentTaskResponse>(task);
+                    // Ghép vị trí mộ từ AreaNumber, RowNumber, và MartyrNumber
+                    var martyrGrave = task.Service_Schedule?.MartyrGrave;
+                    if (martyrGrave != null)
+                    {
+                        var location = await _unitOfWork.LocationRepository.GetByIDAsync(martyrGrave.LocationId);
+                        taskAssignment.GraveLocation = $"K{location.AreaNumber}-R{location.RowNumber}-{location.MartyrNumber}";
+                    }
+                    var service = task.Service_Schedule.Service;
+                    if (service != null)
+                    {
+                        var serviceImage = await _unitOfWork.ServiceRepository.GetByIDAsync(service.ServiceId);
+                        taskAssignment.ServiceImage = serviceImage.ImagePath;
+                    }
+                    taskResponses.Add(taskAssignment);
+                }
+
+
+                return (taskResponses, totalPage);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
     }
 }

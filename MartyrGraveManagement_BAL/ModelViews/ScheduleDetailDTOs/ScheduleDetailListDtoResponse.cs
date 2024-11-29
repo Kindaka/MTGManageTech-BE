@@ -13,5 +13,6 @@ namespace MartyrGraveManagement_BAL.ModelViews.ScheduleDetailDTOs
         public string? Description { get; set; }
         public string ServiceName { get; set; }
         public string MartyrCode { get; set; }
+        public int Status { get; set; }
     }
 }

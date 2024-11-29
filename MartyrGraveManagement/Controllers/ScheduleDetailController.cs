@@ -55,6 +55,42 @@ namespace MartyrGraveManagement.Controllers
             return Ok(new { message = "Tất cả lịch trình đã được tạo thành công.", details = results });
         }
 
+        [Authorize(Policy = "RequireStaffRole")]
+        [HttpPost("CreateScheduleDetailRecurringService")]
+        public async Task<IActionResult> CreateScheduleDetailRecurringService([FromBody] List<ScheduleDetailDtoRequest> requests, int accountId)
+        {
+            var tokenAccountIdClaim = User.FindFirst("AccountId");
+            if (tokenAccountIdClaim == null || string.IsNullOrEmpty(tokenAccountIdClaim.Value))
+            {
+                return Forbid("Không tìm thấy AccountId trong token.");
+            }
+
+            var tokenAccountId = int.Parse(tokenAccountIdClaim.Value);
+            if (tokenAccountId != accountId)
+            {
+                return Forbid("Bạn không có quyền cập nhật thông tin của tài khoản này.");
+            }
+
+
+            var checkAuthorize = await _authorizeService.CheckAuthorizeStaffByAccountId(tokenAccountId, accountId);
+            if (!checkAuthorize.isMatchedAccountStaff || !checkAuthorize.isAuthorizedAccount)
+            {
+                return Forbid("Bạn không có quyền.");
+            }
+
+
+            // Gọi dịch vụ để tạo danh sách lịch trình và nhận danh sách kết quả
+            var results = await _scheduleDetailService.CreateScheduleDetailForRecurringService(requests, accountId);
+
+            // Kiểm tra nếu có lỗi trong kết quả
+            if (results.Any(r => !r.Contains("thành công")))
+            {
+                return BadRequest(new { message = "Một số lịch trình không thể tạo.", details = results });
+            }
+
+            return Ok(new { message = "Tất cả lịch trình đã được tạo thành công.", details = results });
+        }
+
         //[Authorize(Policy = "RequireStaffRole")]
         //[HttpPut("UpdateScheduleDetailForStaff/{ScheduleDetailId}")]
         //public async Task<IActionResult> UpdateScheduleDetail([Required] int ScheduleDetailId, [Required] int slotId, [Required] DateTime Date, int accountId)
