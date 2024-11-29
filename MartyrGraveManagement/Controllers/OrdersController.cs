@@ -31,7 +31,7 @@ namespace MartyrGraveManagement.Controllers
         /// <summary>
         /// Gets all martyr graves.
         /// </summary>
-        [Authorize(Policy = "RequireManagerRole")]
+        [Authorize(Policy = "RequireManagerOrAdminRole")]
         [HttpGet]
         public async Task<ActionResult<List<OrdersGetAllDTOResponse>>> GetAllOrders()
         {//
