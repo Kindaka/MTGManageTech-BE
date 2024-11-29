@@ -81,5 +81,120 @@ namespace MartyrGraveManagement.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+<<<<<<< Updated upstream
+=======
+
+        /// <summary>
+        /// Update profile for Staff or Manager (Role 2 and 3)
+        /// </summary>
+        /// <returns>Returns success or failure status.</returns>
+        [Authorize(Policy = "RequireManagerOrStaffRole")]
+        [HttpPut("update-profile-staff-or-manager/{accountId}")]
+        public async Task<IActionResult> UpdateProfileForStaffOrManager(int accountId, [FromBody] UpdateProfileStaffOrManagerDtoRequest updateProfileDto)
+        {
+            try
+            {
+                // Lấy AccountId từ token
+                var tokenAccountIdClaim = User.FindFirst("AccountId");
+                if (tokenAccountIdClaim == null || string.IsNullOrEmpty(tokenAccountIdClaim.Value))
+                {
+                    return Forbid("Không tìm thấy AccountId trong token.");
+                }
+
+                var tokenAccountId = int.Parse(tokenAccountIdClaim.Value);
+
+                // Kiểm tra nếu AccountId trong URL có khớp với AccountId trong token không
+                if (tokenAccountId != accountId)
+                {
+                    return Forbid("Bạn không có quyền cập nhật thông tin của tài khoản này.");
+                }
+
+                // Sử dụng hàm mới để kiểm tra quyền của nhân viên hoặc quản lý
+                var checkAuthorize = await _authorizeService.CheckAuthorizeStaffOrManager(tokenAccountId, accountId);
+                if (!checkAuthorize.isMatchedStaffOrManager || !checkAuthorize.isAuthorized)
+                {
+                    return Forbid();
+                }
+
+                // Cập nhật thông tin tài khoản
+                var result = await _accountService.UpdateProfileForStaffOrManager(accountId, updateProfileDto);
+                if (result)
+                {
+                    return Ok("Cập nhật thông tin thành công.");
+                }
+                else
+                {
+                    return BadRequest("Cập nhật thông tin thất bại.");
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpGet("total-by-roles")]
+        public async Task<IActionResult> GetTotalAccountsByRoles([FromQuery] List<int> roleIds)
+        {
+            try
+            {
+                if (roleIds == null || !roleIds.Any())
+                    return BadRequest("RoleIds cannot be empty.");
+
+                var roleCounts = await _accountService.GetTotalAccountsByRolesAsync(roleIds);
+
+                return Ok(roleCounts);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { ErrorMessage = ex.Message });
+            }
+        }
+
+
+        [AllowAnonymous]
+        [HttpGet("getProfile/{accountId}")]
+        public async Task<IActionResult> GetAccountProfile(int accountId)
+        {
+            try
+            {
+                // Lấy AccountId từ token
+                var tokenAccountIdClaim = User.FindFirst("AccountId");
+                if (tokenAccountIdClaim == null || string.IsNullOrEmpty(tokenAccountIdClaim.Value))
+                {
+                    return Forbid("Không tìm thấy AccountId trong token.");
+                }
+
+                var tokenAccountId = int.Parse(tokenAccountIdClaim.Value);
+
+                // Kiểm tra nếu AccountId trong URL có khớp với AccountId trong token không
+                if (tokenAccountId != accountId)
+                {
+                    return Forbid("Bạn không có quyền cập nhật thông tin của tài khoản này.");
+                }
+
+                // Sử dụng hàm mới để kiểm tra quyền của nhân viên hoặc quản lý
+                var checkAuthorize = await _authorizeService.CheckAuthorizeByAccountId(tokenAccountId, accountId);
+                if (!checkAuthorize.isMatchedAccount || !checkAuthorize.isAuthorizedAccount)
+                {
+                    return Forbid();
+                }
+
+                // Cập nhật thông tin tài khoản
+                var result = await _accountService.GetAccountProfile(accountId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+
+
+
+
+
+>>>>>>> Stashed changes
     }
 }
