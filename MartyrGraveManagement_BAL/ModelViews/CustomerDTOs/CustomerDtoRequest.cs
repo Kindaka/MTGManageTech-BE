@@ -18,6 +18,6 @@ namespace MartyrGraveManagement_BAL.ModelViews.CustomerDTOs
         public string? Address { get; set; }
         [EmailAddress]
         public string? EmailAddress { get; set; }
-        public DateTime Dob { get; set; }
+        public string? Dob { get; set; }
     }
 }

@@ -20,7 +20,7 @@ namespace MartyrGraveManagement_DAL.Entities
         public string? EmailAddress { get; set; } // để gửi WeeklyReport qua mail không dùng đề login
         [Column(TypeName = "nvarchar(255)")]
         public string? FullName { get; set; }
-        public DateTime? DateOfBirth { get; set; }
+        public string? DateOfBirth { get; set; }
         public string PhoneNumber { get; set; }
         [Column(TypeName = "nvarchar(500)")]
         public string? Address { get; set; }

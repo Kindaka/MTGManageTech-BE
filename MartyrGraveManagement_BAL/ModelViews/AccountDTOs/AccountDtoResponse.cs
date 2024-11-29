@@ -18,7 +18,7 @@ namespace MartyrGraveManagement_BAL.ModelViews.AccountDTOs
         public string phoneNumber { get; set; }
         public string? Address { get; set; }
         public string? AvatarPath { get; set; }
-        public DateTime? DateOfBirth { get; set; }
+        public string? DateOfBirth { get; set; }
         public int RoleId { get; set; }
     }
 }

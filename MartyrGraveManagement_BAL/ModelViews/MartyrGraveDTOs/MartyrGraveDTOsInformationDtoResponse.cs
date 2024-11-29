@@ -14,8 +14,8 @@ namespace MartyrGraveManagement_BAL.ModelViews.MartyrGraveDTOs
         public string Position { get; set; } // Chức vụ
         public string Medal { get; set; } // Huy chương
         public string HomeTown { get; set; } // Quê quán
-        public DateTime? DateOfBirth { get; set; } // Ngày sinh
-        public DateTime? DateOfSacrifice { get; set; } // Ngày hy sinh
+        public string? DateOfBirth { get; set; } // Ngày sinh
+        public string? DateOfSacrifice { get; set; } // Ngày hy sinh
     }
 
 }

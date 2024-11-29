@@ -707,8 +707,8 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 .AsEnumerable() // Thực hiện xử lý phía client
                 .Where(m =>
                     (string.IsNullOrEmpty(searchCriteria.Name) || ConvertToUnaccentedLowercaseString(m.Name).Contains(unaccentedSearchName)) &&
-                    (!searchCriteria.YearOfBirth.HasValue || m.DateOfBirth.HasValue && m.DateOfBirth.Value.Year == searchCriteria.YearOfBirth.Value) &&
-                    (!searchCriteria.YearOfSacrifice.HasValue || m.DateOfSacrifice.HasValue && m.DateOfSacrifice.Value.Year == searchCriteria.YearOfSacrifice.Value) &&
+                    (searchCriteria.YearOfBirth == null || m.DateOfBirth != null && m.DateOfBirth.Contains(searchCriteria.YearOfBirth)) &&
+                    (searchCriteria.YearOfSacrifice == null || m.DateOfSacrifice != null && m.DateOfSacrifice.Contains(searchCriteria.YearOfSacrifice)) &&
                     (string.IsNullOrEmpty(searchCriteria.HomeTown) || m.HomeTown != null && ConvertToUnaccentedLowercaseString(m.HomeTown).Contains(ConvertToUnaccentedLowercaseString(searchCriteria.HomeTown)))
                 );
 
@@ -937,7 +937,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                                 UserName = worksheet.Cells[row, 11].Text,
                                 Phone = worksheet.Cells[row, 12].Text,
                                 Address = worksheet.Cells[row, 13].Text,
-                                Dob = DateTime.Parse(worksheet.Cells[row, 14].Text)
+                                Dob = worksheet.Cells[row, 14].Text
                             },
                             Informations = new List<MartyrGraveInformationDtoRequest>
                             {
@@ -948,8 +948,8 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                                     Position = worksheet.Cells[row, 3].Text,
                                     Medal = worksheet.Cells[row, 4].Text,
                                     HomeTown = worksheet.Cells[row, 5].Text,
-                                    DateOfBirth = DateTime.Parse(worksheet.Cells[row, 6].Text),
-                                    DateOfSacrifice = DateTime.Parse(worksheet.Cells[row, 7].Text)
+                                    DateOfBirth = worksheet.Cells[row, 6].Text,
+                                    DateOfSacrifice = worksheet.Cells[row, 7].Text
                                 }
                             },
                         };

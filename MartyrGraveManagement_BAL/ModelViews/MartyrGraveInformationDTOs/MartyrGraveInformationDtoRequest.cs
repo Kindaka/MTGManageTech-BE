@@ -14,7 +14,7 @@ namespace MartyrGraveManagement_BAL.ModelViews.MartyrGraveInformationDTOs
         public string? Position { get; set; }
         public string? Medal { get; set; }
         public string? HomeTown { get; set; }
-        public DateTime? DateOfBirth { get; set; }
-        public DateTime DateOfSacrifice { get; set; }
+        public string? DateOfBirth { get; set; }
+        public string? DateOfSacrifice { get; set; }
     }
 }

@@ -25,8 +25,8 @@ namespace MartyrGraveManagement_DAL.Entities
         public string? Medal { get; set; }
         [Column(TypeName = "nvarchar(100)")]
         public string? HomeTown { get; set; }
-        public DateTime? DateOfBirth { get; set; }
-        public DateTime? DateOfSacrifice { get; set; }
+        public string? DateOfBirth { get; set; }
+        public string? DateOfSacrifice { get; set; }
         [Column(TypeName = "nvarchar(1000)")]
         public string? ReasonOfSacrifice { get; set; }
 

@@ -186,9 +186,9 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     account.FullName = updateProfileDto.FullName;
                 }
 
-                if (updateProfileDto.DateOfBirth.HasValue)
+                if (updateProfileDto.DateOfBirth != null)
                 {
-                    account.DateOfBirth = updateProfileDto.DateOfBirth.Value;
+                    account.DateOfBirth = updateProfileDto.DateOfBirth;
                 }
 
                 if (!string.IsNullOrEmpty(updateProfileDto.Address))
