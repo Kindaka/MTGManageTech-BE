@@ -240,6 +240,8 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     foreach (var service in services)
                     {
                         var mapper = _mapper.Map<ServiceDtoResponse>(service);
+                        var category = await _unitOfWork.ServiceCategoryRepository.GetByIDAsync(service.CategoryId);
+                        mapper.CategoryName = category.CategoryName;
                         serviceList.Add(mapper);
                     }
 
