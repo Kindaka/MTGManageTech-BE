@@ -10,7 +10,10 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
 {
     public interface INotificationService
     {
-        Task<List<NotificationDto>> GetNotificationsByAccountId(int accountId);
+        Task<(List<NotificationDto> notifications, int totalPage)> GetNotificationsByAccountId(
+            int accountId, 
+            int pageIndex, 
+            int pageSize);
         Task<List<Notification>> GetAllNotifications();
         Task<bool> LinkNotificationToAllCustomerAccounts(int notificationId);
 

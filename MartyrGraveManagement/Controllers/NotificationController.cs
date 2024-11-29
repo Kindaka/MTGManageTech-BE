@@ -34,19 +34,23 @@ namespace MartyrGraveManagement.Controllers
         /// </summary>
         [Authorize(Policy = "RequireCustomerRole")]
         [HttpGet("my-notifications")]
-        public async Task<ActionResult<List<NotificationDto>>> GetNotificationsByAccountId()
+        public async Task<ActionResult<List<NotificationDto>>> GetNotificationsByAccountId(
+            int pageIndex = 1,
+            int pageSize = 10)
         {
-            // Lấy AccountId từ token đã xác thực
-            if (int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out int accountId))
+            try
             {
-                var notifications = await _notificationService.GetNotificationsByAccountId(accountId);
-                if (notifications != null && notifications.Any())
+                if (int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out int accountId))
                 {
-                    return Ok(notifications);
+                    var result = await _notificationService.GetNotificationsByAccountId(accountId, pageIndex, pageSize);
+                    return Ok(new { notifications = result.notifications, totalPage = result.totalPage });
                 }
-                return NotFound("No notifications found for this account.");
+                return Unauthorized("Invalid account information.");
             }
-            return Unauthorized("Invalid account information.");
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An unexpected error occurred.", details = ex.Message });
+            }
         }
 
 

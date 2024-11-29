@@ -5,6 +5,7 @@ using MartyrGraveManagement_DAL.UnitOfWorks.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -120,31 +121,63 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             return notifications.ToList();
         }
 
-        public async Task<List<NotificationDto>> GetNotificationsByAccountId(int accountId)
+        public async Task<(List<NotificationDto> notifications, int totalPage)> GetNotificationsByAccountId(
+            int accountId, 
+            int pageIndex, 
+            int pageSize)
         {
-            // Lấy danh sách NotificationAccount có AccountId là accountId và Status là true, bao gồm cả Notification
-            var notificationAccounts = await _unitOfWork.NotificationAccountsRepository
-                .GetAsync(na => na.AccountId == accountId && na.Status == true, includeProperties: "Notification");
+            try
+            {
+                int totalPage = 0;
+                int totalNotifications = 0;
 
-            // Ánh xạ dữ liệu sang DTO và trả về
-            return notificationAccounts.Select(na => new NotificationDto
-            {
-                NotificationId = na.Notification.NotificationId,
-                Title = na.Notification.Title,
-                Description = na.Notification.Description,
-                CreatedDate = na.Notification.CreatedDate,
-                Status = na.Notification.Status,
-                NotificationAccounts = new List<NotificationAccountDto>
-        {
-            new NotificationAccountDto
-            {
-                AccountId = na.AccountId,
-                Status = na.Status,
-                FullName = na.Account?.FullName, // Nếu cần thông tin tài khoản
-                AvatarPath = na.Account?.AvatarPath // Nếu cần thông tin tài khoản
+                // Tạo filter expression
+                Expression<Func<NotificationAccount, bool>> filter = 
+                    na => na.AccountId == accountId && na.Status == true;
+
+                // Đếm tổng số thông báo
+                totalNotifications = (await _unitOfWork.NotificationAccountsRepository.GetAsync(filter)).Count();
+                totalPage = (int)Math.Ceiling(totalNotifications / (double)pageSize);
+
+                // Lấy danh sách thông báo với phân trang
+                var notificationAccounts = await _unitOfWork.NotificationAccountsRepository.GetAsync(
+                    filter: filter,
+                    includeProperties: "Notification,Account",
+                    orderBy: q => q.OrderByDescending(na => na.Notification.CreatedDate),
+                    pageIndex: pageIndex,
+                    pageSize: pageSize
+                );
+
+                if (!notificationAccounts.Any())
+                {
+                    return (new List<NotificationDto>(), 0);
+                }
+
+                var notificationDtos = notificationAccounts.Select(na => new NotificationDto
+                {
+                    NotificationId = na.Notification.NotificationId,
+                    Title = na.Notification.Title,
+                    Description = na.Notification.Description,
+                    CreatedDate = na.Notification.CreatedDate,
+                    Status = na.Notification.Status,
+                    NotificationAccounts = new List<NotificationAccountDto>
+                    {
+                        new NotificationAccountDto
+                        {
+                            AccountId = na.AccountId,
+                            Status = na.Status,
+                            FullName = na.Account?.FullName,
+                            AvatarPath = na.Account?.AvatarPath
+                        }
+                    }
+                }).ToList();
+
+                return (notificationDtos, totalPage);
             }
-        }
-            }).ToList();
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
 
 
