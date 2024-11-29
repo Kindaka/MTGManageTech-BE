@@ -153,6 +153,24 @@ namespace MartyrGraveManagement.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+        [HttpGet("total-by-roles")]
+        public async Task<IActionResult> GetTotalAccountsByRoles([FromQuery] List<int> roleIds)
+        {
+            try
+            {
+                if (roleIds == null || !roleIds.Any())
+                    return BadRequest("RoleIds cannot be empty.");
+
+                var roleCounts = await _accountService.GetTotalAccountsByRolesAsync(roleIds);
+
+                return Ok(roleCounts);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { ErrorMessage = ex.Message });
+            }
+        }
+
 
         [AllowAnonymous]
         [HttpGet("getProfile/{accountId}")]

@@ -142,6 +142,27 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 throw new Exception(ex.Message);
             }
         }
+        public async Task<Dictionary<int, int>> GetTotalAccountsByRolesAsync(IEnumerable<int> roleIds)
+        {
+            try
+            {
+                // Initialize a dictionary to store counts for each RoleId
+                var roleCounts = new Dictionary<int, int>();
+
+                foreach (var roleId in roleIds)
+                {
+                    // Use FindAsync to get accounts for each role and count them
+                    var accounts = await _unitOfWork.AccountRepository.FindAsync(account => account.RoleId == roleId);
+                    roleCounts[roleId] = accounts.Count();
+                }
+
+                return roleCounts;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error fetching account counts for roles: {string.Join(", ", roleIds)}. {ex.Message}");
+            }
+        }
 
 
         public async Task<bool> UpdateProfileForStaffOrManager(int accountId, UpdateProfileStaffOrManagerDtoRequest updateProfileDto)

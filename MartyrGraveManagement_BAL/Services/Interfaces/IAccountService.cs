@@ -13,6 +13,7 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
         Task<(List<AccountDtoResponse> staffList, int totalPage)> GetStaffList(int page, int pageSize, int? areaId = null);
         Task<(List<AccountDtoResponse> managerList, int totalPage)> GetManagerList(int page, int pageSize);
         Task<bool> UpdateProfileForStaffOrManager(int accountId, UpdateProfileStaffOrManagerDtoRequest updateProfileDto);
+        Task<Dictionary<int, int>> GetTotalAccountsByRolesAsync(IEnumerable<int> roleIds);
         Task<bool> ChangeStatusUser(int accountId, int userAccountId);
         Task<AccountDtoResponse> GetAccountProfile(int accountId);
     }
