@@ -16,7 +16,9 @@ namespace MartyrGraveManagement_BAL.ModelViews.ServiceDTOs
         public decimal Price { get; set; }
         public string? ImagePath { get; set; }
         public bool Status { get; set; }
-        
+        public bool isScheduleService { get; set; }
+        public int RecurringType { get; set; }
+
 
         public List<MaterialDtoResponse> Materials { get; set; } = new List<MaterialDtoResponse>();
         public decimal wage { get; set; }
