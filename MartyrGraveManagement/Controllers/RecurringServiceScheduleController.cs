@@ -101,7 +101,7 @@ namespace MartyrGraveManagement.Controllers
 
         [Authorize(Policy = "RequireCustomerRole")]
         [HttpGet("GetServiceScheduleById/{Id}")]
-        public async Task<ActionResult<ServiceScheduleDtoResponse>> GetServiceScheduleById(int Id, int customerId)
+        public async Task<ActionResult<ServiceScheduleDetailResponse>> GetServiceScheduleById(int Id, int customerId)
         {
             try
             {
@@ -116,6 +116,10 @@ namespace MartyrGraveManagement.Controllers
                     return Forbid();
                 }
                 var result = await _serviceScheduleService.GetServiceScheduleById(Id);
+                if (result == null)
+                {
+                    return NotFound(new { message = "Service schedule not found." });
+                }
                 return Ok(result);
             }
             catch (Exception ex)

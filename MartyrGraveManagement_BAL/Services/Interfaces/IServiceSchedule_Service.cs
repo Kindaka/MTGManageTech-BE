@@ -11,6 +11,6 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
     {
         Task<(bool status, string response)> CreateServiceSchedule(ServiceScheduleDtoRequest request);
         Task<List<ServiceScheduleDtoResponse>> GetServiceScheduleByAccountId(int accountId);
-        Task<ServiceScheduleDtoResponse> GetServiceScheduleById(int serviceScheduleId);
+        Task<ServiceScheduleDetailResponse> GetServiceScheduleById(int serviceScheduleId);
     }
 }

@@ -167,12 +167,24 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 if (account == null) {
                     return serviceScheduleReponses;
                 }
-                var serviceSchedules = await _unitOfWork.ServiceScheduleRepository.GetAsync(s => s.AccountId == accountId, includeProperties: "Service,MartyrGrave,MartyrGrave.Location");
+                var serviceSchedules = await _unitOfWork.ServiceScheduleRepository.GetAsync(
+                    s => s.AccountId == accountId, 
+                    includeProperties: "Service,MartyrGrave,MartyrGrave.Location,MartyrGrave.MartyrGraveInformations");
+                
                 if (serviceSchedules != null) {
                     foreach (var serviceSchedule in serviceSchedules) { 
                         var item = _mapper.Map<ServiceScheduleDtoResponse>(serviceSchedule);
                         item.ServiceName = serviceSchedule.Service.ServiceName;
                         item.ServiceImage = serviceSchedule.Service.ImagePath;
+                        
+                        // Thông tin liệt sĩ
+                        item.MartyrName = serviceSchedule.MartyrGrave.MartyrGraveInformations.FirstOrDefault()?.Name;
+                        
+                        // Thông tin vị trí
+                        item.RowNumber = serviceSchedule.MartyrGrave.Location.RowNumber;
+                        item.MartyrNumber = serviceSchedule.MartyrGrave.Location.MartyrNumber;
+                        item.AreaNumber = serviceSchedule.MartyrGrave.Location.AreaNumber;
+
                         serviceScheduleReponses.Add(item);
                     }
                     return serviceScheduleReponses;
@@ -184,19 +196,51 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
         }
 
-        public async Task<ServiceScheduleDtoResponse> GetServiceScheduleById(int serviceScheduleId)
+        public async Task<ServiceScheduleDetailResponse> GetServiceScheduleById(int serviceScheduleId)
         {
             try
             {
+                var serviceSchedule = (await _unitOfWork.ServiceScheduleRepository.GetAsync(
+                    s => s.ServiceScheduleId == serviceScheduleId, 
+                    includeProperties: "Service,MartyrGrave,MartyrGrave.Location,Account,MartyrGrave.MartyrGraveInformations,AssignmentTasks,AssignmentTasks.Account,AssignmentTasks.AssignmentTaskImages"))
+                    .FirstOrDefault();
 
-                var serviceSchedule = (await _unitOfWork.ServiceScheduleRepository.GetAsync(s => s.ServiceScheduleId == serviceScheduleId, includeProperties: "Service,MartyrGrave,MartyrGrave.Location")).FirstOrDefault();
                 if (serviceSchedule != null)
                 {
-
-                    var item = _mapper.Map<ServiceScheduleDtoResponse>(serviceSchedule);
+                    var item = _mapper.Map<ServiceScheduleDetailResponse>(serviceSchedule);
                     item.ServiceName = serviceSchedule.Service.ServiceName;
                     item.ServiceImage = serviceSchedule.Service.ImagePath;
+                    
+                    // Thông tin liệt sĩ
+                    item.MartyrName = serviceSchedule.MartyrGrave.MartyrGraveInformations.FirstOrDefault()?.Name;
+                    item.MartyrCode = serviceSchedule.MartyrGrave.MartyrCode;
+                    
+                    // Thông tin vị trí
+                    item.RowNumber = serviceSchedule.MartyrGrave.Location.RowNumber;
+                    item.MartyrNumber = serviceSchedule.MartyrGrave.Location.MartyrNumber;
+                    item.AreaNumber = serviceSchedule.MartyrGrave.Location.AreaNumber;
+                    
+                    // Thông tin người đặt lịch
+                    item.AccountName = serviceSchedule.Account.FullName;
+                    item.PhoneNumber = serviceSchedule.Account.PhoneNumber;
 
+                    // Lấy AssignmentTask mới nhất
+                    var latestAssignment = serviceSchedule.AssignmentTasks
+                        ?.OrderByDescending(t => t.CreateAt)
+                        .FirstOrDefault();
+
+                    if (latestAssignment != null)
+                    {
+                        item.LatestAssignment = new AssignmentTaskInfo
+                        {
+                            StaffName = latestAssignment.Account?.FullName,
+                            ImageWorkSpace = latestAssignment.ImageWorkSpace,
+                            Status = latestAssignment.Status,
+                            TaskImages = latestAssignment.AssignmentTaskImages
+                                ?.Select(i => i.ImagePath)
+                                .ToList() ?? new List<string>()
+                        };
+                    }
 
                     return item;
                 }

@@ -21,5 +21,13 @@ namespace MartyrGraveManagement_BAL.ModelViews.ServiceScheduleDTOs
         public int DayOfWeek { get; set; } = 0;
         public string? Note { get; set; }
         public int Status { get; set; }
+
+        // Thông tin liệt sĩ
+        public string MartyrName { get; set; }
+
+        // Thông tin vị trí
+        public int RowNumber { get; set; }
+        public int MartyrNumber { get; set; }
+        public int AreaNumber { get; set; }
     }
 }

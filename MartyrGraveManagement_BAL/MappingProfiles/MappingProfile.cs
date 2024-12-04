@@ -236,6 +236,25 @@ namespace MartyrGraveManagement_BAL.MappingProfiles
 
             CreateMap<AssignmentTaskImageUpdateDTO, AssignmentTask>()
                 .ForMember(dest => dest.ImageWorkSpace, opt => opt.MapFrom(src => src.ImageWorkSpace));
+
+            // ServiceScheduleDetailResponse mapping
+            CreateMap<Service_Schedule, ServiceScheduleDetailResponse>()
+                .ForMember(dest => dest.ServiceName, opt => opt.MapFrom(src => src.Service.ServiceName))
+                .ForMember(dest => dest.ServiceImage, opt => opt.MapFrom(src => src.Service.ImagePath))
+                .ForMember(dest => dest.MartyrName, opt => opt.MapFrom(src => src.MartyrGrave.MartyrGraveInformations.FirstOrDefault().Name))
+                .ForMember(dest => dest.MartyrCode, opt => opt.MapFrom(src => src.MartyrGrave.MartyrCode))
+                .ForMember(dest => dest.RowNumber, opt => opt.MapFrom(src => src.MartyrGrave.Location.RowNumber))
+                .ForMember(dest => dest.MartyrNumber, opt => opt.MapFrom(src => src.MartyrGrave.Location.MartyrNumber))
+                .ForMember(dest => dest.AreaNumber, opt => opt.MapFrom(src => src.MartyrGrave.Location.AreaNumber))
+                .ForMember(dest => dest.AccountName, opt => opt.MapFrom(src => src.Account.FullName))
+                .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.Account.PhoneNumber))
+                .ForMember(dest => dest.LatestAssignment, opt => opt.MapFrom(src => src.AssignmentTasks.OrderByDescending(t => t.CreateAt).FirstOrDefault()));
+
+            CreateMap<AssignmentTask, AssignmentTaskInfo>()
+                .ForMember(dest => dest.StaffName, opt => opt.MapFrom(src => src.Account.FullName))
+                .ForMember(dest => dest.ImageWorkSpace, opt => opt.MapFrom(src => src.ImageWorkSpace))
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status))
+                .ForMember(dest => dest.TaskImages, opt => opt.MapFrom(src => src.AssignmentTaskImages.Select(i => i.ImagePath).ToList()));
         }
         // Thêm helper method vào class MappingProfile
         private static string GetPerformanceLevel(float score)
