@@ -914,5 +914,42 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
             return paymentUrl;
         }
+
+        public async Task<List<MartyrGraveOrderHistoryDTO>> GetOrdersByMartyrGraveId(int martyrGraveId)
+        {
+            try
+            {
+
+                var orderHistory = await _unitOfWork.OrderDetailRepository.GetAsync(
+                    filter: od => od.MartyrId == martyrGraveId,
+                    includeProperties: "Order,Service,Service.ServiceCategory"
+                );
+
+                if (orderHistory == null)
+                {
+                    return null;
+                }
+
+                var result = orderHistory.Select(od => new MartyrGraveOrderHistoryDTO
+                {
+                    ServiceName = od.Service.ServiceName,
+                    ServiceCategoryName = od.Service.ServiceCategory.CategoryName, 
+                    OrderDate = od.Order.OrderDate,
+                    Status = od.Order.Status
+                }).ToList();
+
+                if (result == null)
+                {
+                    return null;
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error retrieving order history for martyr grave {martyrGraveId}: {ex.Message}");
+            }
+        }
+
     }
 }

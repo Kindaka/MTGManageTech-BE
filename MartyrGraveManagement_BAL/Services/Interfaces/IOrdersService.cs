@@ -21,5 +21,6 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
         Task<bool> DeleteAsync(int id);
 
         Task<OrderDetailDtoResponse> GetOrderDetailById(int orderDetailId);
+        Task<List<MartyrGraveOrderHistoryDTO>> GetOrdersByMartyrGraveId(int martyrGraveId);
     }
 }

@@ -271,5 +271,22 @@ namespace MartyrGraveManagement.Controllers
             }
         }
 
+        
+        [AllowAnonymous]
+        [HttpGet("martyr-grave/{martyrGraveId}")]
+        public async Task<IActionResult> GetOrdersByMartyrGraveId(int martyrGraveId)
+        {
+            try
+            {
+                var orderHistory = await _odersService.GetOrdersByMartyrGraveId(martyrGraveId);
+            
+                return Ok(orderHistory);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
     }
 }
