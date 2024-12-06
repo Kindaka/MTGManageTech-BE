@@ -528,7 +528,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     };
 
                     await _unitOfWork.OrderRepository.AddAsync(order);
-                    await _unitOfWork.SaveAsync();
+                    //await _unitOfWork.SaveAsync();
 
                     // Thêm chi tiết đơn hàng
                     foreach (var orderDetail in orderDetails)
@@ -536,7 +536,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         orderDetail.OrderId = order.OrderId;
                         await _unitOfWork.OrderDetailRepository.AddAsync(orderDetail);
                     }
-                    await _unitOfWork.SaveAsync();
+                    //await _unitOfWork.SaveAsync();
 
                     // Tạo link thanh toán
                     string paymentUrl;
@@ -635,7 +635,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                                 Status = true
                             };
                             await _unitOfWork.NotificationRepository.AddAsync(notification);
-                            await _unitOfWork.SaveAsync();
+                            //await _unitOfWork.SaveAsync();
 
                             // Liên kết thông báo với tài khoản
                             var notificationAccount = new NotificationAccount
@@ -646,7 +646,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                             };
                             await _unitOfWork.NotificationAccountsRepository.AddAsync(notificationAccount);
 
-                            await _unitOfWork.SaveAsync();
+                            //await _unitOfWork.SaveAsync();
                             await transaction.CommitAsync();
                             return (true, null, "Đơn hàng đã được thanh toán thành công bằng số dư tài khoản.");
                         }

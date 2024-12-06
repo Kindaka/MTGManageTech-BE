@@ -30,9 +30,9 @@ namespace MartyrGraveManagement.Controllers
         }
 
         /// <summary>
-        /// GetAllNotifications by accountId (Customer)
+        /// GetAllNotifications by accountId (All role)
         /// </summary>
-        [Authorize(Policy = "RequireCustomerRole")]
+        [AllowAnonymous]
         [HttpGet("my-notifications")]
         public async Task<ActionResult<List<NotificationDto>>> GetNotificationsByAccountId(
             int pageIndex = 1,
@@ -93,6 +93,29 @@ namespace MartyrGraveManagement.Controllers
         [Authorize(Policy = "RequireCustomerRole")]
         [HttpGet("detail-for-customer/{notificationId}")]
         public async Task<ActionResult<NotificationDto>> GetNotificationByIdForCustomer(int notificationId)
+        {
+            // Lấy AccountId từ token đã xác thực
+            if (!int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out int accountId))
+            {
+                return Unauthorized("Invalid account information.");
+            }
+
+            // Lấy thông tin chi tiết của thông báo theo NotificationId và AccountId
+            var notification = await _notificationService.GetNotificationByIdForAccount(notificationId, accountId);
+            if (notification != null)
+            {
+                return Ok(notification);
+            }
+
+            return NotFound("Notification not found or you don't have access to view this notification.");
+        }
+
+        /// <summary>
+        /// GetNotificationByIdForStaff (Staff)
+        /// </summary>
+        [Authorize(Policy = "RequireStaffRole")]
+        [HttpGet("detail-for-staff/{notificationId}")]
+        public async Task<ActionResult<NotificationDto>> GetNotificationByIdForStaff(int notificationId)
         {
             // Lấy AccountId từ token đã xác thực
             if (!int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out int accountId))

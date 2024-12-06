@@ -205,7 +205,6 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         await _taskService.CreateTasksAsync(taskRequests);
                     }
 
-                    await _unitOfWork.SaveAsync();
                     await transaction.CommitAsync();
 
                     return _mapper.Map<PaymentDTOResponse>(payment);
@@ -769,7 +768,6 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 Status = true
             };
             await _unitOfWork.NotificationAccountsRepository.AddAsync(notificationAccount);
-            await _unitOfWork.SaveAsync();
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using DocumentFormat.OpenXml.Drawing.Charts;
 using MartyrGraveManagement_BAL.ModelViews.TaskDTOs;
 using MartyrGraveManagement_BAL.Services.Interfaces;
 using MartyrGraveManagement_DAL.Entities;
@@ -670,7 +671,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     }
 
                     // Kiểm tra xem DetailId có tồn tại và thuộc về OrderId không
-                    var orderDetail = await _unitOfWork.OrderDetailRepository.GetByIDAsync(taskDto.DetailId);
+                    var orderDetail = (await _unitOfWork.OrderDetailRepository.GetAsync(t => t.DetailId == taskDto.DetailId, includeProperties: "Service,MartyrGrave")).FirstOrDefault();
                     if (orderDetail == null || orderDetail.OrderId != taskDto.OrderId)
                     {
                         throw new InvalidOperationException("DetailId không hợp lệ hoặc không thuộc về OrderId được cung cấp.");
@@ -728,9 +729,15 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
                     // Thêm vào danh sách kết quả
                     taskResponses.Add(_mapper.Map<TaskDtoResponse>(taskEntity));
+                    // Tạo thông báo sau khi thanh toán thành công
+                    await CreateNotification(
+                        "Bạn có một công việc mới",
+                        $"Công việc #{orderDetail.Service?.ServiceName} cho mộ {orderDetail.MartyrGrave?.MartyrCode} đã được tạo vào lúc {taskEntity.StartDate} và sẽ kết thúc vào ngày {DateOnly.FromDateTime(taskEntity.EndDate)}.",
+                        taskEntity.AccountId
+                    );
                 }
 
-                await _unitOfWork.SaveAsync();
+                //await _unitOfWork.SaveAsync();
 
                 return taskResponses;
             }catch(Exception ex)
@@ -741,7 +748,28 @@ namespace MartyrGraveManagement_BAL.Services.Implements
         }
 
 
+        private async Task CreateNotification(string title, string description, int accountId)
+        {
+            // Tạo thông báo
+            var notification = new Notification
+            {
+                Title = title,
+                Description = description,
+                CreatedDate = DateTime.Now,
+                Status = true
+            };
+            await _unitOfWork.NotificationRepository.AddAsync(notification);
+            await _unitOfWork.SaveAsync();
 
+            // Liên kết thông báo với tài khoản
+            var notificationAccount = new NotificationAccount
+            {
+                AccountId = accountId,
+                NotificationId = notification.NotificationId,
+                Status = true
+            };
+            await _unitOfWork.NotificationAccountsRepository.AddAsync(notificationAccount);
+        }
 
 
 

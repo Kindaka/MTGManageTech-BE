@@ -15,6 +15,7 @@ namespace MartyrGraveManagement_DAL.Entities
         public int Id { get; set; }
         public int AccountId { get; set; }
         public int NotificationId { get; set; }
+        public bool isRead { get; set; }
         public bool Status { get; set; }
 
         // Navigation properties

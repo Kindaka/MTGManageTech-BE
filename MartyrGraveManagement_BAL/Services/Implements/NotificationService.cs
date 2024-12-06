@@ -39,7 +39,9 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             {
                 return null;
             }
-
+            notificationAccount.isRead = true;
+            await _unitOfWork.NotificationAccountsRepository.UpdateAsync(notificationAccount);
+            await _unitOfWork.SaveAsync();
             // Trả về dưới dạng DTO
             return new NotificationDto
             {
@@ -47,6 +49,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 Title = notification.Title,
                 Description = notification.Description,
                 CreatedDate = notification.CreatedDate,
+                isRead = notificationAccount.isRead,
                 Status = notification.Status
             };
         }
@@ -159,6 +162,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     Title = na.Notification.Title,
                     Description = na.Notification.Description,
                     CreatedDate = na.Notification.CreatedDate,
+                    isRead = na.isRead,
                     Status = na.Notification.Status,
                     NotificationAccounts = new List<NotificationAccountDto>
                     {

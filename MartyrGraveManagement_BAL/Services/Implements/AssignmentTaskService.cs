@@ -118,9 +118,9 @@ namespace MartyrGraveManagement_BAL.Services.Implements
         public DateTime GetNextWeeklyServiceDate(int dayOfService)
         {
             var today = DateTime.Now;
-            int currentDayOfWeek = (int)today.DayOfWeek; // 0 = Chủ Nhật, ..., 6 = Thứ Bảy
+            int currentDayOfWeek = (int)today.DayOfWeek; // 7 = Chủ Nhật, ..., 6 = Thứ Bảy
 
-            // Điều chỉnh để phù hợp với DayOfService (1 = Chủ Nhật, ..., 7 = Thứ Bảy)
+            // Điều chỉnh để phù hợp với DayOfService (1 = Thứ 2, ..., 7 = Chủ nhật)
             currentDayOfWeek = currentDayOfWeek == 0 ? 7 : currentDayOfWeek; // Chủ Nhật => 7
 
             int daysUntilNextService = (dayOfService - currentDayOfWeek + 7) % 7;
