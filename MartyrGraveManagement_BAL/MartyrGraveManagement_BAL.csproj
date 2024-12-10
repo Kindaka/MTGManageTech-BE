@@ -10,6 +10,9 @@
     <PackageReference Include="AutoMapper" Version="13.0.1" />
     <PackageReference Include="EPPlus" Version="7.4.2" />
     <PackageReference Include="ExcelExporterClosedXML" Version="1.0.10" />
+    <PackageReference Include="Google.Apis.Auth" Version="1.68.0" />
+    <PackageReference Include="Google.Apis.Oauth2.v2" Version="1.68.0.1869" />
+    <PackageReference Include="Google.Apis.YouTube.v3" Version="1.68.0.3617" />
     <PackageReference Include="MailKit" Version="4.8.0" />
     <PackageReference Include="Microsoft.ML" Version="4.0.0" />
     <PackageReference Include="Microsoft.ML.FastTree" Version="4.0.0" />

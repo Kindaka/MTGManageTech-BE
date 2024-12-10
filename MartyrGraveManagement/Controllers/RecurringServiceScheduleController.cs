@@ -30,6 +30,14 @@ namespace MartyrGraveManagement.Controllers
         {
             try
             {
+                if(request.DayOfService <= 0)
+                {
+                    return BadRequest("Không thể thêm ngày nhỏ hơn 0");
+                }
+                if (request == null)
+                {
+                    return BadRequest("Cannot add empty object to cart");
+                }
                 // Lấy AccountId từ thông tin đăng nhập của người dùng
                 var accountId = User.FindFirst("AccountId")?.Value;
                 if (accountId == null)
@@ -45,10 +53,7 @@ namespace MartyrGraveManagement.Controllers
                     return Forbid();
                 }
 
-                if (request == null)
-                {
-                    return BadRequest("Cannot add empty object to cart");
-                }
+                
                 
 
                 // Gọi service để tạo danh sách CartItems và lấy kết quả

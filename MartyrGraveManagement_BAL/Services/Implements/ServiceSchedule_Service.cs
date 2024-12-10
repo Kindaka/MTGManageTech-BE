@@ -77,7 +77,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         gs.ServiceId == request.ServiceId)).FirstOrDefault();
                     if (graveService == null)
                     {
-                        return (false, $"Không thể thêm dịch vụ {serviceName} vào giỏ hàng vì nó không khả dụng cho Liệt sĩ {martyrName}.");
+                        return (false, $"Không thể đặt dịch vụ {serviceName} vì nó không khả dụng cho Liệt sĩ {martyrName}.");
                     }
 
                     // Kiểm tra nếu mục đã tồn tại trong giỏ hàng

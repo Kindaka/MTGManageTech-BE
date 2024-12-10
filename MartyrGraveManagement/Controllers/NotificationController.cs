@@ -134,6 +134,29 @@ namespace MartyrGraveManagement.Controllers
         }
 
         /// <summary>
+        /// GetNotificationByIdForManager (Staff)
+        /// </summary>
+        [Authorize(Policy = "RequireManagerRole")]
+        [HttpGet("detail-for-manager/{notificationId}")]
+        public async Task<ActionResult<NotificationDto>> GetNotificationByIdForManager(int notificationId)
+        {
+            // Lấy AccountId từ token đã xác thực
+            if (!int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out int accountId))
+            {
+                return Unauthorized("Invalid account information.");
+            }
+
+            // Lấy thông tin chi tiết của thông báo theo NotificationId và AccountId
+            var notification = await _notificationService.GetNotificationByIdForAccount(notificationId, accountId);
+            if (notification != null)
+            {
+                return Ok(notification);
+            }
+
+            return NotFound("Notification not found or you don't have access to view this notification.");
+        }
+
+        /// <summary>
         /// UpdateNotificationAccountStatus (Admin, Update Status For All Account By notificationId )
         /// </summary>
         [Authorize(Policy = "RequireAdminRole")]

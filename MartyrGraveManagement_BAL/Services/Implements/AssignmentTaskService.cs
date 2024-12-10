@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
+using DocumentFormat.OpenXml.ExtendedProperties;
 using MartyrGraveManagement_BAL.ModelViews.AssignmentTaskDtoRequest;
 using MartyrGraveManagement_BAL.ModelViews.AssignmentTaskDTOs;
 using MartyrGraveManagement_BAL.ModelViews.ServiceScheduleDTOs;
+using MartyrGraveManagement_BAL.ModelViews.StaffDTOs;
 using MartyrGraveManagement_BAL.ModelViews.TaskDTOs;
 using MartyrGraveManagement_BAL.Services.Interfaces;
 using MartyrGraveManagement_DAL.Entities;
@@ -167,7 +169,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 try
                 {
                     // 1. Kiểm tra TaskId có tồn tại không
-                    var task = await _unitOfWork.AssignmentTaskRepository.GetByIDAsync(taskId);
+                    var task = (await _unitOfWork.AssignmentTaskRepository.GetAsync(t => t.AssignmentTaskId == taskId, includeProperties:"Account,Service_Schedule.Service")).FirstOrDefault();
                     if (task == null)
                     {
                         throw new KeyNotFoundException("TaskId does not exist.");
@@ -199,7 +201,18 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
                     // 3. Lưu thay đổi vào cơ sở dữ liệu
                     await _unitOfWork.AssignmentTaskRepository.UpdateAsync(task);
-                    await _unitOfWork.SaveAsync();
+                    if (task.Account.AreaId != null)
+                    {
+                        var manager = (await _unitOfWork.AccountRepository.GetAsync(m => m.RoleId == 2 && m.AreaId == task.Account.AreaId)).FirstOrDefault();
+                        if (manager != null)
+                        {
+                            await CreateNotification(
+                    "Một công việc đã bị từ chối bởi nhân viên",
+                    $"Công việc định kì {task.Service_Schedule?.Service?.ServiceName} đã bị từ chối bởi {task.Account.FullName}. Hãy kiểm tra lại công việc đó",
+                    manager.AccountId
+                );
+                        }
+                    }
 
                     // 4. Commit transaction
                     await transaction.CommitAsync();
@@ -322,6 +335,11 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
                     // 6. Lưu thay đổi vào cơ sở dữ liệu
                     await _unitOfWork.AssignmentTaskRepository.UpdateAsync(task);
+                    await CreateNotification(
+                    "Một công việc mới đã được giao lại bởi quản lý",
+                    $"Công việc định kì {task.Service_Schedule?.Service?.ServiceName} đã được giao lại cho nhân viên {task.Account.FullName}. Hãy kiểm tra lại công việc đó",
+                    task.StaffId
+                );
                     await _unitOfWork.SaveAsync();
 
                     // 7. Commit transaction
@@ -443,7 +461,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
                     tasks = await _unitOfWork.AssignmentTaskRepository.GetAsync(
                         s => s.Service_Schedule.MartyrGrave.AreaId == manager.AreaId,
-                        includeProperties: "Service_Schedule.Service,Service_Schedule.MartyrGrave,Service_Schedule.Account,Account,AssignmentTaskImages",
+                        includeProperties: "Service_Schedule.Service.ServiceCategory,Service_Schedule.MartyrGrave,Service_Schedule.Account,Account,AssignmentTaskImages",
                         pageIndex: pageIndex,
                         pageSize: pageSize
                     );
@@ -459,7 +477,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     tasks = await _unitOfWork.AssignmentTaskRepository.GetAsync(
                         t => t.Service_Schedule.MartyrGrave.AreaId == manager.AreaId && 
                         t.EndDate.Date == Date.Date,
-                        includeProperties: "Service_Schedule.Service,Service_Schedule.MartyrGrave,Service_Schedule.Account,Account,AssignmentTaskImages",
+                        includeProperties: "Service_Schedule.Service.ServiceCategory,Service_Schedule.MartyrGrave,Service_Schedule.Account,Account,AssignmentTaskImages",
                         pageIndex: pageIndex,
                         pageSize: pageSize
                     );
@@ -469,22 +487,50 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 {
                     return (new List<AssignmentTaskResponse>(), 0);
                 }
-
+                var responses = new List<AssignmentTaskResponse>(); 
                 // Lấy thông tin vị trí cho tất cả các task
                 foreach (var task in tasks)
                 {
+                    var taskReponse = _mapper.Map<AssignmentTaskResponse>(task);
+                    taskReponse.ServiceName = task.Service_Schedule?.Service?.ServiceName;
+                    taskReponse.ServiceImage = task.Service_Schedule?.Service?.ImagePath;
+                    taskReponse.CategoryName = task.Service_Schedule?.Service?.ServiceCategory?.CategoryName;
                     var martyr = task.Service_Schedule?.MartyrGrave;
                     if (martyr != null)
                     {
                         var location = await _unitOfWork.LocationRepository.GetByIDAsync(martyr.LocationId);
                         if (location != null)
                         {
-                            task.Service_Schedule.MartyrGrave.Location = location;
+                            taskReponse.GraveLocation = $"K{location.AreaNumber}-R{location.RowNumber}-{location.MartyrNumber}";
                         }
                     }
+                    if (taskReponse.Status == 2)
+                    {
+                        if (manager.AreaId == task.Service_Schedule?.MartyrGrave?.AreaId)
+                        {
+                            var accountStaffs = await _unitOfWork.AccountRepository.GetAsync(s => s.AreaId == task.Service_Schedule.MartyrGrave.AreaId && s.RoleId == 3);
+                            if (accountStaffs != null)
+                            {
+                                foreach (var accountStaff in accountStaffs)
+                                {
+                                    if (accountStaff.Status == true)
+                                    {
+                                        var staffDto = new StaffDtoResponse
+                                        {
+                                            AccountId = accountStaff.AccountId,
+                                            StaffFullName = accountStaff.FullName
+                                        };
+                                        taskReponse.Staffs?.Add(staffDto);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    responses.Add(taskReponse);
                 }
+                
 
-                var responses = tasks.Select(t => _mapper.Map<AssignmentTaskResponse>(t)).ToList();
+                //var responses = tasks.Select(t => _mapper.Map<AssignmentTaskResponse>(t)).ToList();
                 return (responses, totalPage);
             }
             catch (Exception ex)
@@ -601,6 +647,29 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             {
                 throw new Exception(ex.Message);
             }
+        }
+
+        private async Task CreateNotification(string title, string description, int accountId)
+        {
+            // Tạo thông báo
+            var notification = new Notification
+            {
+                Title = title,
+                Description = description,
+                CreatedDate = DateTime.Now,
+                Status = true
+            };
+            await _unitOfWork.NotificationRepository.AddAsync(notification);
+            await _unitOfWork.SaveAsync();
+
+            // Liên kết thông báo với tài khoản
+            var notificationAccount = new NotificationAccount
+            {
+                AccountId = accountId,
+                NotificationId = notification.NotificationId,
+                Status = true
+            };
+            await _unitOfWork.NotificationAccountsRepository.AddAsync(notificationAccount);
         }
     }
 }

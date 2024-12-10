@@ -45,7 +45,7 @@ namespace MartyrGraveManagement_BAL.BackgroundServices.Implements
                             // Kiểm tra nếu `nextServiceDate` hợp lệ và tạo công việc trước 7 ngày
                             if (nextServiceDate.HasValue)
                             {
-                                if (DateTime.Today >= nextServiceDate.Value.AddDays(-7) && DateTime.Today < nextServiceDate.Value)
+                                if (DateTime.Today >= nextServiceDate.Value.AddDays(-6) && DateTime.Today < nextServiceDate.Value)
                                 {
                                     // Kiểm tra xem công việc đã tồn tại chưa
                                     //var existingTask = await _unitOfWork.AssignmentTaskRepository

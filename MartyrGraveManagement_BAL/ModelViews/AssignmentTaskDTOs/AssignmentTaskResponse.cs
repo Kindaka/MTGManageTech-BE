@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MartyrGraveManagement_BAL.ModelViews.StaffDTOs;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -34,6 +35,7 @@ namespace MartyrGraveManagement_BAL.ModelViews.AssignmentTaskDTOs
         public string ServiceName { get; set; }
         public string ServiceDescription { get; set; }
         public string ServiceImage { get; set; }
+        public string CategoryName { get; set; }
         public int RecurringType { get; set; }
 
         // Thông tin vị trí mộ
@@ -41,5 +43,7 @@ namespace MartyrGraveManagement_BAL.ModelViews.AssignmentTaskDTOs
 
         // Danh sách hình ảnh task
         public List<string> TaskImages { get; set; } = new List<string>();
+
+        public List<StaffDtoResponse>? Staffs { get; set; } = new List<StaffDtoResponse>();
     }
 }
