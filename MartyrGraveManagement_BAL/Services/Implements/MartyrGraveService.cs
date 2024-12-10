@@ -101,6 +101,72 @@ namespace MartyrGraveManagement_BAL.Services.Implements
         //    return _mapper.Map<MartyrGraveDtoResponse>(martyrGrave);
         //}
 
+        public async Task<List<MartyrGraveSearchDtoResponse>> SearchMartyrGravesAsync(
+    MartyrGraveSearchDtoRequest searchCriteria, int pageIndex, int pageSize)
+        {
+            // Server-side filter for basic conditions
+            Expression<Func<MartyrGraveInformation, bool>> filter = m =>
+                (searchCriteria.YearOfBirth == null || m.DateOfBirth != null && m.DateOfBirth.Contains(searchCriteria.YearOfBirth)) &&
+                (searchCriteria.YearOfSacrifice == null || m.DateOfSacrifice != null && m.DateOfSacrifice.Contains(searchCriteria.YearOfSacrifice)) &&
+                (string.IsNullOrEmpty(searchCriteria.HomeTown) || m.HomeTown != null);
+
+            // Fetch filtered and paginated data from the database
+            var martyrGraves = await _unitOfWork.MartyrGraveInformationRepository
+                .GetAllAsync(filter: filter, includeProperties: "MartyrGrave", pageIndex: pageIndex, pageSize: pageSize);
+
+            // Apply client-side filtering for unaccented names and hometowns
+            string unaccentedSearchName = string.IsNullOrEmpty(searchCriteria.Name)
+                ? string.Empty
+                : ConvertToUnaccentedLowercaseString(searchCriteria.Name);
+
+            string unaccentedHomeTown = string.IsNullOrEmpty(searchCriteria.HomeTown)
+                ? string.Empty
+                : ConvertToUnaccentedLowercaseString(searchCriteria.HomeTown);
+
+            var filteredMartyrGraves = martyrGraves
+                .AsEnumerable() // Switch to client-side evaluation
+                .Where(m =>
+                    (string.IsNullOrEmpty(searchCriteria.Name) || ConvertToUnaccentedLowercaseString(m.Name).Contains(unaccentedSearchName)) &&
+                    (string.IsNullOrEmpty(searchCriteria.HomeTown) || ConvertToUnaccentedLowercaseString(m.HomeTown).Contains(unaccentedHomeTown)));
+
+            // Map results to DTOs
+            var result = new List<MartyrGraveSearchDtoResponse>();
+            foreach (var m in filteredMartyrGraves)
+            {
+                var graveDto = new MartyrGraveSearchDtoResponse
+                {
+                    MartyrId = m.MartyrId,
+                    Name = m.Name,
+                    NickName = m.NickName,
+                    HomeTown = m.HomeTown,
+                    DateOfBirth = m.DateOfBirth,
+                    DateOfSacrifice = m.DateOfSacrifice,
+                    MartyrCode = m.MartyrGrave?.MartyrCode,
+                    ImageUrls = new List<GraveImageDtoResponse>() // Initialize image URLs list
+                };
+
+                // Fetch associated images
+                var graveImages = await _unitOfWork.GraveImageRepository
+                    .GetAllAsync(g => g.MartyrId == m.MartyrId);
+
+                foreach (var image in graveImages)
+                {
+                    if (!string.IsNullOrEmpty(image.UrlPath))
+                    {
+                        graveDto.ImageUrls.Add(new GraveImageDtoResponse
+                        {
+                            Image = image.UrlPath
+                        });
+                    }
+                }
+
+                result.Add(graveDto);
+            }
+
+            return result;
+        }
+
+
 
         public async Task<(List<MartyrGraveGetAllDtoResponse> matyrGraveList, int totalPage)> GetAllMartyrGravesAsync(int page, int pageSize)
         {
@@ -692,60 +758,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
 
 
-        public async Task<List<MartyrGraveSearchDtoResponse>> SearchMartyrGravesAsync(MartyrGraveSearchDtoRequest searchCriteria)
-        {
-            // Lấy tất cả dữ liệu trước khi xử lý
-            var martyrGraves = await _unitOfWork.MartyrGraveInformationRepository
-                .GetAsync(includeProperties: "MartyrGrave");
-
-            // Nếu tên tìm kiếm không trống, chuyển đổi sang dạng không dấu và chữ thường
-            string unaccentedSearchName = string.IsNullOrEmpty(searchCriteria.Name)
-                ? string.Empty
-                : ConvertToUnaccentedLowercaseString(searchCriteria.Name);
-
-            var filteredMartyrGraves = martyrGraves
-                .AsEnumerable() // Thực hiện xử lý phía client
-                .Where(m =>
-                    (string.IsNullOrEmpty(searchCriteria.Name) || ConvertToUnaccentedLowercaseString(m.Name).Contains(unaccentedSearchName)) &&
-                    (searchCriteria.YearOfBirth == null || m.DateOfBirth != null && m.DateOfBirth.Contains(searchCriteria.YearOfBirth)) &&
-                    (searchCriteria.YearOfSacrifice == null || m.DateOfSacrifice != null && m.DateOfSacrifice.Contains(searchCriteria.YearOfSacrifice)) &&
-                    (string.IsNullOrEmpty(searchCriteria.HomeTown) || m.HomeTown != null && ConvertToUnaccentedLowercaseString(m.HomeTown).Contains(ConvertToUnaccentedLowercaseString(searchCriteria.HomeTown)))
-                );
-
-            // Ánh xạ từ entity sang DTO
-            var result = new List<MartyrGraveSearchDtoResponse>();
-            foreach (var m in filteredMartyrGraves)
-            {
-                var graveDto = new MartyrGraveSearchDtoResponse
-                {
-                    MartyrId = m.MartyrId,
-                    Name = m.Name,
-                    NickName = m.NickName,
-                    HomeTown = m.HomeTown,
-                    DateOfBirth = m.DateOfBirth,
-                    DateOfSacrifice = m.DateOfSacrifice,
-                    MartyrCode = m.MartyrGrave?.MartyrCode,
-                    ImageUrls = new List<GraveImageDtoResponse>() // Khởi tạo danh sách cho URL ảnh
-                };
-
-                // Lấy tất cả ảnh liên quan đến MartyrGrave này
-                var graveImages = await _unitOfWork.GraveImageRepository.GetAsync(g => g.MartyrId == m.MartyrId);
-                foreach (var image in graveImages)
-                {
-                    if (!string.IsNullOrEmpty(image.UrlPath))
-                    {
-                        graveDto.ImageUrls.Add(new GraveImageDtoResponse
-                        {
-                            Image = image.UrlPath
-                        });
-                    }
-                }
-
-                result.Add(graveDto);
-            }
-
-            return result;
-        }
+        
 
         private string ConvertToUnaccentedLowercaseString(string input)
         {

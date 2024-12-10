@@ -24,11 +24,11 @@ namespace MartyrGraveManagement.Controllers
 
         [AllowAnonymous]
         [HttpGet("search")]
-        public async Task<IActionResult> SearchMartyrGraves([FromQuery] MartyrGraveSearchDtoRequest searchCriteria)
+        public async Task<IActionResult> SearchMartyrGraves([FromQuery] MartyrGraveSearchDtoRequest searchCriteria, [FromQuery] int page = 1, [FromQuery] int pageSize = 15)
         {
             try
             {
-                var results = await _martyrGraveService.SearchMartyrGravesAsync(searchCriteria);
+                var results = await _martyrGraveService.SearchMartyrGravesAsync(searchCriteria, page, pageSize);
                 if (results == null || !results.Any())
                 {
                     return NotFound("No results found.");
