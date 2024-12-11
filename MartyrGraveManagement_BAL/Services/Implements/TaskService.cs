@@ -1167,6 +1167,11 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         {
                             order.Status = 4;  // Order hoàn thành
                             await _unitOfWork.OrderRepository.UpdateAsync(order);
+                            await CreateNotification(
+                            "Đơn hàng của bạn đã được hoàn thành",
+                            $"Đơn hàng {order.OrderId} đã được hoàn thành. Khách hàng có thể kiểm tra lại và cho phản hồi",
+                            order.AccountId
+                            );
                         }
                     }
 
@@ -1194,7 +1199,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 try
                 {
                     // 1. Kiểm tra xem TaskId có tồn tại không
-                    var task = (await _unitOfWork.TaskRepository.GetAsync(t => t.DetailId == detailId)).FirstOrDefault();
+                    var task = (await _unitOfWork.TaskRepository.GetAsync(t => t.DetailId == detailId, includeProperties:"OrderDetail.Service,OrderDetail.MartyrGrave,Account")).FirstOrDefault();
                     if (task == null)
                     {
                         throw new KeyNotFoundException("TaskId does not exist.");
@@ -1242,6 +1247,11 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
                     // 8. Lưu thay đổi vào cơ sở dữ liệu
                     await _unitOfWork.TaskRepository.UpdateAsync(task);
+                    await CreateNotification(
+                    "Một công việc mới đã được giao lại bởi quản lý",
+                    $"Công việc {task.OrderDetail?.Service?.ServiceName} đã được giao lại cho nhân viên {task.Account.FullName}. Hãy kiểm tra lại công việc đó",
+                    task.AccountId
+                    );
                     await _unitOfWork.SaveAsync();
 
                     // 9. Commit transaction nếu không có lỗi

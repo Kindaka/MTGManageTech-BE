@@ -67,8 +67,8 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     var staffWorkloads = new Dictionary<int, int>();
                     foreach (var staff in staffAccounts)
                     {
-                        var taskCount = await _unitOfWork.TaskRepository
-                            .CountAsync(t => t.AccountId == staff.AccountId); // Lấy công việc đang được chỉ định
+                        var taskCount = await _unitOfWork.AssignmentTaskRepository
+                            .CountAsync(t => t.StaffId == staff.AccountId); // Lấy công việc đang được chỉ định
                         staffWorkloads[staff.AccountId] = taskCount;
                     }
 
@@ -239,7 +239,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             {
                 try
                 {
-                    var task = await _unitOfWork.AssignmentTaskRepository.GetByIDAsync(taskId);
+                    var task = (await _unitOfWork.AssignmentTaskRepository.GetAsync(t => t.AssignmentTaskId == taskId, includeProperties: "Service_Schedule.Account,Service_Schedule.Service,Account")).FirstOrDefault();
                     if (task == null)
                     {
                         throw new KeyNotFoundException("Task not found.");
@@ -278,6 +278,11 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
                     // Cập nhật task
                     await _unitOfWork.AssignmentTaskRepository.UpdateAsync(task);
+                    await CreateNotification(
+                    "Công việc định kì đã được hoàn thành",
+                    $"Công việc định kì {task.Service_Schedule?.Service?.ServiceName} đã được hoàn thành bởi {task.Account?.FullName}. Khách hàng có thể kiểm tra lại và cho phản hồi",
+                    task.Service_Schedule.AccountId
+                );
                     await _unitOfWork.SaveAsync();
                     await transaction.CommitAsync();
 
@@ -339,7 +344,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     "Một công việc mới đã được giao lại bởi quản lý",
                     $"Công việc định kì {task.Service_Schedule?.Service?.ServiceName} đã được giao lại cho nhân viên {task.Account.FullName}. Hãy kiểm tra lại công việc đó",
                     task.StaffId
-                );
+                    );
                     await _unitOfWork.SaveAsync();
 
                     // 7. Commit transaction

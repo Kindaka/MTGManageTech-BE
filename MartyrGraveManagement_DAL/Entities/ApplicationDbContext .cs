@@ -136,6 +136,15 @@ namespace MartyrGraveManagement_DAL.Entities
                 .HasForeignKey(a => a.AssignmentTaskId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // AssignmentTask_Feedback Configuration
+            modelBuilder.Entity<AssignmentTask_Feedback>()
+                .HasKey(a => a.AssignmentTaskFeedbackId);
+            modelBuilder.Entity<AssignmentTask_Feedback>()
+                .HasOne(a => a.AssignmentTask)
+                .WithOne(r => r.Feedback)
+                .HasForeignKey<AssignmentTask_Feedback>(a => a.AssignmentTaskId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             // Role Configuration
             modelBuilder.Entity<Role>()
                 .HasKey(r => r.RoleId);

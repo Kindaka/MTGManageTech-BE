@@ -1,4 +1,5 @@
-﻿using MartyrGraveManagement_BAL.BackgroundServices.Interfaces;
+﻿using Hangfire;
+using MartyrGraveManagement_BAL.BackgroundServices.Interfaces;
 using MartyrGraveManagement_DAL.Entities;
 using MartyrGraveManagement_DAL.UnitOfWorks.Interfaces;
 using System;
@@ -19,8 +20,6 @@ namespace MartyrGraveManagement_BAL.BackgroundServices.Implements
         }
         public async Task CreateRecurringTasksAsync()
         {
-            while (true)
-            {
                 using (var transaction = await _unitOfWork.BeginTransactionAsync())
                 {
                     try
@@ -45,18 +44,18 @@ namespace MartyrGraveManagement_BAL.BackgroundServices.Implements
                             // Kiểm tra nếu `nextServiceDate` hợp lệ và tạo công việc trước 7 ngày
                             if (nextServiceDate.HasValue)
                             {
-                                if (DateTime.Today >= nextServiceDate.Value.AddDays(-6) && DateTime.Today < nextServiceDate.Value)
+                                if (DateOnly.FromDateTime(DateTime.Today) >= DateOnly.FromDateTime(nextServiceDate.Value.AddDays(-6)) && DateOnly.FromDateTime(DateTime.Today) <= DateOnly.FromDateTime(nextServiceDate.Value))
                                 {
                                     // Kiểm tra xem công việc đã tồn tại chưa
                                     //var existingTask = await _unitOfWork.AssignmentTaskRepository
                                     //    .FindAsync(t => t.ServiceScheduleId == serviceSchedule.ServiceScheduleId && t.EndDate == nextServiceDate.Value);
 
                                     var existingTask = await _unitOfWork.AssignmentTaskRepository
-                                    .FindAsync(t => t.ServiceScheduleId == serviceSchedule.ServiceScheduleId && DateOnly.FromDateTime(t.EndDate) == DateOnly.FromDateTime(nextServiceDate.Value));
+                                    .FindAsync(t => DateOnly.FromDateTime(t.EndDate) == DateOnly.FromDateTime(nextServiceDate.Value));
 
                                     if (existingTask.Any())
                                     {
-                                        Console.WriteLine($"Công việc đã tồn tại cho ServiceSchedule ID {serviceSchedule.ServiceScheduleId} vào ngày {nextServiceDate.Value}");
+                                        Console.WriteLine($"Công việc đã tồn tại vào ngày {nextServiceDate.Value}");
                                         continue;
                                     }
 
@@ -78,6 +77,7 @@ namespace MartyrGraveManagement_BAL.BackgroundServices.Implements
 
                                     // Trừ số dư ví của khách hàng
                                     customer.CustomerBalance -= serviceSchedule.Service.Price;
+                                    await _unitOfWork.CustomerWalletRepository.UpdateAsync(customer);
 
                                     // Lưu lịch sử giao dịch
                                     var transactionHistory = new TransactionBalanceHistory
@@ -105,8 +105,8 @@ namespace MartyrGraveManagement_BAL.BackgroundServices.Implements
                                     var staffWorkloads = new Dictionary<int, int>();
                                     foreach (var staff in staffAccounts)
                                     {
-                                        var taskCount = await _unitOfWork.TaskRepository
-                                            .CountAsync(t => t.AccountId == staff.AccountId);
+                                        var taskCount = await _unitOfWork.AssignmentTaskRepository
+                                            .CountAsync(t => t.StaffId == staff.AccountId);
                                         staffWorkloads[staff.AccountId] = taskCount;
                                     }
 
@@ -126,6 +126,7 @@ namespace MartyrGraveManagement_BAL.BackgroundServices.Implements
                                     };
 
                                     await _unitOfWork.AssignmentTaskRepository.AddAsync(taskEntity);
+                                    await _unitOfWork.SaveAsync();
                                 }
                             }
                         }
@@ -138,8 +139,6 @@ namespace MartyrGraveManagement_BAL.BackgroundServices.Implements
                         Console.WriteLine($"Error in CheckServiceSchedule: {ex.Message}");
                     }
                 }
-                await Task.Delay(10000);
-            }
         }
 
         public DateTime GetNextWeeklyServiceDate(int dayOfService)

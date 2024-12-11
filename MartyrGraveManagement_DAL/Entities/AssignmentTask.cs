@@ -25,6 +25,7 @@ namespace MartyrGraveManagement_DAL.Entities
         public int Status { get; set; }
         public Service_Schedule? Service_Schedule { get; set; }
         public Account? Account { get; set; }
+        public AssignmentTask_Feedback? Feedback { get; set; }
         public IEnumerable<AssignmentTaskImage>? AssignmentTaskImages { get; set; }
     }
 }

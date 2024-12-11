@@ -17,6 +17,8 @@ namespace MartyrGraveManagement_DAL.Entities
         public string Title { get; set; }
         [Column(TypeName = "nvarchar(MAX)")]
         public string Description { get; set; }
+        [Column(TypeName = "nvarchar(MAX)")]
+        public string? LinkTo { get; set; }
         public DateTime CreatedDate { get; set; }
         public bool Status { get; set; }
 
