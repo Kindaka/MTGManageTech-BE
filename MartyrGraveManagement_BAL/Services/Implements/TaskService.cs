@@ -1323,7 +1323,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
         }
 
-        public async Task<IEnumerable<TaskDtoResponse>> GetTasksByMartyrGraveId(int martyrGraveId, int accountId)
+        public async Task<(IEnumerable<TaskDtoResponse> taskList, int totalPage)> GetTasksByMartyrGraveId(int martyrGraveId, int accountId, int pageIndex, int pageSize)
         {
             try
             {
@@ -1331,7 +1331,9 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 var martyrGrave = await _unitOfWork.MartyrGraveRepository.GetByIDAsync(martyrGraveId);
                 if (accountId == null || martyrGrave.AccountId == accountId)
                 {
-                    var tasks = await _unitOfWork.TaskRepository.GetAsync(t => t.OrderDetail.MartyrGrave.MartyrId == martyrGraveId, includeProperties: "OrderDetail.Service.ServiceCategory,OrderDetail.MartyrGrave,Account");
+                    int totalTask = (await _unitOfWork.TaskRepository.GetAsync(s => s.OrderDetail.MartyrGrave.MartyrId == martyrGraveId)).Count();
+                    int totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
+                    var tasks = await _unitOfWork.TaskRepository.GetAsync(t => t.OrderDetail.MartyrGrave.MartyrId == martyrGraveId, includeProperties: "OrderDetail.Service.ServiceCategory,OrderDetail.MartyrGrave,Account", pageIndex: pageIndex, pageSize: pageSize);
                     if (tasks != null)
                     {
                         foreach (var task in tasks)
@@ -1350,11 +1352,11 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                             taskResponse.Add(taskItem);
                         }
                     }
-                    return taskResponse;
+                    return (taskResponse, totalPage);
                 }
                 else
                 {
-                    return taskResponse;
+                    return (taskResponse, 0);
                 }
             }
             catch (Exception ex)

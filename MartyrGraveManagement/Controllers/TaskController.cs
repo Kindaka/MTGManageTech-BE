@@ -4,6 +4,7 @@ using MartyrGraveManagement_BAL.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Identity.Client;
 using System;
 using System.Collections.Generic;
 using System.Security.Claims;
@@ -69,17 +70,28 @@ namespace MartyrGraveManagement.Controllers
         /// Get all tasks for a specific martyr grave
         /// </summary>
         [HttpGet("martyr-grave/{martyrGraveId}")]
-        public async Task<IActionResult> GetTasksByMartyrGraveId(int martyrGraveId, int userId)
+        public async Task<IActionResult> GetTasksByMartyrGraveId(int martyrGraveId, int pageIndex = 1, int pageSize = 5)
         {
             try
             {
-                var tasks = await _taskService.GetTasksByMartyrGraveId(martyrGraveId, userId);
+                var accountId = User.FindFirst("AccountId")?.Value; // Giả sử bạn lưu userId trong token
+                int userId;
+                if (accountId == null)
+                {
+                    userId = 0;
+                }
+                else
+                {
+                    userId = int.Parse(accountId);
+                }
+                var tasks = await _taskService.GetTasksByMartyrGraveId(martyrGraveId, userId, pageIndex, pageSize);
 
                 return Ok(new
                 {
                     success = true,
                     message = "Tasks retrieved successfully",
-                    data = tasks
+                    data = tasks.taskList,
+                    totalPage = tasks.totalPage
                 });
             }
             catch (Exception ex)

@@ -3,6 +3,7 @@ using MartyrGraveManagement_BAL.MLModels;
 using MartyrGraveManagement_BAL.ModelViews.AccountDTOs;
 using MartyrGraveManagement_BAL.ModelViews.AreaDTOs;
 using MartyrGraveManagement_BAL.ModelViews.AssignmentTaskDTOs;
+using MartyrGraveManagement_BAL.ModelViews.AssignmentTaskFeedbackDTOs;
 using MartyrGraveManagement_BAL.ModelViews.BlogCategoryDTOs;
 using MartyrGraveManagement_BAL.ModelViews.BlogDTOs;
 using MartyrGraveManagement_BAL.ModelViews.CartItemsDTOs;
@@ -102,6 +103,12 @@ namespace MartyrGraveManagement_BAL.MappingProfiles
             CreateMap<Feedback, FeedbackDtoResponse>().ReverseMap();
             CreateMap<Feedback, FeedbackContentDtoRequest>().ReverseMap();
             CreateMap<Feedback, FeedbackResponseDtoRequest>().ReverseMap();
+
+            //AssignmentTaskFeeback mapping
+            CreateMap<AssignmentTaskFeedbackDtoRequest, AssignmentTask_Feedback>().ReverseMap();
+            CreateMap<AssignmentTask_Feedback, AssignmentTaskFeedbackDtoResponse>().ReverseMap();
+            CreateMap<AssignmentTask_Feedback, AssignmentTaskFeedbackContentDtoRequest>().ReverseMap();
+            CreateMap<AssignmentTask_Feedback, AssignmentTaskFeedbackResponseDtoRequest>().ReverseMap();
 
             //HistoricalEvent mapping
             CreateMap<CreateHistoricalEventDTORequest, BlogCategory>().ReverseMap();

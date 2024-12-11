@@ -172,6 +172,7 @@ builder.Services.AddScoped<IBlogCategoryService, BlogCategoryService>();
 builder.Services.AddScoped<IWalletService, WalletService>();
 builder.Services.AddScoped<IServiceSchedule_Service, ServiceSchedule_Service>();
 builder.Services.AddScoped<IAssignmentTaskService, AssignmentTaskService>();
+builder.Services.AddScoped<IAssignmentTaskFeedbackService, AssignmentTaskFeedbackService>();
 
 // Đăng ký ML
 builder.Services.AddScoped<ITrendingRecommendationService, TrendingRecommendationService>();
