@@ -190,7 +190,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 await CreateNotification(
                     "Thanh toán đơn hàng thành công",
                     $"Đơn hàng #{existedOrder.OrderId} đã được thanh toán thành công với số tiền {payment.PaymentAmount:N0} VNĐ qua {payment.PaymentMethod}.",
-                    existedOrder.AccountId
+                    existedOrder.AccountId, $"/order-detail-cus/{existedOrder.OrderId}"
                 );
 
                         // Lấy danh sách OrderDetail để tạo công việc cho nhân viên
@@ -656,7 +656,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         await CreateNotification(
                             "Nạp tiền vào ví thành công",
                             $"Bạn đã nạp thành công {amount:N0} VNĐ vào ví. Số dư hiện tại: {customerWallet.CustomerBalance:N0} VNĐ",
-                            account.AccountId
+                            account.AccountId, "/wallet"
                         );
                     }
 
@@ -733,7 +733,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     await CreateNotification(
                         "Thanh toán đơn hàng thành công",
                         $"Đơn hàng #{orderId} đã được thanh toán thành công với số tiền {amount:N0} VNĐ qua MoMo.",
-                        order.AccountId
+                        order.AccountId, $"/order-detail-cus/{order.OrderId}"
                     );
 
                     return true;
@@ -747,7 +747,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
         }
 
-        private async Task CreateNotification(string title, string description, int accountId)
+        private async Task CreateNotification(string title, string description, int accountId, string linkTo)
         {
             // Tạo thông báo
             var notification = new Notification
@@ -755,6 +755,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 Title = title,
                 Description = description,
                 CreatedDate = DateTime.Now,
+                LinkTo = linkTo,
                 Status = true
             };
             await _unitOfWork.NotificationRepository.AddAsync(notification);

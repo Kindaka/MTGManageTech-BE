@@ -209,7 +209,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                             await CreateNotification(
                     "Một công việc đã bị từ chối bởi nhân viên",
                     $"Công việc định kì {task.Service_Schedule?.Service?.ServiceName} đã bị từ chối bởi {task.Account.FullName}. Hãy kiểm tra lại công việc đó",
-                    manager.AccountId
+                    manager.AccountId, "/task-manager"
                 );
                         }
                     }
@@ -281,7 +281,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     await CreateNotification(
                     "Công việc định kì đã được hoàn thành",
                     $"Công việc định kì {task.Service_Schedule?.Service?.ServiceName} đã được hoàn thành bởi {task.Account?.FullName}. Khách hàng có thể kiểm tra lại và cho phản hồi",
-                    task.Service_Schedule.AccountId
+                    task.Service_Schedule.AccountId, $"/schedule-service-detail/{task.ServiceScheduleId}"
                 );
                     await _unitOfWork.SaveAsync();
                     await transaction.CommitAsync();
@@ -343,7 +343,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     await CreateNotification(
                     "Một công việc mới đã được giao lại bởi quản lý",
                     $"Công việc định kì {task.Service_Schedule?.Service?.ServiceName} đã được giao lại cho nhân viên {task.Account.FullName}. Hãy kiểm tra lại công việc đó",
-                    task.StaffId
+                    task.StaffId, "/recurring-tasks"
                     );
                     await _unitOfWork.SaveAsync();
 
@@ -654,7 +654,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
         }
 
-        private async Task CreateNotification(string title, string description, int accountId)
+        private async Task CreateNotification(string title, string description, int accountId, string linkTo)
         {
             // Tạo thông báo
             var notification = new Notification
@@ -662,6 +662,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 Title = title,
                 Description = description,
                 CreatedDate = DateTime.Now,
+                LinkTo = linkTo,
                 Status = true
             };
             await _unitOfWork.NotificationRepository.AddAsync(notification);

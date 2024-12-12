@@ -732,8 +732,8 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     // Tạo thông báo sau khi thanh toán thành công
                     await CreateNotification(
                         "Bạn có một công việc mới",
-                        $"Công việc #{orderDetail.Service?.ServiceName} cho mộ {orderDetail.MartyrGrave?.MartyrCode} đã được tạo vào lúc {taskEntity.StartDate} và sẽ kết thúc vào ngày {DateOnly.FromDateTime(taskEntity.EndDate)}.",
-                        taskEntity.AccountId
+                        $"Công việc #{orderDetail.Service?.ServiceName} cho mộ {orderDetail.MartyrGrave?.MartyrCode} đã được tạo vào lúc {DateOnly.FromDateTime(taskEntity.StartDate)} và sẽ kết thúc vào ngày {DateOnly.FromDateTime(taskEntity.EndDate)}.",
+                        taskEntity.AccountId, "/danhsachdonhang-staff"
                     );
                 }
 
@@ -748,7 +748,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
         }
 
 
-        private async Task CreateNotification(string title, string description, int accountId)
+        private async Task CreateNotification(string title, string description, int accountId, string linkTo)
         {
             // Tạo thông báo
             var notification = new Notification
@@ -756,6 +756,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 Title = title,
                 Description = description,
                 CreatedDate = DateTime.Now,
+                LinkTo = linkTo,
                 Status = true
             };
             await _unitOfWork.NotificationRepository.AddAsync(notification);
@@ -993,7 +994,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 try
                 {
                     // 1. Kiểm tra TaskId có tồn tại không
-                    var task = await _unitOfWork.TaskRepository.GetByIDAsync(taskId);
+                    var task = (await _unitOfWork.TaskRepository.GetAsync(t => t.TaskId == taskId, includeProperties:"OrderDetail.Service,Account")).FirstOrDefault();
                     if (task == null)
                     {
                         throw new KeyNotFoundException("TaskId does not exist.");
@@ -1018,6 +1019,18 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
                     // 3. Lưu thay đổi vào cơ sở dữ liệu
                     await _unitOfWork.TaskRepository.UpdateAsync(task);
+                    if (task.Account.AreaId != null)
+                    {
+                        var manager = (await _unitOfWork.AccountRepository.GetAsync(m => m.RoleId == 2 && m.AreaId == task.Account.AreaId)).FirstOrDefault();
+                        if (manager != null)
+                        {
+                            await CreateNotification(
+                    "Một công việc đã bị từ chối bởi nhân viên",
+                    $"Công việc {task.OrderDetail?.Service?.ServiceName} đã bị từ chối bởi {task.Account.FullName}. Hãy kiểm tra lại công việc đó",
+                    manager.AccountId, $"/danhsachdonhang/{task.DetailId}?managerId={manager.AccountId}"
+                    );
+                        }
+                    }
                     await _unitOfWork.SaveAsync();
 
                     // 4. Commit transaction nếu không có lỗi
@@ -1170,7 +1183,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                             await CreateNotification(
                             "Đơn hàng của bạn đã được hoàn thành",
                             $"Đơn hàng {order.OrderId} đã được hoàn thành. Khách hàng có thể kiểm tra lại và cho phản hồi",
-                            order.AccountId
+                            order.AccountId, $"/order-detail-cus/{order.OrderId}"
                             );
                         }
                     }
@@ -1250,7 +1263,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     await CreateNotification(
                     "Một công việc mới đã được giao lại bởi quản lý",
                     $"Công việc {task.OrderDetail?.Service?.ServiceName} đã được giao lại cho nhân viên {task.Account.FullName}. Hãy kiểm tra lại công việc đó",
-                    task.AccountId
+                    task.AccountId, "/danhsachdonhang-staff"
                     );
                     await _unitOfWork.SaveAsync();
 

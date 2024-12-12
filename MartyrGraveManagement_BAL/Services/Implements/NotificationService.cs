@@ -49,6 +49,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 Title = notification.Title,
                 Description = notification.Description,
                 CreatedDate = notification.CreatedDate,
+                LinkTo = notification.LinkTo,
                 isRead = notificationAccount.isRead,
                 Status = notification.Status
             };
@@ -103,6 +104,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 Title = notification.Title,
                 Description = notification.Description,
                 CreatedDate = notification.CreatedDate,
+                LinkTo = notification.LinkTo,
                 Status = notification.Status,
                 NotificationAccounts = notificationAccounts.Select(na => new NotificationAccountDto
                 {
@@ -162,6 +164,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     Title = na.Notification.Title,
                     Description = na.Notification.Description,
                     CreatedDate = na.Notification.CreatedDate,
+                    LinkTo = na.Notification.LinkTo,
                     isRead = na.isRead,
                     Status = na.Notification.Status,
                     NotificationAccounts = new List<NotificationAccountDto>
