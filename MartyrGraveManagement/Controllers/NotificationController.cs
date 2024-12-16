@@ -173,5 +173,22 @@ namespace MartyrGraveManagement.Controllers
             return NotFound("Notification account(s) not found or could not be updated.");
         }
 
+        /// <summary>
+        /// UpdateNotificationAccountStatus (Admin, Update Status For All Account By notificationId )
+        /// </summary>
+        
+        [HttpPut("update-isRead")]
+        public async Task<IActionResult> UpdateNotificationAccountIsRead(int notificationId, bool isRead)
+        {
+            var result = await _notificationService.UpdateNotificationAccountIsRead(notificationId, isRead);
+
+            if (result)
+            {
+                return Ok();
+            }
+
+            return NotFound();
+        }
+
     }
 }

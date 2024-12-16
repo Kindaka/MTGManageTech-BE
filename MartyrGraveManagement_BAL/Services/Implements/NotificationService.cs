@@ -221,6 +221,35 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
         }
 
+        public async Task<bool> UpdateNotificationAccountIsRead(int notificationId, bool isRead)
+        {
+            try
+            {
+                var notificationAccounts = await _unitOfWork.NotificationAccountsRepository
+                    .GetAsync(na => na.NotificationId == notificationId);
+
+                if (notificationAccounts == null || !notificationAccounts.Any())
+                {
+                    return false; 
+                }
+
+                foreach (var notificationAccount in notificationAccounts)
+                {
+                    notificationAccount.isRead = isRead;
+                    await _unitOfWork.NotificationAccountsRepository.UpdateAsync(notificationAccount);
+                }
+
+                await _unitOfWork.SaveAsync(); 
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating notification account status: {ex.Message}");
+                return false;
+            }
+        }
+
 
 
     }

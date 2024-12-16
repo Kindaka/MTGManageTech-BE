@@ -19,6 +19,7 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
 
         Task<NotificationResponseDto> GetNotificationByIdAsync(int notificationId);
         Task<bool> UpdateNotificationAccountStatus(int notificationId, bool newStatus);
+        Task<bool> UpdateNotificationAccountIsRead(int notificationId, bool isRead);
         Task<NotificationDto> GetNotificationByIdForAccount(int notificationId, int accountId);
     }
 }
