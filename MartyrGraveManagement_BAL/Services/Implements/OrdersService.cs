@@ -632,6 +632,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                                              $"Số dư ban đầu: {currentBalance:N0} VNĐ\n" +
                                              $"Số dư còn lại: {newBalance:N0} VNĐ",
                                 CreatedDate = DateTime.Now,
+                                LinkTo = "/order-history",
                                 Status = true
                             };
                             await _unitOfWork.NotificationRepository.AddAsync(notification);
