@@ -8,22 +8,21 @@ using System.Threading.Tasks;
 
 namespace MartyrGraveManagement_DAL.Entities
 {
-    public class WeeklyReportGrave
+    public class ReportGrave
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int WeeklyReportId { get; set; }
-        public int MartyrId { get; set; }
-        public int AccountId { get; set; }
-        public int QualityOfTotalGravePoint { get; set; }
-        public int QualityOfFlowerPoint { get; set; }
-        public int DisciplinePoint { get; set; }
-        [Column(TypeName = "nvarchar(255)")]
+        public int ReportId { get; set; }
+        public int RequestId { get; set; }
+        public string VideoFile { get; set; }
+        [Column(TypeName = "nvarchar(500)")]
         public string Description { get; set; }
+        public DateTime CreateAt { get; set; }
+        public DateTime UpdateAt { get; set; }
         public bool Status { get; set; }
 
-        public MartyrGrave? MartyrGrave { get; set; }
-
+        public RequestCustomer? RequestCustomer { get; set; }
+        public IEnumerable<ReportImage>? ReportImages { get; set; }
     }
 
 }

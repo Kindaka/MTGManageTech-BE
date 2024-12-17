@@ -124,7 +124,7 @@ namespace MartyrGraveManagement_BAL.BackgroundServices.Implements
                                         Description = serviceSchedule.Note,
                                         Status = 1 // Trạng thái ban đầu
                                     };
-
+                                    
                                     await _unitOfWork.AssignmentTaskRepository.AddAsync(taskEntity);
                                     await _unitOfWork.SaveAsync();
                                 }

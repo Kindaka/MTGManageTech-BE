@@ -74,6 +74,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                                 Date = DateOnly.FromDateTime(request.Date),
                                 CreatedAt = DateTime.Now,
                                 UpdateAt = DateTime.Now,
+                                ScheduleDetailType = 1, //Loại công việc định kì
                                 Status = 1,
                             };
                             await _unitOfWork.ScheduleDetailRepository.AddAsync(newScheduleDetail);
@@ -196,10 +197,11 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                             var newScheduleDetail = new ScheduleDetail
                             {
                                 AccountId = accountId,
-                                AssignmentTaskId = request.TaskId,
+                                TaskId = request.TaskId,
                                 Date = DateOnly.FromDateTime(request.Date),
                                 CreatedAt = DateTime.Now,
                                 UpdateAt = DateTime.Now,
+                                ScheduleDetailType = 2, //2 là công việc định kì
                                 Status = 1,
                             };
                             await _unitOfWork.ScheduleDetailRepository.AddAsync(newScheduleDetail);
@@ -235,7 +237,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     {
                         return "Không tìm thấy task của lịch (Sai Id)";
                     }
-                    if (scheduleDetail.TaskId.HasValue)
+                    if (scheduleDetail.ScheduleDetailType == 1)
                     {
                         var taskInSchedule = await _unitOfWork.TaskRepository.GetByIDAsync(scheduleDetail.TaskId);
                         if (taskInSchedule.Status == 2 || taskInSchedule.Status == 4 || taskInSchedule.Status == 5)
@@ -265,8 +267,8 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                             return "Đã quá hạn thời gian để hủy lịch trình (phải cập nhật 1 ngày trước ngày làm việc)";
                         }
                     }
-                    else if (scheduleDetail.AssignmentTaskId.HasValue) {
-                        var taskInSchedule = await _unitOfWork.AssignmentTaskRepository.GetByIDAsync(scheduleDetail.AssignmentTaskId);
+                    else if (scheduleDetail.ScheduleDetailType == 2) {
+                        var taskInSchedule = await _unitOfWork.AssignmentTaskRepository.GetByIDAsync(scheduleDetail.TaskId);
                         if (taskInSchedule.Status == 2 || taskInSchedule.Status == 4 || taskInSchedule.Status == 5)
                         {
                             return "Task này đã hoàn thành hoặc đã thất bại hoặc đã hủy.";
@@ -277,7 +279,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                             if (scheduleDetail.AccountId == accountId)
                             {
                                 await _unitOfWork.ScheduleDetailRepository.DeleteAsync(scheduleDetail);
-                                var existingTask = (await _unitOfWork.AssignmentTaskRepository.GetAsync(t => t.AssignmentTaskId == scheduleDetail.AssignmentTaskId)).FirstOrDefault();
+                                var existingTask = (await _unitOfWork.AssignmentTaskRepository.GetAsync(t => t.AssignmentTaskId == scheduleDetail.TaskId)).FirstOrDefault();
                                 if (existingTask != null)
                                 {
                                     existingTask.Status = 1;
@@ -323,7 +325,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     return null;
                 }
                 ScheduleDetailForTaskDtoResponse scheduleStaff = new ScheduleDetailForTaskDtoResponse();
-                if (scheduleDetailStaff.TaskId.HasValue)
+                if (scheduleDetailStaff.ScheduleDetailType == 1)
                 {
                     var task = (await _unitOfWork.TaskRepository.GetAsync(sds => sds.TaskId == scheduleDetailStaff.TaskId,
                         includeProperties: "OrderDetail.Service,OrderDetail.MartyrGrave.Location")).FirstOrDefault();
@@ -369,9 +371,9 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         }
                     }
                 }
-                else if(scheduleDetailStaff.AssignmentTaskId.HasValue)
+                else if(scheduleDetailStaff.ScheduleDetailType == 2)
                 {
-                    var task = (await _unitOfWork.AssignmentTaskRepository.GetAsync(sds => sds.AssignmentTaskId == scheduleDetailStaff.AssignmentTaskId,
+                    var task = (await _unitOfWork.AssignmentTaskRepository.GetAsync(sds => sds.AssignmentTaskId == scheduleDetailStaff.TaskId,
                         includeProperties: "Service_Schedule.Service,Service_Schedule.MartyrGrave.Location")).FirstOrDefault();
 
                     if (task == null)
@@ -391,7 +393,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         ServiceName = task.Service_Schedule.Service.ServiceName,
                         ServiceDescription = task.Service_Schedule.Service.Description,
                         MartyrCode = task.Service_Schedule.MartyrGrave.MartyrCode,
-                        AssignmentTaskId = scheduleDetailStaff.AssignmentTaskId,
+                        AssignmentTaskId = scheduleDetailStaff.TaskId,
                         ImageWorkSpace = task.ImageWorkSpace,
                         AreaNumber = task.Service_Schedule.MartyrGrave.Location.AreaNumber,
                         RowNumber = task.Service_Schedule.MartyrGrave.Location.RowNumber,
@@ -436,7 +438,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 var scheduleDetailList = new List<ScheduleDetailListDtoResponse>();
                 foreach (var scheduleDetail in scheduleDetailStaff)
                 {
-                    if (scheduleDetail.TaskId.HasValue)
+                    if (scheduleDetail.ScheduleDetailType == 1)
                     {
                         var task = await _unitOfWork.TaskRepository.GetByIDAsync(scheduleDetail.TaskId);
                         var scheduleStaff = new ScheduleDetailListDtoResponse
@@ -449,8 +451,8 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         };
                         scheduleDetailList.Add(scheduleStaff);
                     }
-                    else if (scheduleDetail.AssignmentTaskId.HasValue) {
-                        var task = await _unitOfWork.AssignmentTaskRepository.GetByIDAsync(scheduleDetail.AssignmentTaskId);
+                    else if (scheduleDetail.ScheduleDetailType == 2) {
+                        var task = await _unitOfWork.AssignmentTaskRepository.GetByIDAsync(scheduleDetail.TaskId);
                         var scheduleStaff = new ScheduleDetailListDtoResponse
                         {
                             ScheduleDetailId = scheduleDetail.Id,
@@ -482,7 +484,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 var scheduleDetailList = new List<ScheduleDetailListDtoResponse>();
                 foreach (var scheduleDetail in scheduleDetailStaff)
                 {
-                    if (scheduleDetail.TaskId.HasValue)
+                    if (scheduleDetail.ScheduleDetailType == 1)
                     {
                         var task = (await _unitOfWork.TaskRepository.GetAsync(t => t.TaskId == scheduleDetail.TaskId, includeProperties: "OrderDetail.Service,OrderDetail.MartyrGrave")).FirstOrDefault();
                         var scheduleStaff = new ScheduleDetailListDtoResponse
@@ -496,8 +498,8 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         };
                         scheduleDetailList.Add(scheduleStaff);
                     }
-                    else if (scheduleDetail.AssignmentTaskId.HasValue) {
-                        var task = (await _unitOfWork.AssignmentTaskRepository.GetAsync(t => t.AssignmentTaskId == scheduleDetail.AssignmentTaskId, includeProperties: "Service_Schedule.Service,Service_Schedule.MartyrGrave")).FirstOrDefault();
+                    else if (scheduleDetail.ScheduleDetailType == 2) {
+                        var task = (await _unitOfWork.AssignmentTaskRepository.GetAsync(t => t.AssignmentTaskId == scheduleDetail.TaskId, includeProperties: "Service_Schedule.Service,Service_Schedule.MartyrGrave")).FirstOrDefault();
                         var scheduleStaff = new ScheduleDetailListDtoResponse
                         {
                             ScheduleDetailId = scheduleDetail.Id,

@@ -27,7 +27,7 @@ namespace MartyrGraveManagement_DAL.Entities
         public DbSet<MartyrGrave> MartyrGraves { get; set; }
         public DbSet<GraveImage> GraveImages { get; set; }
         public DbSet<MartyrGraveInformation> MartyrGraveInformations { get; set; }
-        public DbSet<WeeklyReportGrave> WeeklyReportGraves { get; set; }
+        public DbSet<ReportGrave> ReportGraves { get; set; }
         public DbSet<Area> Areas { get; set; }
         public DbSet<StaffTask> Tasks { get; set; }
         public DbSet<WorkPerformance> WorkPerformances { get; set; }
@@ -263,14 +263,46 @@ namespace MartyrGraveManagement_DAL.Entities
                 .OnDelete(DeleteBehavior.Restrict);
 
 
-            // WeeklyReportGrave Configuration
-            modelBuilder.Entity<WeeklyReportGrave>()
-                .HasKey(wrg => wrg.WeeklyReportId);
-            modelBuilder.Entity<WeeklyReportGrave>()
+            // RequestType Configuration
+            modelBuilder.Entity<RequestType>()
+                .HasKey(wrg => wrg.TypeId);
+
+            // RequestCustomer Configuration
+            modelBuilder.Entity<RequestCustomer>()
+                .HasKey(wrg => wrg.RequestId);
+            modelBuilder.Entity<RequestCustomer>()
+                .HasOne(wrg => wrg.Account)
+                .WithMany(mg => mg.RequestCustomers)
+                .HasForeignKey(wrg => wrg.CustomerId)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<RequestCustomer>()
                 .HasOne(wrg => wrg.MartyrGrave)
-                .WithMany(mg => mg.WeeklyReportGraves)
+                .WithMany(mg => mg.RequestCustomers)
                 .HasForeignKey(wrg => wrg.MartyrId)
-                .OnDelete(DeleteBehavior.Restrict); 
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<RequestCustomer>()
+                .HasOne(wrg => wrg.RequestType)
+                .WithMany(mg => mg.RequestCustomers)
+                .HasForeignKey(wrg => wrg.TypeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // ReportGrave Configuration
+            modelBuilder.Entity<ReportGrave>()
+                .HasKey(wrg => wrg.ReportId);
+            modelBuilder.Entity<ReportGrave>()
+                .HasOne(wrg => wrg.RequestCustomer)
+                .WithOne(mg => mg.ReportGrave)
+                .HasForeignKey<ReportGrave>(wrg => wrg.RequestId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // ReportImage Configuration
+            modelBuilder.Entity<ReportImage>()
+                .HasKey(wrg => wrg.ImageId);
+            modelBuilder.Entity<ReportImage>()
+                .HasOne(wrg => wrg.ReportGrave)
+                .WithMany(mg => mg.ReportImages)
+                .HasForeignKey(wrg => wrg.ReportId)
+                .OnDelete(DeleteBehavior.Restrict);
 
 
             // Area Configuration

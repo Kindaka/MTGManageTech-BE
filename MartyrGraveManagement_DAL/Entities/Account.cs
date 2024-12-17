@@ -47,6 +47,7 @@ namespace MartyrGraveManagement_DAL.Entities
         public IEnumerable<TransactionBalanceHistory>? TransactionBalanceHistorys { get; set; }
         public IEnumerable<Service_Schedule>? ServiceSchedules { get; set; }
         public IEnumerable<AssignmentTask>? AssignmentTasks { get; set; }
+        public IEnumerable<RequestCustomer>? RequestCustomers { get; set; }
 
 
     }
