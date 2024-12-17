@@ -15,7 +15,7 @@ namespace MartyrGraveManagement_DAL.Entities
         public int ImageId { get; set; }
         public int ReportId { get; set; }
         public string? UrlPath { get; set; }
-
+        public DateTime CreateAt { get; set; }
         public ReportGrave? ReportGrave { get; set; }
     }
 }
