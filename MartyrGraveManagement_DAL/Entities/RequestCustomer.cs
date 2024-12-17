@@ -29,6 +29,7 @@ namespace MartyrGraveManagement_DAL.Entities
 
         public Account? Account { get; set; }
         public MartyrGrave? MartyrGrave { get; set; }
+        public IEnumerable<RequestImage>? RequestImages { get; set; }
         public RequestType? RequestType { get; set; }
         public ReportGrave? ReportGrave { get; set; }
     }

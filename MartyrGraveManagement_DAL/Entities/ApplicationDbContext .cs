@@ -286,6 +286,14 @@ namespace MartyrGraveManagement_DAL.Entities
                 .HasForeignKey(wrg => wrg.TypeId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            //RequestImage Configuration
+            modelBuilder.Entity<RequestImage>()
+                .HasKey(rpi => rpi.RequestImageId);
+            modelBuilder.Entity<RequestImage>()
+                .HasOne(rpi => rpi.RequestCustomer)
+                .WithMany(rpi => rpi.RequestImages)
+                .HasForeignKey(rpi => rpi.RequestId);
+
             // ReportGrave Configuration
             modelBuilder.Entity<ReportGrave>()
                 .HasKey(wrg => wrg.ReportId);
