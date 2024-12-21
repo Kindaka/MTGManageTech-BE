@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MartyrGraveManagement_DAL.Entities
 {
@@ -23,6 +18,7 @@ namespace MartyrGraveManagement_DAL.Entities
         public bool Status { get; set; }
 
         public IEnumerable<Material_Service> Material_Services { get; set; }
+        public IEnumerable<Request_Material> RequestMaterials { get; set; }
 
     }
 }

@@ -1,21 +1,21 @@
-﻿using MartyrGraveManagement_BAL.Services.Implements;
+﻿using Hangfire;
+using Hangfire.SqlServer;
+using MartyrGraveManagement.BackgroundServices.Implements;
+using MartyrGraveManagement.BackgroundServices.Interfaces;
+using MartyrGraveManagement_BAL.BackgroundServices.Implements;
+using MartyrGraveManagement_BAL.BackgroundServices.Interfaces;
+using MartyrGraveManagement_BAL.MappingProfiles;
+using MartyrGraveManagement_BAL.Services.Implements;
 using MartyrGraveManagement_BAL.Services.Interfaces;
 using MartyrGraveManagement_DAL.Entities;
 using MartyrGraveManagement_DAL.UnitOfWorks.Implements;
 using MartyrGraveManagement_DAL.UnitOfWorks.Interfaces;
-using MartyrGraveManagement_BAL.MappingProfiles;
-using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
 using Microsoft.OpenApi.Models;
-using Hangfire;
-using Hangfire.SqlServer;
-using MartyrGraveManagement.BackgroundServices.Implements;
-using MartyrGraveManagement.BackgroundServices.Interfaces;
-using MartyrGraveManagement_BAL.BackgroundServices.Interfaces;
-using MartyrGraveManagement_BAL.BackgroundServices.Implements;
+using System.Security.Claims;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -81,6 +81,7 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("RequireAdminRole", policy => policy.RequireClaim(ClaimTypes.Role, "1"));
     options.AddPolicy("RequireStaffRole", policy => policy.RequireClaim(ClaimTypes.Role, "3"));
     options.AddPolicy("RequireCustomerRole", policy => policy.RequireClaim(ClaimTypes.Role, "4"));
+    options.AddPolicy("RequireCustomerOrManagerRole", policy => policy.RequireClaim(ClaimTypes.Role, "2", "4"));
     options.AddPolicy("RequireAdminOrStaffRole", policy => policy.RequireClaim(ClaimTypes.Role, "1", "3"));
     options.AddPolicy("RequireAdminOrCustomerRole", policy => policy.RequireClaim(ClaimTypes.Role, "1", "4"));
     options.AddPolicy("RequireStaffOrCustomerRole", policy => policy.RequireClaim(ClaimTypes.Role, "3", "4"));
@@ -173,6 +174,7 @@ builder.Services.AddScoped<IWalletService, WalletService>();
 builder.Services.AddScoped<IServiceSchedule_Service, ServiceSchedule_Service>();
 builder.Services.AddScoped<IAssignmentTaskService, AssignmentTaskService>();
 builder.Services.AddScoped<IAssignmentTaskFeedbackService, AssignmentTaskFeedbackService>();
+builder.Services.AddScoped<IRequestCustomerService, RequestCustomerService>();
 
 // Đăng ký ML
 builder.Services.AddScoped<ITrendingRecommendationService, TrendingRecommendationService>();

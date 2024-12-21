@@ -1,19 +1,9 @@
 ﻿using AutoMapper;
-using MartyrGraveManagement_BAL.ModelViews.AttendanceDTOs;
 using MartyrGraveManagement_BAL.ModelViews.ScheduleDetailDTOs;
 using MartyrGraveManagement_BAL.ModelViews.TaskDTOs;
 using MartyrGraveManagement_BAL.Services.Interfaces;
 using MartyrGraveManagement_DAL.Entities;
 using MartyrGraveManagement_DAL.UnitOfWorks.Interfaces;
-using OfficeOpenXml.Sorting;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Metadata.Ecma335;
-using System.Text;
-using System.Threading.Tasks;
-using System.Transactions;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace MartyrGraveManagement_BAL.Services.Implements
 {
@@ -55,15 +45,15 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                             results.Add($"Task này không phải là của bạn.");
                             continue;
                         }
-                        if (task.Status == 4 || task.Status == 5 || task.Status == 2)
+                        if (task.Status == 4 || task.Status == 5 || task.Status == 2 || task.Status == 3)
                         {
-                            results.Add($"Task này đã hoàn thành hoặc đã thất bại hoặc đã hủy.");
+                            results.Add($"Task phải là trạng thái đang chờ xếp lịch mới được thêm vào lịch làm việc.");
                             continue;
                         }
 
                         var existingScheduleDetails = await _unitOfWork.ScheduleDetailRepository.GetAsync(
                             s => s.AccountId == accountId && s.Date == DateOnly.FromDateTime(request.Date));
-                        if(existingScheduleDetails.Count() <= 10)
+                        if (existingScheduleDetails.Count() <= 10)
                         {
                             task.Status = 3;
                             await _unitOfWork.TaskRepository.UpdateAsync(task);
@@ -212,7 +202,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                             results.Add($"Một ngày bạn chỉ được thêm tối đa 10 công việc vào lịch làm việc.");
                             continue;
                         }
-                       
+
 
                     }
                     await transaction.CommitAsync();
@@ -267,7 +257,8 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                             return "Đã quá hạn thời gian để hủy lịch trình (phải cập nhật 1 ngày trước ngày làm việc)";
                         }
                     }
-                    else if (scheduleDetail.ScheduleDetailType == 2) {
+                    else if (scheduleDetail.ScheduleDetailType == 2)
+                    {
                         var taskInSchedule = await _unitOfWork.AssignmentTaskRepository.GetByIDAsync(scheduleDetail.TaskId);
                         if (taskInSchedule.Status == 2 || taskInSchedule.Status == 4 || taskInSchedule.Status == 5)
                         {
@@ -371,7 +362,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         }
                     }
                 }
-                else if(scheduleDetailStaff.ScheduleDetailType == 2)
+                else if (scheduleDetailStaff.ScheduleDetailType == 2)
                 {
                     var task = (await _unitOfWork.AssignmentTaskRepository.GetAsync(sds => sds.AssignmentTaskId == scheduleDetailStaff.TaskId,
                         includeProperties: "Service_Schedule.Service,Service_Schedule.MartyrGrave.Location")).FirstOrDefault();
@@ -451,7 +442,8 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         };
                         scheduleDetailList.Add(scheduleStaff);
                     }
-                    else if (scheduleDetail.ScheduleDetailType == 2) {
+                    else if (scheduleDetail.ScheduleDetailType == 2)
+                    {
                         var task = await _unitOfWork.AssignmentTaskRepository.GetByIDAsync(scheduleDetail.TaskId);
                         var scheduleStaff = new ScheduleDetailListDtoResponse
                         {
@@ -498,7 +490,8 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         };
                         scheduleDetailList.Add(scheduleStaff);
                     }
-                    else if (scheduleDetail.ScheduleDetailType == 2) {
+                    else if (scheduleDetail.ScheduleDetailType == 2)
+                    {
                         var task = (await _unitOfWork.AssignmentTaskRepository.GetAsync(t => t.AssignmentTaskId == scheduleDetail.TaskId, includeProperties: "Service_Schedule.Service,Service_Schedule.MartyrGrave")).FirstOrDefault();
                         var scheduleStaff = new ScheduleDetailListDtoResponse
                         {
@@ -511,7 +504,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         };
                         scheduleDetailList.Add(scheduleStaff);
                     }
-                    
+
                 }
                 return scheduleDetailList;
             }

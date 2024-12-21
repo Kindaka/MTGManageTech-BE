@@ -3,11 +3,6 @@ using MartyrGraveManagement_DAL.Repositories.Implements;
 using MartyrGraveManagement_DAL.Repositories.Interfaces;
 using MartyrGraveManagement_DAL.UnitOfWorks.Interfaces;
 using Microsoft.EntityFrameworkCore.Storage;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MartyrGraveManagement_DAL.UnitOfWorks.Implements
 {
@@ -57,6 +52,11 @@ namespace MartyrGraveManagement_DAL.UnitOfWorks.Implements
         private GenericRepository<AssignmentTask> _assignmentTaskRepository;
         private GenericRepository<AssignmentTaskImage> _assignmentTaskImageRepository;
         private GenericRepository<AssignmentTask_Feedback> _assignmentTaskFeedbackRepository;
+        private GenericRepository<RequestType> _requestTypeRepository;
+        private GenericRepository<RequestCustomer> _requestCustomerRepository;
+        private GenericRepository<ReportGrave> _reportGraveRepository;
+        private GenericRepository<ReportImage> _reportImageRepository;
+        private GenericRepository<Request_Material> _requestMaterialRepository;
 
 
         public UnitOfWork(ApplicationDbContext context)
@@ -108,6 +108,11 @@ namespace MartyrGraveManagement_DAL.UnitOfWorks.Implements
         public IGenericRepository<AssignmentTask> AssignmentTaskRepository => _assignmentTaskRepository ??= new GenericRepository<AssignmentTask>(_context);
         public IGenericRepository<AssignmentTaskImage> AssignmentTaskImageRepository => _assignmentTaskImageRepository ??= new GenericRepository<AssignmentTaskImage>(_context);
         public IGenericRepository<AssignmentTask_Feedback> AssignmentTaskFeedbackRepository => _assignmentTaskFeedbackRepository ??= new GenericRepository<AssignmentTask_Feedback>(_context);
+        public IGenericRepository<RequestType> RequestTypeRepository => _requestTypeRepository ??= new GenericRepository<RequestType>(_context);
+        public IGenericRepository<RequestCustomer> RequestCustomerRepository => _requestCustomerRepository ??= new GenericRepository<RequestCustomer>(_context);
+        public IGenericRepository<ReportGrave> ReportGraveRepository => _reportGraveRepository ??= new GenericRepository<ReportGrave>(_context);
+        public IGenericRepository<ReportImage> ReportImageRepository => _reportImageRepository ??= new GenericRepository<ReportImage>(_context);
+        public IGenericRepository<Request_Material> RequestMaterialRepository => _requestMaterialRepository ??= new GenericRepository<Request_Material>(_context);
 
 
         public async Task<IDbContextTransaction> BeginTransactionAsync()

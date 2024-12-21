@@ -1,9 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MartyrGraveManagement_DAL.Entities
 {
@@ -267,6 +262,29 @@ namespace MartyrGraveManagement_DAL.Entities
             modelBuilder.Entity<RequestType>()
                 .HasKey(wrg => wrg.TypeId);
 
+            // RequestNoteHistory Configuration
+            modelBuilder.Entity<RequestNoteHistory>()
+                .HasKey(wrg => wrg.NoteId);
+            modelBuilder.Entity<RequestNoteHistory>()
+                .HasOne(wrg => wrg.RequestCustomer)
+                .WithMany(mg => mg.RequestNoteHistories)
+                .HasForeignKey(wrg => wrg.RequestId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Request_Material Configuration
+            modelBuilder.Entity<Request_Material>()
+                .HasKey(wrg => wrg.RequestMaterialId);
+            modelBuilder.Entity<Request_Material>()
+                .HasOne(wrg => wrg.RequestCustomer)
+                .WithMany(mg => mg.RequestMaterials)
+                .HasForeignKey(wrg => wrg.RequestId)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Request_Material>()
+                .HasOne(wrg => wrg.Material)
+                .WithMany(mg => mg.RequestMaterials)
+                .HasForeignKey(wrg => wrg.MaterialId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             // RequestCustomer Configuration
             modelBuilder.Entity<RequestCustomer>()
                 .HasKey(wrg => wrg.RequestId);
@@ -286,13 +304,25 @@ namespace MartyrGraveManagement_DAL.Entities
                 .HasForeignKey(wrg => wrg.TypeId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            //RequestImage Configuration
-            modelBuilder.Entity<RequestImage>()
-                .HasKey(rpi => rpi.RequestImageId);
-            modelBuilder.Entity<RequestImage>()
+            //RequestTask Configuration
+            modelBuilder.Entity<RequestTask>()
+                .HasKey(rpi => rpi.RequestTaskId);
+            modelBuilder.Entity<RequestTask>()
                 .HasOne(rpi => rpi.RequestCustomer)
-                .WithMany(rpi => rpi.RequestImages)
-                .HasForeignKey(rpi => rpi.RequestId);
+                .WithOne(rpi => rpi.RequestTask)
+                .HasForeignKey<RequestTask>(rpi => rpi.RequestId);
+            modelBuilder.Entity<RequestTask>()
+                .HasOne(rpi => rpi.Account)
+                .WithMany(rpi => rpi.RequestTasks)
+                .HasForeignKey(rpi => rpi.StaffId);
+
+            //RequestTaskImage Configuration
+            modelBuilder.Entity<RequestTaskImage>()
+                .HasKey(rpi => rpi.RequestTaskImageId);
+            modelBuilder.Entity<RequestTaskImage>()
+                .HasOne(rpi => rpi.RequestTask)
+                .WithMany(rpi => rpi.RequestTaskImages)
+                .HasForeignKey(rpi => rpi.RequestTaskId);
 
             // ReportGrave Configuration
             modelBuilder.Entity<ReportGrave>()
@@ -481,7 +511,7 @@ namespace MartyrGraveManagement_DAL.Entities
                 .WithMany(a => a.WorkPerformances)
                 .HasForeignKey(wp => wp.AccountId)
                 .OnDelete(DeleteBehavior.Restrict);
-     
+
 
             // GraveImage Configuration
             modelBuilder.Entity<GraveImage>()

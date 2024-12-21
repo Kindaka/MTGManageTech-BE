@@ -1,11 +1,6 @@
 ﻿using MartyrGraveManagement_DAL.Entities;
 using MartyrGraveManagement_DAL.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore.Storage;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MartyrGraveManagement_DAL.UnitOfWorks.Interfaces
 {
@@ -52,6 +47,12 @@ namespace MartyrGraveManagement_DAL.UnitOfWorks.Interfaces
         public IGenericRepository<AssignmentTask> AssignmentTaskRepository { get; }
         public IGenericRepository<AssignmentTaskImage> AssignmentTaskImageRepository { get; }
         public IGenericRepository<AssignmentTask_Feedback> AssignmentTaskFeedbackRepository { get; }
+        public IGenericRepository<RequestType> RequestTypeRepository { get; }
+        public IGenericRepository<RequestCustomer> RequestCustomerRepository { get; }
+        public IGenericRepository<ReportGrave> ReportGraveRepository { get; }
+        public IGenericRepository<ReportImage> ReportImageRepository { get; }
+        public IGenericRepository<Request_Material> RequestMaterialRepository { get; }
+
 
 
         Task SaveAsync();
