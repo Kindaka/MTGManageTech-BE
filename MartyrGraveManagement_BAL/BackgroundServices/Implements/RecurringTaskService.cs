@@ -1,12 +1,6 @@
-﻿using Hangfire;
-using MartyrGraveManagement_BAL.BackgroundServices.Interfaces;
+﻿using MartyrGraveManagement_BAL.BackgroundServices.Interfaces;
 using MartyrGraveManagement_DAL.Entities;
 using MartyrGraveManagement_DAL.UnitOfWorks.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MartyrGraveManagement_BAL.BackgroundServices.Implements
 {
@@ -20,125 +14,126 @@ namespace MartyrGraveManagement_BAL.BackgroundServices.Implements
         }
         public async Task CreateRecurringTasksAsync()
         {
-                using (var transaction = await _unitOfWork.BeginTransactionAsync())
+            using (var transaction = await _unitOfWork.BeginTransactionAsync())
+            {
+                try
                 {
-                    try
+                    var activeServiceSchedules = await _unitOfWork.ServiceScheduleRepository
+            .GetAsync(ss => ss.Status == true, includeProperties: "Service,Account");
+
+                    foreach (var serviceSchedule in activeServiceSchedules)
                     {
-                        var activeServiceSchedules = await _unitOfWork.ServiceScheduleRepository
-                .GetAsync(ss => ss.Status == true, includeProperties: "Service,Account");
+                        DateTime? nextServiceDate = null;
 
-                        foreach (var serviceSchedule in activeServiceSchedules)
+                        // Tính ngày dịch vụ tiếp theo
+                        if (serviceSchedule.Service.RecurringType == 1) // Hàng tuần
                         {
-                            DateTime? nextServiceDate = null;
-
-                            // Tính ngày dịch vụ tiếp theo
-                            if (serviceSchedule.Service.RecurringType == 1) // Hàng tuần
-                            {
-                                nextServiceDate = GetNextWeeklyServiceDate(serviceSchedule.DayOfWeek);
-                            }
-                            else if (serviceSchedule.Service.RecurringType == 2) // Hàng tháng
-                            {
-                                nextServiceDate = GetNextMonthlyServiceDate(serviceSchedule.DayOfMonth);
-                            }
-
-                            // Kiểm tra nếu `nextServiceDate` hợp lệ và tạo công việc trước 7 ngày
-                            if (nextServiceDate.HasValue)
-                            {
-                                if (DateOnly.FromDateTime(DateTime.Today) >= DateOnly.FromDateTime(nextServiceDate.Value.AddDays(-6)) && DateOnly.FromDateTime(DateTime.Today) <= DateOnly.FromDateTime(nextServiceDate.Value))
-                                {
-                                    // Kiểm tra xem công việc đã tồn tại chưa
-                                    //var existingTask = await _unitOfWork.AssignmentTaskRepository
-                                    //    .FindAsync(t => t.ServiceScheduleId == serviceSchedule.ServiceScheduleId && t.EndDate == nextServiceDate.Value);
-
-                                    var existingTask = await _unitOfWork.AssignmentTaskRepository
-                                    .FindAsync(t => DateOnly.FromDateTime(t.EndDate) == DateOnly.FromDateTime(nextServiceDate.Value));
-
-                                    if (existingTask.Any())
-                                    {
-                                        Console.WriteLine($"Công việc đã tồn tại vào ngày {nextServiceDate.Value}");
-                                        continue;
-                                    }
-
-                                    var customer = (await _unitOfWork.CustomerWalletRepository.GetAsync(c => c.CustomerId == serviceSchedule.Account.AccountId)).FirstOrDefault();
-                                    if (customer == null)
-                                    {
-                                        // Ghi log hoặc thông báo nếu không đủ số dư
-                                        Console.WriteLine($"Khách hàng {customer.CustomerId} không tìm thấy ví.");
-                                        continue;
-                                    }
-
-                                    // Kiểm tra số dư ví của khách hàng
-                                    if (customer.CustomerBalance < serviceSchedule.Service.Price)
-                                    {
-                                        // Ghi log hoặc thông báo nếu không đủ số dư
-                                        Console.WriteLine($"Khách hàng {customer.CustomerId} không đủ số dư để tạo công việc.");
-                                        continue;
-                                    }
-
-                                    // Trừ số dư ví của khách hàng
-                                    customer.CustomerBalance -= serviceSchedule.Service.Price;
-                                    await _unitOfWork.CustomerWalletRepository.UpdateAsync(customer);
-
-                                    // Lưu lịch sử giao dịch
-                                    var transactionHistory = new TransactionBalanceHistory
-                                    {
-                                        CustomerId = customer.CustomerId,
-                                        Amount = -(serviceSchedule.Service.Price),
-                                        TransactionDate = DateTime.Now,
-                                        Description = $"Thanh toán dịch vụ định kì {serviceSchedule.Service.ServiceName} (Lịch ID: {serviceSchedule.ServiceScheduleId})",
-                                        TransactionType = "Payment" // Loại giao dịch: Trừ tiền
-                                    };
-
-                                    await _unitOfWork.TransactionBalanceHistoryRepository.AddAsync(transactionHistory);
-
-                                    // Lấy thông tin MartyrGrave liên quan
-                                    var martyrGrave = await _unitOfWork.MartyrGraveRepository.GetByIDAsync(serviceSchedule.MartyrId);
-                                    if (martyrGrave == null) continue;
-
-                                    // Lấy danh sách nhân viên phù hợp
-                                    var staffAccounts = await _unitOfWork.AccountRepository
-                                        .FindAsync(a => a.RoleId == 3 && a.AreaId == martyrGrave.AreaId);
-
-                                    if (!staffAccounts.Any()) continue;
-
-                                    // Sắp xếp nhân viên theo số lượng công việc hiện tại
-                                    var staffWorkloads = new Dictionary<int, int>();
-                                    foreach (var staff in staffAccounts)
-                                    {
-                                        var taskCount = await _unitOfWork.AssignmentTaskRepository
-                                            .CountAsync(t => t.StaffId == staff.AccountId);
-                                        staffWorkloads[staff.AccountId] = taskCount;
-                                    }
-
-                                    var selectedStaff = staffAccounts
-                                        .OrderBy(staff => staffWorkloads[staff.AccountId])
-                                        .First();
-
-                                    // Tạo công việc mới với ngày kết thúc là `nextServiceDate`
-                                    var taskEntity = new AssignmentTask
-                                    {
-                                        StaffId = selectedStaff.AccountId,
-                                        ServiceScheduleId = serviceSchedule.ServiceScheduleId,
-                                        CreateAt = DateTime.Now,
-                                        EndDate = nextServiceDate.Value, // Ngày hoàn thành công việc
-                                        Description = serviceSchedule.Note,
-                                        Status = 1 // Trạng thái ban đầu
-                                    };
-                                    
-                                    await _unitOfWork.AssignmentTaskRepository.AddAsync(taskEntity);
-                                    await _unitOfWork.SaveAsync();
-                                }
-                            }
+                            nextServiceDate = GetNextWeeklyServiceDate(serviceSchedule.DayOfWeek);
+                        }
+                        else if (serviceSchedule.Service.RecurringType == 2) // Hàng tháng
+                        {
+                            nextServiceDate = GetNextMonthlyServiceDate(serviceSchedule.DayOfMonth);
                         }
 
-                        await transaction.CommitAsync();
-                    }catch (Exception ex)
-                    {
-                        await transaction.RollbackAsync();
-                        // Log error
-                        Console.WriteLine($"Error in CheckServiceSchedule: {ex.Message}");
+                        // Kiểm tra nếu `nextServiceDate` hợp lệ và tạo công việc trước 7 ngày
+                        if (nextServiceDate.HasValue)
+                        {
+                            if (DateOnly.FromDateTime(DateTime.Today) >= DateOnly.FromDateTime(nextServiceDate.Value.AddDays(-6)) && DateOnly.FromDateTime(DateTime.Today) <= DateOnly.FromDateTime(nextServiceDate.Value))
+                            {
+                                // Kiểm tra xem công việc đã tồn tại chưa
+                                //var existingTask = await _unitOfWork.AssignmentTaskRepository
+                                //    .FindAsync(t => t.ServiceScheduleId == serviceSchedule.ServiceScheduleId && t.EndDate == nextServiceDate.Value);
+
+                                var existingTask = await _unitOfWork.AssignmentTaskRepository
+                                .FindAsync(t => DateOnly.FromDateTime(t.EndDate) == DateOnly.FromDateTime(nextServiceDate.Value));
+
+                                if (existingTask.Any())
+                                {
+                                    Console.WriteLine($"Công việc đã tồn tại vào ngày {nextServiceDate.Value}");
+                                    continue;
+                                }
+
+                                var customer = (await _unitOfWork.CustomerWalletRepository.GetAsync(c => c.CustomerId == serviceSchedule.Account.AccountId)).FirstOrDefault();
+                                if (customer == null)
+                                {
+                                    // Ghi log hoặc thông báo nếu không đủ số dư
+                                    Console.WriteLine($"Khách hàng {customer.CustomerId} không tìm thấy ví.");
+                                    continue;
+                                }
+
+                                // Kiểm tra số dư ví của khách hàng
+                                if (customer.CustomerBalance < serviceSchedule.Service.Price)
+                                {
+                                    // Ghi log hoặc thông báo nếu không đủ số dư
+                                    Console.WriteLine($"Khách hàng {customer.CustomerId} không đủ số dư để tạo công việc.");
+                                    continue;
+                                }
+
+                                // Trừ số dư ví của khách hàng
+                                customer.CustomerBalance -= serviceSchedule.Service.Price;
+                                await _unitOfWork.CustomerWalletRepository.UpdateAsync(customer);
+
+                                // Lưu lịch sử giao dịch
+                                var transactionHistory = new TransactionBalanceHistory
+                                {
+                                    CustomerId = customer.CustomerId,
+                                    Amount = -(serviceSchedule.Service.Price),
+                                    TransactionDate = DateTime.Now,
+                                    Description = $"Thanh toán dịch vụ định kì {serviceSchedule.Service.ServiceName} (Lịch ID: {serviceSchedule.ServiceScheduleId})",
+                                    TransactionType = "Payment" // Loại giao dịch: Trừ tiền
+                                };
+
+                                await _unitOfWork.TransactionBalanceHistoryRepository.AddAsync(transactionHistory);
+
+                                // Lấy thông tin MartyrGrave liên quan
+                                var martyrGrave = await _unitOfWork.MartyrGraveRepository.GetByIDAsync(serviceSchedule.MartyrId);
+                                if (martyrGrave == null) continue;
+
+                                // Lấy danh sách nhân viên phù hợp
+                                var staffAccounts = await _unitOfWork.AccountRepository
+                                    .FindAsync(a => a.RoleId == 3 && a.AreaId == martyrGrave.AreaId);
+
+                                if (!staffAccounts.Any()) continue;
+
+                                // Sắp xếp nhân viên theo số lượng công việc hiện tại
+                                var staffWorkloads = new Dictionary<int, int>();
+                                foreach (var staff in staffAccounts)
+                                {
+                                    var taskCount = await _unitOfWork.ReportGraveRepository
+                                        .CountAsync(t => t.StaffId == staff.AccountId);
+                                    staffWorkloads[staff.AccountId] = taskCount;
+                                }
+
+                                var selectedStaff = staffAccounts
+                                    .OrderBy(staff => staffWorkloads[staff.AccountId])
+                                    .First();
+
+                                // Tạo công việc mới với ngày kết thúc là `nextServiceDate`
+                                var taskEntity = new AssignmentTask
+                                {
+                                    StaffId = selectedStaff.AccountId,
+                                    ServiceScheduleId = serviceSchedule.ServiceScheduleId,
+                                    CreateAt = DateTime.Now,
+                                    EndDate = nextServiceDate.Value, // Ngày hoàn thành công việc
+                                    Description = serviceSchedule.Note,
+                                    Status = 1 // Trạng thái ban đầu
+                                };
+
+                                await _unitOfWork.AssignmentTaskRepository.AddAsync(taskEntity);
+                                await _unitOfWork.SaveAsync();
+                            }
+                        }
                     }
+
+                    await transaction.CommitAsync();
                 }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    // Log error
+                    Console.WriteLine($"Error in CheckServiceSchedule: {ex.Message}");
+                }
+            }
         }
 
         public DateTime GetNextWeeklyServiceDate(int dayOfService)

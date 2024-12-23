@@ -52,6 +52,9 @@ namespace MartyrGraveManagement_DAL.UnitOfWorks.Interfaces
         public IGenericRepository<ReportGrave> ReportGraveRepository { get; }
         public IGenericRepository<ReportImage> ReportImageRepository { get; }
         public IGenericRepository<Request_Material> RequestMaterialRepository { get; }
+        public IGenericRepository<RequestNoteHistory> RequestNoteHistoryRepository { get; }
+        public IGenericRepository<RequestTask> RequestTaskRepository { get; }
+        public IGenericRepository<RequestTaskImage> RequestTaskImageRepository { get; }
 
 
 

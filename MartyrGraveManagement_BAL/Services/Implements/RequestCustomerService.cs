@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using MartyrGraveManagement_BAL.ModelViews.RequestCustomerDTOs;
-using MartyrGraveManagement_BAL.ModelViews.RequestMaterialDTOs;
 using MartyrGraveManagement_BAL.Services.Interfaces;
 using MartyrGraveManagement_DAL.Entities;
 using MartyrGraveManagement_DAL.UnitOfWorks.Interfaces;
@@ -17,19 +16,19 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             _mapper = mapper;
         }
 
-        public async Task<(bool status, string response)> AcceptRequestForManagerAsync(int requestId, int managerId, RequestMaterialDtoRequest? requestMaterial)
+        public async Task<(bool status, string response)> AcceptRequestForManagerAsync(RequestCustomerDtoManagerResponse dtoManagerResponse)
         {
             using (var transaction = await _unitOfWork.BeginTransactionAsync())
             {
                 try
                 {
                     // Kiểm tra AccountID có tồn tại không
-                    var manager = await _unitOfWork.AccountRepository.GetByIDAsync(managerId);
+                    var manager = await _unitOfWork.AccountRepository.GetByIDAsync(dtoManagerResponse.ManagerId);
                     if (manager == null || manager.RoleId != 2)
                     {
                         return (false, "AccountId không tồn tại hoặc bạn không có quyền.");
                     }
-                    var request = (await _unitOfWork.RequestCustomerRepository.GetAsync(r => r.RequestId == requestId, includeProperties: "MartyrGrave")).FirstOrDefault();
+                    var request = (await _unitOfWork.RequestCustomerRepository.GetAsync(r => r.RequestId == dtoManagerResponse.RequestId, includeProperties: "MartyrGrave")).FirstOrDefault();
                     if (request == null)
                     {
                         return (false, "Request không tồn tại.");
@@ -39,78 +38,234 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         return (false, "Request không thuộc khu vực của bạn.");
                     }
                     var requestType = await _unitOfWork.RequestTypeRepository.GetByIDAsync(request.TypeId);
-                    if (requestType.TypeId == 1)
+                    if (dtoManagerResponse.status == true)
                     {
-                        var reportGrave = new ReportGrave
+                        if (requestType.TypeId == 1)
                         {
-                            RequestId = request.RequestId,
-                            Description = request.Note,
-                            CreateAt = DateTime.Now,
-                            UpdateAt = DateTime.Now,
-                            Status = false,
-                        };
-                        await _unitOfWork.ReportGraveRepository.AddAsync(reportGrave);
-                        request.Status = 2;
-                        await _unitOfWork.RequestCustomerRepository.UpdateAsync(request);
+                            var staffAccounts = await _unitOfWork.AccountRepository
+                                            .FindAsync(a => a.RoleId == 3 && a.AreaId == request.MartyrGrave.AreaId);
 
-
-                    }
-                    else if (requestType.TypeId == 2)
-                    {
-                        if (requestMaterial.MaterialIds.Any())
-                        {
-                            decimal expectedPrice = 0;
-                            foreach (var materialId in requestMaterial.MaterialIds)
+                            if (!staffAccounts.Any())
                             {
-                                var material = await _unitOfWork.MaterialRepository.GetByIDAsync(materialId);
-                                if (material == null)
-                                {
-                                    continue;
-                                }
-                                var existedRequestMaterial = (await _unitOfWork.RequestMaterialRepository.GetAsync(r => r.RequestId == request.RequestId && r.MaterialId == materialId)).FirstOrDefault();
-                                if (existedRequestMaterial != null)
-                                {
-                                    continue;
-                                }
-                                expectedPrice += material.Price;
-                                var request_Material = new Request_Material
-                                {
-                                    RequestId = request.RequestId,
-                                    MaterialId = materialId,
-                                    CreatedAt = DateTime.Now,
-                                };
-                                await _unitOfWork.RequestMaterialRepository.AddAsync(request_Material);
+                                return (false, "Trong khu vực không tồn tại nhân viên, không thể thực hiện giao việc.");
                             }
-                            request.Price = expectedPrice + (expectedPrice * 0.05m);
-                            request.Status = 4;
-                            await _unitOfWork.RequestCustomerRepository.UpdateAsync(request);
-                        }
-                        else
-                        {
-                            return (false, "Phải thêm ít nhất một vật liệu để báo giá dịch vụ");
-                        }
-                    }
-                    else if (requestType.TypeId == 3)
-                    {
-                        if (request.ServiceId != null)
-                        {
-                            var graveService = new GraveService
+
+                            // Sắp xếp nhân viên theo số lượng công việc hiện tại
+                            var staffWorkloads = new Dictionary<int, int>();
+                            foreach (var staff in staffAccounts)
                             {
-                                MartyrId = request.MartyrId,
-                                ServiceId = (int)request.ServiceId,
-                                CreatedDate = DateTime.Now,
+                                var taskCount = await _unitOfWork.ReportGraveRepository
+                                    .CountAsync(t => t.StaffId == staff.AccountId);
+                                staffWorkloads[staff.AccountId] = taskCount;
+                            }
+
+                            var selectedStaff = staffAccounts
+                                .OrderBy(staff => staffWorkloads[staff.AccountId])
+                                .First();
+                            var reportGrave = new ReportGrave
+                            {
+                                RequestId = request.RequestId,
+                                StaffId = selectedStaff.AccountId,
+                                Description = request.Note,
+                                CreateAt = DateTime.Now,
+                                UpdateAt = DateTime.Now,
+                                Status = false,
                             };
-                            await _unitOfWork.GraveServiceRepository.AddAsync(graveService);
+                            await _unitOfWork.ReportGraveRepository.AddAsync(reportGrave);
                             request.Status = 2;
                             await _unitOfWork.RequestCustomerRepository.UpdateAsync(request);
+
+
                         }
-                        else
+                        else if (requestType.TypeId == 2)
                         {
-                            return (false, "Dịch vụ không tìm thấy");
+                            if (dtoManagerResponse.MaterialIds.Any())
+                            {
+                                decimal expectedPrice = 0;
+                                foreach (var materialId in dtoManagerResponse.MaterialIds)
+                                {
+                                    var material = await _unitOfWork.MaterialRepository.GetByIDAsync(materialId);
+                                    if (material == null)
+                                    {
+                                        continue;
+                                    }
+                                    var existedRequestMaterial = (await _unitOfWork.RequestMaterialRepository.GetAsync(r => r.RequestId == request.RequestId && r.MaterialId == materialId)).FirstOrDefault();
+                                    if (existedRequestMaterial != null)
+                                    {
+                                        continue;
+                                    }
+                                    expectedPrice += material.Price;
+                                    var request_Material = new Request_Material
+                                    {
+                                        RequestId = request.RequestId,
+                                        MaterialId = materialId,
+                                        CreatedAt = DateTime.Now,
+                                    };
+                                    await _unitOfWork.RequestMaterialRepository.AddAsync(request_Material);
+                                }
+                                if (expectedPrice > 10000)
+                                {
+                                    request.Price = expectedPrice + (expectedPrice * 0.05m);
+                                    request.Status = 4;
+                                    await _unitOfWork.RequestCustomerRepository.UpdateAsync(request);
+                                }
+                                else
+                                {
+                                    return (false, "Giá dịch vụ phải lớn hơn 10000 mới thực hiện được.");
+                                }
+                            }
+                            else
+                            {
+                                return (false, "Phải thêm ít nhất một vật liệu để báo giá dịch vụ");
+                            }
                         }
+                        else if (requestType.TypeId == 3)
+                        {
+                            if (request.ServiceId != null)
+                            {
+                                var graveService = new GraveService
+                                {
+                                    MartyrId = request.MartyrId,
+                                    ServiceId = (int)request.ServiceId,
+                                    CreatedDate = DateTime.Now,
+                                };
+                                await _unitOfWork.GraveServiceRepository.AddAsync(graveService);
+                                request.Status = 2;
+                                await _unitOfWork.RequestCustomerRepository.UpdateAsync(request);
+                            }
+                            else
+                            {
+                                return (false, "Dịch vụ không tìm thấy");
+                            }
+                        }
+                        await transaction.CommitAsync();
+                        return (true, "Đã duyệt yêu cầu thành công");
                     }
+                    else
+                    {
+                        if (dtoManagerResponse.Note == null)
+                        {
+                            return (false, "Từ chối yêu cầu phải ghi rõ nguyên nhân.");
+                        }
+                        var noteHistory = new RequestNoteHistory
+                        {
+                            RequestId = request.RequestId,
+                            AccountId = manager.AccountId,
+                            Note = dtoManagerResponse.Note,
+                            CreateAt = DateTime.Now,
+                            UpdateAt = DateTime.Now,
+                            Status = true
+                        };
+                        await _unitOfWork.RequestNoteHistoryRepository.AddAsync(noteHistory);
+                        request.Status = 3;
+                        await _unitOfWork.RequestCustomerRepository.UpdateAsync(request);
+                        await transaction.CommitAsync();
+                        return (true, "Đã từ chối yêu cầu");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    throw new Exception(ex.Message);
+                }
+            }
+        }
+
+        public async Task<(bool status, string response)> AcceptServiceRequestForCustomerAsync(int requestId, int customerId)
+        {
+            using (var transaction = await _unitOfWork.BeginTransactionAsync())
+            {
+                try
+                {
+                    var customerWallet = (await _unitOfWork.CustomerWalletRepository.GetAsync(c => c.CustomerId == customerId)).FirstOrDefault();
+                    if (customerWallet == null)
+                    {
+                        // Ghi log hoặc thông báo nếu không đủ số dư
+                        return (false, $"Khách hàng {customerId} không tìm thấy ví.");
+                    }
+                    var request = (await _unitOfWork.RequestCustomerRepository.GetAsync(r => r.RequestId == requestId, includeProperties: "MartyrGrave")).FirstOrDefault();
+                    if (request == null)
+                    {
+                        return (false, "Request không tồn tại.");
+                    }
+                    if (request.TypeId != 2)
+                    {
+                        return (false, "Đây không phải là yêu cầu đặt dịch vụ.");
+                    }
+                    if (request.Price < 10000)
+                    {
+                        return (false, "Số tiền để thực hiện phải lớn hơn 10000.");
+                    }
+                    // Kiểm tra số dư ví của khách hàng
+                    if (customerWallet.CustomerBalance < request.Price)
+                    {
+                        // Ghi log hoặc thông báo nếu không đủ số dư
+                        return (false, $"Khách hàng {customerWallet.CustomerId} không đủ số dư để tạo công việc.");
+                    }
+
+                    // Trừ số dư ví của khách hàng
+                    customerWallet.CustomerBalance -= request.Price;
+                    await _unitOfWork.CustomerWalletRepository.UpdateAsync(customerWallet);
+
+                    // Lưu lịch sử giao dịch
+                    var transactionHistory = new TransactionBalanceHistory
+                    {
+                        CustomerId = customerWallet.CustomerId,
+                        Amount = -(request.Price),
+                        TransactionDate = DateTime.Now,
+                        Description = $"Thanh toán dịch vụ theo yêu cầu khách hàng. Mã yêu cầu: {request.RequestId}",
+                        TransactionType = "Payment" // Loại giao dịch: Trừ tiền
+                    };
+
+                    await _unitOfWork.TransactionBalanceHistoryRepository.AddAsync(transactionHistory);
+
+                    // Lấy thông tin MartyrGrave liên quan
+                    var martyrGrave = await _unitOfWork.MartyrGraveRepository.GetByIDAsync(request.MartyrId);
+                    if (martyrGrave == null)
+                    {
+                        return (false, "Không tìm thấy mộ");
+                    }
+
+                    // Lấy danh sách nhân viên phù hợp
+                    var staffAccounts = await _unitOfWork.AccountRepository
+                        .FindAsync(a => a.RoleId == 3 && a.AreaId == martyrGrave.AreaId);
+
+                    if (!staffAccounts.Any())
+                    {
+                        return (false, "Không có nhân viên trong khu vực.");
+                    }
+
+                    // Sắp xếp nhân viên theo số lượng công việc hiện tại
+                    var staffWorkloads = new Dictionary<int, int>();
+                    foreach (var staff in staffAccounts)
+                    {
+                        var taskCount = await _unitOfWork.ReportGraveRepository
+                            .CountAsync(t => t.StaffId == staff.AccountId);
+                        staffWorkloads[staff.AccountId] = taskCount;
+                    }
+
+                    var selectedStaff = staffAccounts
+                        .OrderBy(staff => staffWorkloads[staff.AccountId])
+                        .First();
+
+                    // Tạo công việc mới với ngày kết thúc là `nextServiceDate`
+                    var taskEntity = new RequestTask
+                    {
+                        StaffId = selectedStaff.AccountId,
+                        RequestId = request.RequestId,
+                        StartDate = DateOnly.FromDateTime(DateTime.Now),
+                        EndDate = (DateOnly)request.EndDate, // Ngày hoàn thành công việc
+                        Description = request.Note,
+                        CreateAt = DateTime.Now,
+                        UpdateAt = DateTime.Now,
+                        Status = 1 // Trạng thái ban đầu
+                    };
+
+                    await _unitOfWork.RequestTaskRepository.AddAsync(taskEntity);
+                    request.Status = 5; //Khách hàng đã đồng ý yêu cầu dịch vụ
+                    await _unitOfWork.RequestCustomerRepository.UpdateAsync(request);
                     await transaction.CommitAsync();
-                    return (true, "Đã duyệt yêu cầu thành công");
+                    return (true, "Bạn đã chấp nhận dịch vụ thành công, hãy kiểm tra lại.");
                 }
                 catch (Exception ex)
                 {
@@ -151,6 +306,10 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     if (request.ServiceId != null && requestType.TypeId == 3)
                     {
                         service = await _unitOfWork.ServiceRepository.GetByIDAsync(request.ServiceId);
+                        if (service == null)
+                        {
+                            return (false, "Không tìm thấy mộ.");
+                        }
                         var graveService = (await _unitOfWork.GraveServiceRepository.GetAsync(g => g.ServiceId == service.ServiceId && g.MartyrId == request.MartyrId)).FirstOrDefault();
                         if (graveService != null)
                         {

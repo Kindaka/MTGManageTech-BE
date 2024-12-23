@@ -9,6 +9,7 @@ namespace MartyrGraveManagement_DAL.Entities
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int ReportId { get; set; }
         public int RequestId { get; set; }
+        public int StaffId { get; set; }
         public string? VideoFile { get; set; }
         [Column(TypeName = "nvarchar(MAX)")]
         public string? Description { get; set; }

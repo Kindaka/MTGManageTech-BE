@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace MartyrGraveManagement_BAL.ModelViews.ScheduleDetailDTOs
 {
@@ -14,5 +9,6 @@ namespace MartyrGraveManagement_BAL.ModelViews.ScheduleDetailDTOs
         [Required]
         public DateTime Date { get; set; }
         public string? Description { get; set; }
+        public int ScheduleDetailType { get; set; }
     }
 }

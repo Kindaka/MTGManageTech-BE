@@ -1,12 +1,12 @@
 ﻿using MartyrGraveManagement_BAL.ModelViews.RequestCustomerDTOs;
-using MartyrGraveManagement_BAL.ModelViews.RequestMaterialDTOs;
 
 namespace MartyrGraveManagement_BAL.Services.Interfaces
 {
     public interface IRequestCustomerService
     {
         Task<(bool status, string response)> CreateRequestsAsync(RequestCustomerDtoRequest request);
-        Task<(bool status, string response)> AcceptRequestForManagerAsync(int requestId, int managerId, RequestMaterialDtoRequest? requestMaterial);
+        Task<(bool status, string response)> AcceptRequestForManagerAsync(RequestCustomerDtoManagerResponse dtoManagerResponse);
+        Task<(bool status, string response)> AcceptServiceRequestForCustomerAsync(int requestId, int customerId);
 
         Task<(IEnumerable<RequestCustomerDtoResponse> requestList, int totalPage)> GetRequestsByAccountIdAsync(
             int accountId,

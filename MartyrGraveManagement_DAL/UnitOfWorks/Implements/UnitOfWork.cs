@@ -57,6 +57,9 @@ namespace MartyrGraveManagement_DAL.UnitOfWorks.Implements
         private GenericRepository<ReportGrave> _reportGraveRepository;
         private GenericRepository<ReportImage> _reportImageRepository;
         private GenericRepository<Request_Material> _requestMaterialRepository;
+        private GenericRepository<RequestNoteHistory> _requestNoteHistoryRepository;
+        private GenericRepository<RequestTask> _requestTaskRepository;
+        private GenericRepository<RequestTaskImage> _requestTaskImageRepository;
 
 
         public UnitOfWork(ApplicationDbContext context)
@@ -113,6 +116,9 @@ namespace MartyrGraveManagement_DAL.UnitOfWorks.Implements
         public IGenericRepository<ReportGrave> ReportGraveRepository => _reportGraveRepository ??= new GenericRepository<ReportGrave>(_context);
         public IGenericRepository<ReportImage> ReportImageRepository => _reportImageRepository ??= new GenericRepository<ReportImage>(_context);
         public IGenericRepository<Request_Material> RequestMaterialRepository => _requestMaterialRepository ??= new GenericRepository<Request_Material>(_context);
+        public IGenericRepository<RequestNoteHistory> RequestNoteHistoryRepository => _requestNoteHistoryRepository ??= new GenericRepository<RequestNoteHistory>(_context);
+        public IGenericRepository<RequestTask> RequestTaskRepository => _requestTaskRepository ??= new GenericRepository<RequestTask>(_context);
+        public IGenericRepository<RequestTaskImage> RequestTaskImageRepository => _requestTaskImageRepository ??= new GenericRepository<RequestTaskImage>(_context);
 
 
         public async Task<IDbContextTransaction> BeginTransactionAsync()

@@ -34,18 +34,39 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                             continue;
                         }
 
-                        var task = await _unitOfWork.TaskRepository.GetByIDAsync(request.TaskId);
+                        object task = null;
+                        int taskStatus = 0;
+                        switch (request.ScheduleDetailType)
+                        {
+                            case 1:
+                                task = await _unitOfWork.TaskRepository.GetByIDAsync(request.TaskId);
+                                taskStatus = ((StaffTask)task)?.Status ?? 0;
+                                break;
+                            case 2:
+                                task = await _unitOfWork.AssignmentTaskRepository.GetByIDAsync(request.TaskId);
+                                taskStatus = ((AssignmentTask)task)?.Status ?? 0;
+                                break;
+                            case 3:
+                                task = await _unitOfWork.RequestTaskRepository.GetByIDAsync(request.TaskId);
+                                taskStatus = ((RequestTask)task)?.Status ?? 0;
+                                break;
+                            default:
+                                results.Add($"Loại công việc không hợp lệ cho Task ID {request.TaskId}.");
+                                continue;
+                        }
                         if (task == null)
                         {
                             results.Add($"Task ID {request.TaskId} không tồn tại.");
                             continue;
                         }
-                        if (task.AccountId != accountId)
+                        if ((request.ScheduleDetailType == 1 && ((StaffTask)task).AccountId != accountId) ||
+                            (request.ScheduleDetailType == 2 && ((AssignmentTask)task).StaffId != accountId) ||
+                            (request.ScheduleDetailType == 3 && ((RequestTask)task).StaffId != accountId))
                         {
                             results.Add($"Task này không phải là của bạn.");
                             continue;
                         }
-                        if (task.Status == 4 || task.Status == 5 || task.Status == 2 || task.Status == 3)
+                        if (taskStatus == 4 || taskStatus == 5 || taskStatus == 2 || taskStatus == 3)
                         {
                             results.Add($"Task phải là trạng thái đang chờ xếp lịch mới được thêm vào lịch làm việc.");
                             continue;
@@ -55,8 +76,21 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                             s => s.AccountId == accountId && s.Date == DateOnly.FromDateTime(request.Date));
                         if (existingScheduleDetails.Count() <= 10)
                         {
-                            task.Status = 3;
-                            await _unitOfWork.TaskRepository.UpdateAsync(task);
+                            if (request.ScheduleDetailType == 1)
+                            {
+                                ((StaffTask)task).Status = 3;
+                                await _unitOfWork.TaskRepository.UpdateAsync((StaffTask)task);
+                            }
+                            else if (request.ScheduleDetailType == 2)
+                            {
+                                ((AssignmentTask)task).Status = 3;
+                                await _unitOfWork.AssignmentTaskRepository.UpdateAsync((AssignmentTask)task);
+                            }
+                            else if (request.ScheduleDetailType == 3)
+                            {
+                                ((RequestTask)task).Status = 3;
+                                await _unitOfWork.RequestTaskRepository.UpdateAsync((RequestTask)task);
+                            }
                             var newScheduleDetail = new ScheduleDetail
                             {
                                 AccountId = accountId,
@@ -64,7 +98,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                                 Date = DateOnly.FromDateTime(request.Date),
                                 CreatedAt = DateTime.Now,
                                 UpdateAt = DateTime.Now,
-                                ScheduleDetailType = 1, //Loại công việc định kì
+                                ScheduleDetailType = request.ScheduleDetailType,
                                 Status = 1,
                             };
                             await _unitOfWork.ScheduleDetailRepository.AddAsync(newScheduleDetail);

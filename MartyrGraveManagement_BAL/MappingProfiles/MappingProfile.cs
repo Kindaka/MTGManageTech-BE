@@ -20,6 +20,7 @@ using MartyrGraveManagement_BAL.ModelViews.MartyrGraveInformationDTOs;
 using MartyrGraveManagement_BAL.ModelViews.OrdersDTOs;
 using MartyrGraveManagement_BAL.ModelViews.PaymentDTOs;
 using MartyrGraveManagement_BAL.ModelViews.RequestCustomerDTOs;
+using MartyrGraveManagement_BAL.ModelViews.RequestTaskDTOs;
 using MartyrGraveManagement_BAL.ModelViews.ScheduleDetailDTOs;
 using MartyrGraveManagement_BAL.ModelViews.ServiceCategoryDTOs;
 using MartyrGraveManagement_BAL.ModelViews.ServiceDTOs;
@@ -259,6 +260,8 @@ namespace MartyrGraveManagement_BAL.MappingProfiles
 
             CreateMap<RequestCustomer, RequestCustomerDtoResponse>().ReverseMap();
             CreateMap<RequestCustomer, RequestCustomerDtoRequest>().ReverseMap();
+
+            CreateMap<RequestTask, RequestTaskDtoResponse>().ReverseMap();
         }
         // Thêm helper method vào class MappingProfile
         private static string GetPerformanceLevel(float score)

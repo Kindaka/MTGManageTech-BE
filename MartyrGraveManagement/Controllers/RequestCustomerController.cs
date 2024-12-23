@@ -1,5 +1,4 @@
 ﻿using MartyrGraveManagement_BAL.ModelViews.RequestCustomerDTOs;
-using MartyrGraveManagement_BAL.ModelViews.RequestMaterialDTOs;
 using MartyrGraveManagement_BAL.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -24,7 +23,7 @@ namespace MartyrGraveManagement.Controllers
         /// </summary>
         [Authorize(Policy = "RequireCustomerOrManagerRole")]
         [HttpGet("requests/{requestId}")]
-        public async Task<IActionResult> GetRequestsById(int requestId)
+        public async Task<IActionResult> GetRequestById(int requestId)
         {
             try
             {
@@ -87,7 +86,7 @@ namespace MartyrGraveManagement.Controllers
         /// </summary>
         [Authorize(Policy = "RequireCustomerRole")]
         [HttpGet("requests/account/{accountId}")]
-        public async Task<IActionResult> GetTasksByAccountId(int accountId, DateTime Date, int pageIndex = 1, int pageSize = 5)
+        public async Task<IActionResult> GetRequestByAccountId(int accountId, DateTime Date, int pageIndex = 1, int pageSize = 5)
         {//
             try
             {
@@ -198,7 +197,7 @@ namespace MartyrGraveManagement.Controllers
         /// </summary>
         [Authorize(Policy = "RequireManagerRole")]
         [HttpPut("AcceptRequest")]
-        public async Task<IActionResult> AcceptRequest(int requestId, int managerId, RequestMaterialDtoRequest requestMaterial)
+        public async Task<IActionResult> AcceptRequest(RequestCustomerDtoManagerResponse dtoManagerResponse)
         {
             try
             {
@@ -209,12 +208,62 @@ namespace MartyrGraveManagement.Controllers
                 }
 
                 var tokenAccountId = int.Parse(tokenAccountIdClaim.Value);
-                if (tokenAccountId != managerId)
+                if (tokenAccountId != dtoManagerResponse.ManagerId)
                 {
                     return Forbid("Bạn không có quyền cập nhật request.");
                 }
                 // Gọi service để tạo task từ danh sách
-                var request = await _requestCustomerService.AcceptRequestForManagerAsync(requestId, managerId, requestMaterial);
+                var request = await _requestCustomerService.AcceptRequestForManagerAsync(dtoManagerResponse);
+                if (request.status)
+                {
+                    return Ok(new { message = "Requests created successfully.", request.response });
+                }
+                else
+                {
+                    return BadRequest(new { message = $"{request.response}" });
+                }
+
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(403, new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = $"Internal server error: {ex.Message}" });
+            }
+        }
+
+        /// <summary>
+        /// Accept a request service from Manager for Customer booking request service.
+        /// </summary>
+        [Authorize(Policy = "RequireCustomerRole")]
+        [HttpPut("AcceptServiceRequest/customer")]
+        public async Task<IActionResult> AcceptServiceRequest(int requestId, int customerId)
+        {
+            try
+            {
+                var tokenAccountIdClaim = User.FindFirst("AccountId");
+                if (tokenAccountIdClaim == null || string.IsNullOrEmpty(tokenAccountIdClaim.Value))
+                {
+                    return Forbid("Không tìm thấy AccountId trong token.");
+                }
+
+                var tokenAccountId = int.Parse(tokenAccountIdClaim.Value);
+                if (tokenAccountId != customerId)
+                {
+                    return Forbid("Bạn không có quyền cập nhật request.");
+                }
+                // Gọi service để tạo task từ danh sách
+                var request = await _requestCustomerService.AcceptServiceRequestForCustomerAsync(requestId, customerId);
                 if (request.status)
                 {
                     return Ok(new { message = "Requests created successfully.", request.response });
