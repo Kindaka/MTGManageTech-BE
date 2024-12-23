@@ -121,8 +121,19 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         }
                         else if (requestType.TypeId == 3)
                         {
-                            if (request.ServiceId != null)
+
+                            if (request.ServiceId != null )
                             {
+                                var duplicateRecords = await _unitOfWork.GraveServiceRepository
+                                 .FindAsync(gs => gs.ServiceId == request.ServiceId && gs.MartyrId == request.MartyrId);
+
+                                if (duplicateRecords.Any())
+                                {
+                                    return (false, "Dịch vụ đã tồn tại cho liệt sĩ này.");
+                                }
+
+
+
                                 var graveService = new GraveService
                                 {
                                     MartyrId = request.MartyrId,
@@ -423,6 +434,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     requests = await _unitOfWork.RequestCustomerRepository.GetAsync(
                         s => s.CustomerId == customer.AccountId,
                         includeProperties: "MartyrGrave,Account",
+                        orderBy: q => q.OrderByDescending(r => r.CreateAt),
                         pageIndex: pageIndex,
                         pageSize: pageSize
                     );
@@ -439,6 +451,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         t => t.CustomerId == customer.AccountId &&
                         t.EndDate == DateOnly.FromDateTime(Date.Date),
                         includeProperties: "MartyrGrave,Account",
+                        orderBy: q => q.OrderByDescending(r => r.CreateAt),
                         pageIndex: pageIndex,
                         pageSize: pageSize
                     );
@@ -492,6 +505,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     requests = await _unitOfWork.RequestCustomerRepository.GetAsync(
                         s => s.MartyrGrave.AreaId == manager.AreaId,
                         includeProperties: "MartyrGrave,Account",
+                        orderBy: q => q.OrderByDescending(r => r.CreateAt),
                         pageIndex: pageIndex,
                         pageSize: pageSize
                     );
@@ -508,6 +522,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         t => t.MartyrGrave.AreaId == manager.AreaId &&
                         t.EndDate == DateOnly.FromDateTime(Date.Date),
                         includeProperties: "MartyrGrave,Account",
+                        orderBy: q => q.OrderByDescending(r => r.CreateAt),
                         pageIndex: pageIndex,
                         pageSize: pageSize
                     );

@@ -176,6 +176,7 @@ builder.Services.AddScoped<IAssignmentTaskService, AssignmentTaskService>();
 builder.Services.AddScoped<IAssignmentTaskFeedbackService, AssignmentTaskFeedbackService>();
 builder.Services.AddScoped<IRequestCustomerService, RequestCustomerService>();
 builder.Services.AddScoped<IRequestTaskService, RequestTaskService>();
+builder.Services.AddScoped<IRequestTypeService, RequestTypeService>();
 
 // Đăng ký ML
 builder.Services.AddScoped<ITrendingRecommendationService, TrendingRecommendationService>();
