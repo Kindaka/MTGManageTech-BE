@@ -1,20 +1,14 @@
 ﻿using AutoMapper;
-using MartyrGraveManagement_BAL.ModelViews.CartItemsDTOs;
 using MartyrGraveManagement_BAL.ModelViews.OrdersDetailDTOs;
 using MartyrGraveManagement_BAL.ModelViews.OrdersDTOs;
 using MartyrGraveManagement_BAL.ModelViews.StaffDTOs;
+using MartyrGraveManagement_BAL.ModelViews.TaskDTOs;
 using MartyrGraveManagement_BAL.Services.Interfaces;
 using MartyrGraveManagement_BAL.VNPay;
 using MartyrGraveManagement_DAL.Entities;
 using MartyrGraveManagement_DAL.UnitOfWorks.Interfaces;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Identity.Client;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MartyrGraveManagement_BAL.Services.Implements
 {
@@ -24,15 +18,17 @@ namespace MartyrGraveManagement_BAL.Services.Implements
         private readonly IMapper _mapper;
         private readonly IConfiguration _configuration;
         private readonly IPaymentService _paymentService;
+        private readonly ITaskService _taskService;
 
 
 
-        public OrdersService(IUnitOfWork unitOfWork, IMapper mapper, IConfiguration configuration, IPaymentService paymentService)
+        public OrdersService(IUnitOfWork unitOfWork, IMapper mapper, IConfiguration configuration, IPaymentService paymentService, ITaskService taskService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _configuration = configuration;
             _paymentService = paymentService;
+            _taskService = taskService;
         }
 
 
@@ -579,7 +575,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         {
                             // Tính toán số dư mới
                             decimal newBalance = currentBalance - totalPrice;
-                            
+
                             // Tạo Payment record
                             var payment = new Payment
                             {
@@ -619,7 +615,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
                             // Xóa các mục trong giỏ hàng
                             foreach (var cartItem in cartItems)
-                            { 
+                            {
                                 await _unitOfWork.CartItemRepository.DeleteAsync(cartItem);
                             }
 
@@ -646,7 +642,13 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                                 Status = true
                             };
                             await _unitOfWork.NotificationAccountsRepository.AddAsync(notificationAccount);
-
+                            var existingOrderDetails = await _unitOfWork.OrderDetailRepository.GetAsync(od => od.OrderId == order.OrderId);
+                            var taskRequests = orderDetails.Select(od => new TaskDtoRequest
+                            {
+                                OrderId = order.OrderId,
+                                DetailId = od.DetailId
+                            }).ToList();
+                            await _taskService.CreateTasksAsync(taskRequests);
                             //await _unitOfWork.SaveAsync();
                             await transaction.CommitAsync();
                             return (true, null, "Đơn hàng đã được thanh toán thành công bằng số dư tài khoản.");
@@ -934,7 +936,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 var result = orderHistory.Select(od => new MartyrGraveOrderHistoryDTO
                 {
                     ServiceName = od.Service.ServiceName,
-                    ServiceCategoryName = od.Service.ServiceCategory.CategoryName, 
+                    ServiceCategoryName = od.Service.ServiceCategory.CategoryName,
                     OrderDate = od.Order.OrderDate,
                     Status = od.Order.Status
                 }).ToList();

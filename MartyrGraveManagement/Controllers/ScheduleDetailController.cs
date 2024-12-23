@@ -1,7 +1,6 @@
 ﻿using MartyrGraveManagement_BAL.ModelViews.ScheduleDetailDTOs;
 using MartyrGraveManagement_BAL.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 
@@ -41,7 +40,7 @@ namespace MartyrGraveManagement.Controllers
             {
                 return Forbid("Bạn không có quyền.");
             }
-            
+
 
             // Gọi dịch vụ để tạo danh sách lịch trình và nhận danh sách kết quả
             var results = await _scheduleDetailService.CreateScheduleDetail(requests, accountId);
@@ -190,7 +189,8 @@ namespace MartyrGraveManagement.Controllers
                 var scheduleList = await _scheduleDetailService.GetScheduleDetailStaff(accountId, Date);
                 return Ok(scheduleList);
             }
-            catch (Exception ex) { 
+            catch (Exception ex)
+            {
                 throw new Exception(ex.Message);
             }
         }
@@ -220,7 +220,7 @@ namespace MartyrGraveManagement.Controllers
                     return Forbid("Bạn không có quyền.");
                 }
                 var scheduleDetail = await _scheduleDetailService.GetScheduleDetailById(accountId, scheduleDetailId);
-                return Ok(new {scheduleDetail = scheduleDetail});
+                return Ok(new { scheduleDetail = scheduleDetail });
             }
             catch (Exception ex)
             {

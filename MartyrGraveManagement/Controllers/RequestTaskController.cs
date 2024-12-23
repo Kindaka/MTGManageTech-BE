@@ -212,7 +212,7 @@ namespace MartyrGraveManagement.Controllers
         /// Add Image task when status = 3 Processing (Staff Role) If Order have 2 Task => 2 Tasks must have status 4 and from there Order Status also up to 4
         /// </summary>
         [Authorize(Policy = "RequireStaffRole")]
-        [HttpPut("requestTasks/{taskId}/images")]
+        [HttpPut("requestTasks/images/{taskId}")]
         public async Task<IActionResult> UpdateTaskImages(int taskId, [FromBody] TaskImageUpdateDTO imageUpdateDto)
         {
             try

@@ -1,9 +1,5 @@
-﻿using MartyrGraveManagement_BAL.ModelViews.TaskDTOs;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using MartyrGraveManagement_BAL.ModelViews.MaterialDTOs;
+using MartyrGraveManagement_BAL.ModelViews.TaskDTOs;
 
 namespace MartyrGraveManagement_BAL.ModelViews.ScheduleDetailDTOs
 {
@@ -17,6 +13,7 @@ namespace MartyrGraveManagement_BAL.ModelViews.ScheduleDetailDTOs
         public string? Description { get; set; }
         public int? TaskId { get; set; }
         public int? AssignmentTaskId { get; set; }
+        public int? RequestTaskId { get; set; }
         public string RecurringType { get; set; }
         public string ServiceName { get; set; }
         public string? ServiceDescription { get; set; }
@@ -27,5 +24,7 @@ namespace MartyrGraveManagement_BAL.ModelViews.ScheduleDetailDTOs
         public int RowNumber { get; set; }
         public int MartyrNumber { get; set; }
         public int Status { get; set; }
+
+        public List<MaterialDtoResponse> Materials { get; set; } = new List<MaterialDtoResponse>();
     }
 }

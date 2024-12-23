@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using MartyrGraveManagement_BAL.ModelViews.MaterialDTOs;
 using MartyrGraveManagement_BAL.ModelViews.ScheduleDetailDTOs;
 using MartyrGraveManagement_BAL.ModelViews.TaskDTOs;
 using MartyrGraveManagement_BAL.Services.Interfaces;
@@ -380,6 +381,24 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         Status = task.Status,
                     };
 
+                    var materialInService = await _unitOfWork.MaterialServiceRepository.GetAsync(m => m.ServiceId == task.OrderDetail.Service.ServiceId, includeProperties: "Material");
+                    if (materialInService != null)
+                    {
+                        foreach (var material in materialInService)
+                        {
+                            var materialResponse = new MaterialDtoResponse
+                            {
+                                MaterialId = material.Id,
+                                MaterialName = material.Material.MaterialName,
+                                Description = material.Material.Description,
+                                ImagePath = material.Material.ImagePath,
+                                Price = material.Material.Price,
+                                Status = material.Material.Status,
+                            };
+                            scheduleStaff.Materials.Add(materialResponse);
+                        }
+                    }
+
                     var taskImages = await _unitOfWork.TaskImageRepository.GetAsync(t => t.TaskId == task.TaskId);
                     if (taskImages != null)
                     {
@@ -426,6 +445,24 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         Status = task.Status,
                     };
 
+                    var materialInService = await _unitOfWork.MaterialServiceRepository.GetAsync(m => m.ServiceId == task.Service_Schedule.Service.ServiceId, includeProperties: "Material");
+                    if (materialInService != null)
+                    {
+                        foreach (var material in materialInService)
+                        {
+                            var materialResponse = new MaterialDtoResponse
+                            {
+                                MaterialId = material.Id,
+                                MaterialName = material.Material.MaterialName,
+                                Description = material.Material.Description,
+                                ImagePath = material.Material.ImagePath,
+                                Price = material.Material.Price,
+                                Status = material.Material.Status,
+                            };
+                            scheduleStaff.Materials.Add(materialResponse);
+                        }
+                    }
+
                     var taskImages = await _unitOfWork.AssignmentTaskImageRepository.GetAsync(t => t.AssignmentTaskId == task.AssignmentTaskId);
                     if (taskImages != null)
                     {
@@ -436,6 +473,71 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                                 var imageTask = new TaskImageDtoResponse
                                 {
                                     images = image.ImagePath,
+                                };
+                                scheduleStaff.ImageTaskImages.Add(imageTask);
+                            }
+                        }
+                    }
+                }
+                else if (scheduleDetailStaff.ScheduleDetailType == 3)
+                {
+                    var task = (await _unitOfWork.RequestTaskRepository.GetAsync(sds => sds.RequestTaskId == scheduleDetailStaff.TaskId,
+                        includeProperties: "RequestCustomer.MartyrGrave.Location,RequestCustomer.RequestType")).FirstOrDefault();
+
+                    if (task == null)
+                    {
+                        return null;
+                    }
+
+
+                    scheduleStaff = new ScheduleDetailForTaskDtoResponse
+                    {
+                        ScheduleDetailId = scheduleDetailStaff.Id,
+                        StaffName = scheduleDetailStaff.Account.FullName,
+                        Date = scheduleDetailStaff.Date,
+                        StartDate = task.StartDate,
+                        EndDate = task.EndDate,
+                        Description = task.Description,
+                        ServiceName = task.RequestCustomer.RequestType.TypeName,
+                        ServiceDescription = task.RequestCustomer.RequestType.TypeDescription,
+                        MartyrCode = task.RequestCustomer.MartyrGrave.MartyrCode,
+                        RequestTaskId = scheduleDetailStaff.TaskId,
+                        ImageWorkSpace = task.ImageWorkSpace,
+                        AreaNumber = task.RequestCustomer.MartyrGrave.Location.AreaNumber,
+                        RowNumber = task.RequestCustomer.MartyrGrave.Location.RowNumber,
+                        MartyrNumber = task.RequestCustomer.MartyrGrave.Location.MartyrNumber,
+                        Status = task.Status,
+                    };
+
+
+                    var materialInService = await _unitOfWork.RequestMaterialRepository.GetAsync(m => m.RequestId == task.RequestCustomer.RequestId, includeProperties: "Material");
+                    if (materialInService != null)
+                    {
+                        foreach (var material in materialInService)
+                        {
+                            var materialResponse = new MaterialDtoResponse
+                            {
+                                MaterialId = material.MaterialId,
+                                MaterialName = material.Material.MaterialName,
+                                Description = material.Material.Description,
+                                ImagePath = material.Material.ImagePath,
+                                Price = material.Material.Price,
+                                Status = material.Material.Status,
+                            };
+                            scheduleStaff.Materials.Add(materialResponse);
+                        }
+                    }
+
+                    var taskImages = await _unitOfWork.RequestTaskImageRepository.GetAsync(t => t.RequestTaskId == task.RequestTaskId);
+                    if (taskImages != null)
+                    {
+                        foreach (var image in taskImages)
+                        {
+                            if (image.ImageRequestTaskCustomer != null)
+                            {
+                                var imageTask = new TaskImageDtoResponse
+                                {
+                                    images = image.ImageRequestTaskCustomer,
                                 };
                                 scheduleStaff.ImageTaskImages.Add(imageTask);
                             }
@@ -534,6 +636,20 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                             Description = scheduleDetail.Description,
                             ServiceName = task.Service_Schedule.Service.ServiceName,
                             MartyrCode = task.Service_Schedule.MartyrGrave.MartyrCode,
+                            Status = task.Status
+                        };
+                        scheduleDetailList.Add(scheduleStaff);
+                    }
+                    else if (scheduleDetail.ScheduleDetailType == 3)
+                    {
+                        var task = (await _unitOfWork.RequestTaskRepository.GetAsync(t => t.RequestTaskId == scheduleDetail.TaskId, includeProperties: "RequestCustomer.MartyrGrave,RequestCustomer.RequestType,Account")).FirstOrDefault();
+                        var scheduleStaff = new ScheduleDetailListDtoResponse
+                        {
+                            ScheduleDetailId = scheduleDetail.Id,
+                            Date = scheduleDetail.Date,
+                            Description = scheduleDetail.Description,
+                            ServiceName = task.RequestCustomer.RequestType.TypeName,
+                            MartyrCode = task.RequestCustomer.MartyrGrave.MartyrCode,
                             Status = task.Status
                         };
                         scheduleDetailList.Add(scheduleStaff);
