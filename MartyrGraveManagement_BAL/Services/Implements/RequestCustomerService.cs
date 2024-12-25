@@ -443,13 +443,13 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 {
                     totalTask = (await _unitOfWork.RequestCustomerRepository.GetAsync(
                         s => s.CustomerId == customer.AccountId &&
-                        s.EndDate == DateOnly.FromDateTime(Date.Date),
+                        s.CreateAt.Date == Date.Date,
                         includeProperties: "MartyrGrave,Account")).Count();
                     totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
 
                     requests = await _unitOfWork.RequestCustomerRepository.GetAsync(
                         t => t.CustomerId == customer.AccountId &&
-                        t.EndDate == DateOnly.FromDateTime(Date.Date),
+                        t.CreateAt.Date == Date.Date,
                         includeProperties: "MartyrGrave,Account",
                         orderBy: q => q.OrderByDescending(r => r.CreateAt),
                         pageIndex: pageIndex,
@@ -514,13 +514,13 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 {
                     totalTask = (await _unitOfWork.RequestCustomerRepository.GetAsync(
                         s => s.MartyrGrave.AreaId == manager.AreaId &&
-                        s.EndDate == DateOnly.FromDateTime(Date.Date),
+                        s.CreateAt.Date == Date.Date,
                         includeProperties: "MartyrGrave,Account")).Count();
                     totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
 
                     requests = await _unitOfWork.RequestCustomerRepository.GetAsync(
                         t => t.MartyrGrave.AreaId == manager.AreaId &&
-                        t.EndDate == DateOnly.FromDateTime(Date.Date),
+                        t.CreateAt.Date == Date.Date,
                         includeProperties: "MartyrGrave,Account",
                         orderBy: q => q.OrderByDescending(r => r.CreateAt),
                         pageIndex: pageIndex,
