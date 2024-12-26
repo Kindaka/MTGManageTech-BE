@@ -1,6 +1,4 @@
-﻿using MartyrGraveManagement_BAL.Services.Implements;
-using MartyrGraveManagement_BAL.Services.Interfaces;
-using Microsoft.AspNetCore.Authorization;
+﻿using MartyrGraveManagement_BAL.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MartyrGraveManagement.Controllers

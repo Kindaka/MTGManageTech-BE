@@ -316,6 +316,14 @@ namespace MartyrGraveManagement_DAL.Entities
                 .WithMany(rpi => rpi.RequestTasks)
                 .HasForeignKey(rpi => rpi.StaffId);
 
+            //RequestFeedback Configuration
+            modelBuilder.Entity<RequestFeedback>()
+                .HasKey(rpi => rpi.FeedbackId);
+            modelBuilder.Entity<RequestFeedback>()
+                .HasOne(rpi => rpi.RequestCustomer)
+                .WithOne(rpi => rpi.RequestFeedback)
+                .HasForeignKey<RequestFeedback>(rpi => rpi.RequestId);
+
             //RequestTaskImage Configuration
             modelBuilder.Entity<RequestTaskImage>()
                 .HasKey(rpi => rpi.RequestTaskImageId);

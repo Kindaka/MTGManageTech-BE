@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using MartyrGraveManagement_BAL.ModelViews.RequestCustomerDTOs;
-using MartyrGraveManagement_BAL.ModelViews.RequestMaterialDTOs;
 using MartyrGraveManagement_BAL.Services.Interfaces;
 using MartyrGraveManagement_DAL.Entities;
 using MartyrGraveManagement_DAL.UnitOfWorks.Interfaces;
@@ -71,7 +70,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                                 Description = request.Note,
                                 CreateAt = DateTime.Now,
                                 UpdateAt = DateTime.Now,
-                                Status = false,
+                                Status = 1,
                             };
                             await _unitOfWork.ReportGraveRepository.AddAsync(reportGrave);
                             request.Status = 2;
@@ -124,7 +123,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         else if (requestType.TypeId == 3)
                         {
 
-                            if (request.ServiceId != null )
+                            if (request.ServiceId != null)
                             {
                                 var duplicateRecords = await _unitOfWork.GraveServiceRepository
                                  .FindAsync(gs => gs.ServiceId == request.ServiceId && gs.MartyrId == request.MartyrId);

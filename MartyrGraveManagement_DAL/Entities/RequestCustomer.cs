@@ -30,5 +30,6 @@ namespace MartyrGraveManagement_DAL.Entities
         public RequestType? RequestType { get; set; }
         public ReportGrave? ReportGrave { get; set; }
         public RequestTask? RequestTask { get; set; }
+        public RequestFeedback? RequestFeedback { get; set; }
     }
 }

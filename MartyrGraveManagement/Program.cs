@@ -179,6 +179,8 @@ builder.Services.AddScoped<IRequestTaskService, RequestTaskService>();
 builder.Services.AddScoped<IRequestTypeService, RequestTypeService>();
 builder.Services.AddScoped<IRequestNoteHistoryService, RequestNoteHistoryService>();
 builder.Services.AddScoped<IRequestMaterialService, RequestMaterialService>();
+builder.Services.AddScoped<IReportGraveService, ReportGraveService>();
+builder.Services.AddScoped<IGoogleDriveService, GoogleDriveService>();
 
 // Đăng ký ML
 builder.Services.AddScoped<ITrendingRecommendationService, TrendingRecommendationService>();
