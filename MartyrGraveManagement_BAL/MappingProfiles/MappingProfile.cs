@@ -262,6 +262,31 @@ namespace MartyrGraveManagement_BAL.MappingProfiles
             CreateMap<RequestCustomer, RequestCustomerDtoRequest>().ReverseMap();
 
             CreateMap<RequestTask, RequestTaskDtoResponse>().ReverseMap();
+
+
+            // Ánh xạ cho RequestCustomer -> RequestCustomerDtoResponse
+            CreateMap<RequestCustomer, RequestCustomerDtoResponse>()
+                .ForMember(dest => dest.RequestTask, opt => opt.MapFrom(src => src.RequestTask)) // Ánh xạ thủ công cho RequestTask
+                .ForMember(dest => dest.RequestMaterials, opt => opt.MapFrom(src => src.RequestMaterials)); // Ánh xạ thủ công cho RequestMaterials
+
+            // Ánh xạ cho RequestTask -> RequestTaskDto
+            CreateMap<RequestTask, RequestCustomerDtoResponse.RequestTaskDto>();
+
+            // Ánh xạ cho RequestTaskImage -> RequestTaskImageDto
+            CreateMap<RequestTaskImage, RequestCustomerDtoResponse.RequestTaskImageDto>();
+
+            // Ánh xạ cho ReportGrave -> ReportTaskDto
+            CreateMap<ReportGrave, RequestCustomerDtoResponse.ReportTaskDto>();
+
+            // Ánh xạ cho ReportImage -> ReportImageDto
+            CreateMap<ReportImage, RequestCustomerDtoResponse.ReportImageDto>();
+
+            // Ánh xạ cho Request_Material -> RequestMaterialDto
+            CreateMap<Request_Material, RequestCustomerDtoResponse.RequestMaterialDTOResponse>()
+                .ForMember(dest => dest.MaterialName, opt => opt.MapFrom(src => src.Material.MaterialName))
+                .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Material.Description))
+                .ForMember(dest => dest.ImagePath, opt => opt.MapFrom(src => src.Material.ImagePath))
+                .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.Material.Price));
         }
         // Thêm helper method vào class MappingProfile
         private static string GetPerformanceLevel(float score)

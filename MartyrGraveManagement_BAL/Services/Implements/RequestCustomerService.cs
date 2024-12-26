@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
 using MartyrGraveManagement_BAL.ModelViews.RequestCustomerDTOs;
+using MartyrGraveManagement_BAL.ModelViews.RequestMaterialDTOs;
 using MartyrGraveManagement_BAL.Services.Interfaces;
 using MartyrGraveManagement_DAL.Entities;
 using MartyrGraveManagement_DAL.UnitOfWorks.Interfaces;
+using static MartyrGraveManagement_BAL.ModelViews.RequestCustomerDTOs.RequestCustomerDtoResponse;
 
 namespace MartyrGraveManagement_BAL.Services.Implements
 {
@@ -191,31 +193,36 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     var customerWallet = (await _unitOfWork.CustomerWalletRepository.GetAsync(c => c.CustomerId == customerId)).FirstOrDefault();
                     if (customerWallet == null)
                     {
-                        // Ghi log hoặc thông báo nếu không đủ số dư
                         return (false, $"Khách hàng {customerId} không tìm thấy ví.");
                     }
+
                     var request = (await _unitOfWork.RequestCustomerRepository.GetAsync(r => r.RequestId == requestId, includeProperties: "MartyrGrave")).FirstOrDefault();
                     if (request == null)
                     {
                         return (false, "Request không tồn tại.");
                     }
+
                     if (request.TypeId != 2)
                     {
                         return (false, "Đây không phải là yêu cầu đặt dịch vụ.");
                     }
+
                     if (request.Price < 10000)
                     {
                         return (false, "Số tiền để thực hiện phải lớn hơn 10000.");
                     }
+
                     // Kiểm tra số dư ví của khách hàng
                     if (customerWallet.CustomerBalance < request.Price)
                     {
-                        // Ghi log hoặc thông báo nếu không đủ số dư
-                        return (false, $"Khách hàng {customerWallet.CustomerId} không đủ số dư để tạo công việc.");
+                        return (false, $"Khách hàng {customerWallet.CustomerId} không đủ số dư để thực hiện yêu cầu.");
                     }
 
+                    // Tính toán số dư sau khi thanh toán
+                    decimal balanceAfterTransaction = customerWallet.CustomerBalance - request.Price;
+
                     // Trừ số dư ví của khách hàng
-                    customerWallet.CustomerBalance -= request.Price;
+                    customerWallet.CustomerBalance = balanceAfterTransaction;
                     await _unitOfWork.CustomerWalletRepository.UpdateAsync(customerWallet);
 
                     // Lưu lịch sử giao dịch
@@ -224,10 +231,10 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         CustomerId = customerWallet.CustomerId,
                         Amount = -(request.Price),
                         TransactionDate = DateTime.Now,
+                        BalanceAfterTransaction = balanceAfterTransaction, // Cập nhật số dư sau giao dịch
                         Description = $"Thanh toán dịch vụ theo yêu cầu khách hàng. Mã yêu cầu: {request.RequestId}",
                         TransactionType = "Payment" // Loại giao dịch: Trừ tiền
                     };
-
                     await _unitOfWork.TransactionBalanceHistoryRepository.AddAsync(transactionHistory);
 
                     // Lấy thông tin MartyrGrave liên quan
@@ -273,9 +280,10 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     };
 
                     await _unitOfWork.RequestTaskRepository.AddAsync(taskEntity);
-                    request.Status = 5; //Khách hàng đã đồng ý yêu cầu dịch vụ
+                    request.Status = 5; // Khách hàng đã đồng ý yêu cầu dịch vụ
                     await _unitOfWork.RequestCustomerRepository.UpdateAsync(request);
                     await transaction.CommitAsync();
+
                     return (true, "Bạn đã chấp nhận dịch vụ thành công, hãy kiểm tra lại.");
                 }
                 catch (Exception ex)
@@ -285,6 +293,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 }
             }
         }
+
 
         public async Task<(bool status, string response)> CreateRequestsAsync(RequestCustomerDtoRequest request)
         {
@@ -395,19 +404,127 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             try
             {
                 var requestResponse = new RequestCustomerDtoResponse();
-                var request = (await _unitOfWork.RequestCustomerRepository.GetAsync(r => r.RequestId == requestId)).FirstOrDefault();
-                if (request == null)
+
+                // Lấy thông tin request
+                var request = await _unitOfWork.RequestCustomerRepository.GetAsync(
+                    r => r.RequestId == requestId,
+                    includeProperties: "Account,MartyrGrave.MartyrGraveInformations,RequestType,RequestNoteHistories,RequestTask.RequestTaskImages,ReportGrave.ReportImages,RequestMaterials.Material");
+
+                var requestEntity = request.FirstOrDefault();
+                if (requestEntity == null)
                 {
                     return requestResponse;
                 }
-                requestResponse = _mapper.Map<RequestCustomerDtoResponse>(request);
+
+                // Ánh xạ thông tin cơ bản
+                requestResponse = _mapper.Map<RequestCustomerDtoResponse>(requestEntity);
+
+                // Lấy thêm thông tin từ các bảng liên quan
+                if (requestEntity.Account != null)
+                {
+                    requestResponse.CustomerName = requestEntity.Account.FullName;
+                    requestResponse.CustomerPhone = requestEntity.Account.PhoneNumber;
+                }
+
+                if (requestEntity.MartyrGrave != null)
+                {
+                    requestResponse.MartyrCode = requestEntity.MartyrGrave.MartyrCode;
+                    var martyrInfo = requestEntity.MartyrGrave.MartyrGraveInformations?.FirstOrDefault();
+                    requestResponse.MartyrName = martyrInfo?.Name;
+                }
+
+                if (requestEntity.RequestType != null)
+                {
+                    requestResponse.RequestTypeName = requestEntity.RequestType.TypeName;
+                }
+
+                if (requestEntity.RequestNoteHistories != null && requestEntity.RequestNoteHistories.Any())
+                {
+                    requestResponse.Reasons = requestEntity.RequestNoteHistories
+                        .OrderByDescending(n => n.CreateAt)
+                        .Select(n => new ReasonDto
+                        {
+                            RejectReason = n.Note,
+                            RejectReason_CreateAt = n.CreateAt
+                        })
+                        .ToList();
+                }
+
+
+                if (requestEntity.ServiceId.HasValue)
+                {
+                    var service = await _unitOfWork.ServiceRepository.GetAsync(s => s.ServiceId == requestEntity.ServiceId.Value);
+                    var serviceEntity = service.FirstOrDefault();
+                    if (serviceEntity != null)
+                    {
+                        requestResponse.ServiceName = serviceEntity.ServiceName; // Gán tên dịch vụ từ bảng Service
+                    }
+                }
+
+
+                // Lấy thông tin từ RequestTask
+                if (requestEntity.RequestTask != null)
+                {
+                    requestResponse.RequestTask = new RequestTaskDto
+                    {
+                        RequestTaskId = requestEntity.RequestTask.RequestTaskId,
+                        Description = requestEntity.RequestTask.Description,
+                        ImageWorkSpace = requestEntity.RequestTask.ImageWorkSpace,
+                        Reason = requestEntity.RequestTask.Reason,
+                        Status = requestEntity.RequestTask.Status,
+                        CreateAt = requestEntity.RequestTask.CreateAt,
+                        TaskImages = requestEntity.RequestTask.RequestTaskImages?.Select(img => new RequestTaskImageDto
+                        {
+                            RequestTaskImageId = img.RequestTaskImageId,
+                            ImageRequestTaskCustomer = img.ImageRequestTaskCustomer,
+                            CreateAt = img.CreateAt
+                        }).ToList()
+                    };
+                }
+
+                // Lấy thông tin từ ReportGrave
+                if (requestEntity.ReportGrave != null)
+                {
+                    requestResponse.ReportTask = new ReportTaskDto
+                    {
+                        ReportId = requestEntity.ReportGrave.ReportId,
+                        VideoFile = requestEntity.ReportGrave.VideoFile,
+                        Description = requestEntity.ReportGrave.Description,
+                        CreateAt = requestEntity.ReportGrave.CreateAt,
+                        ReportImages = requestEntity.ReportGrave.ReportImages?.Select(img => new ReportImageDto
+                        {
+                            ImageId = img.ImageId,
+                            UrlPath = img.UrlPath,
+                            CreateAt = img.CreateAt
+                        }).ToList()
+                    };
+                }
+
+                // Lấy danh sách RequestMaterials
+                if (requestEntity.RequestMaterials != null)
+                {
+                    requestResponse.RequestMaterials = requestEntity.RequestMaterials.Select(m => new RequestMaterialDTOResponse
+                    {
+                        RequestMaterialId = m.RequestMaterialId,
+                        MaterialId = m.MaterialId,
+                        MaterialName = m.Material?.MaterialName,
+                        Description = m.Material?.Description,
+                        ImagePath = m.Material?.ImagePath,
+                        Price = m.Material?.Price ?? 0
+                    }).ToList();
+                }
+
                 return requestResponse;
             }
             catch (Exception ex)
             {
-                throw new Exception(ex.Message);
+                throw new Exception($"Error fetching request: {ex.Message}");
             }
         }
+
+
+
+
 
         public async Task<(IEnumerable<RequestCustomerDtoResponse> requestList, int totalPage)> GetRequestsByAccountIdAsync(int accountId, int pageIndex, int pageSize, DateTime Date)
         {

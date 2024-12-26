@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using MartyrGraveManagement_BAL.ModelViews.RequestMaterialDTOs;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MartyrGraveManagement_BAL.ModelViews.RequestCustomerDTOs
 {
@@ -9,6 +10,8 @@ namespace MartyrGraveManagement_BAL.ModelViews.RequestCustomerDTOs
         public int MartyrId { get; set; }
         public int TypeId { get; set; }
         public int? ServiceId { get; set; }
+        public string ServiceName { get; set; }
+
         //public int? StaffId { get; set; }
         [Column(TypeName = "nvarchar(MAX)")]
         public string? Note { get; set; }
@@ -24,7 +27,63 @@ namespace MartyrGraveManagement_BAL.ModelViews.RequestCustomerDTOs
 
         public string? MartyrCode { get; set; }
         public string? MartyrName { get; set; }
-
         public string? RequestTypeName { get; set; }
+
+        public List<ReasonDto>? Reasons { get; set; }
+        public RequestTaskDto? RequestTask { get; set; }
+        public ReportTaskDto? ReportTask { get; set; }
+        public List<RequestMaterialDTOResponse>? RequestMaterials { get; set; }
+
+
+        public class ReasonDto
+        {
+            public string? RejectReason { get; set; }
+            public DateTime RejectReason_CreateAt { get; set; }
+        }
+
+        public class RequestTaskDto
+        {
+            public int RequestTaskId { get; set; }
+            public string? Description { get; set; }
+            public string? ImageWorkSpace { get; set; }
+            public string? Reason { get; set; }
+            public int Status { get; set; }
+            public DateTime CreateAt { get; set; }
+            public List<RequestTaskImageDto>? TaskImages { get; set; }
+        }
+
+        public class RequestTaskImageDto
+        {
+            public int RequestTaskImageId { get; set; }
+            public string? ImageRequestTaskCustomer { get; set; }
+            public DateTime CreateAt { get; set; }
+        }
+
+        public class ReportTaskDto
+        {
+            public int ReportId { get; set; }
+            public string? VideoFile { get; set; }
+            public string? Description { get; set; }
+            public DateTime CreateAt { get; set; }
+            public List<ReportImageDto>? ReportImages { get; set; }
+        }
+
+        public class ReportImageDto
+        {
+            public int ImageId { get; set; }
+            public string? UrlPath { get; set; }
+            public DateTime CreateAt { get; set; }
+        }
+
+        public class RequestMaterialDTOResponse
+        {
+            public int RequestMaterialId { get; set; }
+            public int MaterialId { get; set; }
+            public string? MaterialName { get; set; }
+            public string? Description { get; set; }
+            public string? ImagePath { get; set; }
+            [Column(TypeName = "decimal(18, 2)")]
+            public decimal Price { get; set; }
+        }
     }
 }
