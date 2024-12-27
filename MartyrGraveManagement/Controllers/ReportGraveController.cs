@@ -50,7 +50,7 @@ namespace MartyrGraveManagement.Controllers
             }
         }
 
-        [HttpGet("report/{reportId}")]
+        [HttpGet("GetReportByReportId/{reportId}")]
         public async Task<IActionResult> GetReportDetails(int reportId)
         {
             try
@@ -63,7 +63,53 @@ namespace MartyrGraveManagement.Controllers
                 var response = await _reportGraveService.GetReportGraveById(reportId);
                 return Ok(new
                 {
-                    ReportDetails = response
+                    ReportDetail = response
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpGet("GetReportByRequestId/{requestId}")]
+        public async Task<IActionResult> GetReportByRequestId(int requestId)
+        {
+            try
+            {
+                var accountId = User.FindFirst("AccountId")?.Value;
+                if (accountId == null)
+                {
+                    return Forbid();
+                }
+                var response = await _reportGraveService.GetReportGraveByRequestId(requestId);
+                return Ok(new
+                {
+                    ReportDetail = response
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [Authorize(Policy = "RequireStaffRole")]
+        [HttpGet("GetReports/staff")]
+        public async Task<IActionResult> GetReportsForStaff(int pageIndex, int pageSize, DateTime Date)
+        {
+            try
+            {
+                var accountId = User.FindFirst("AccountId")?.Value;
+                if (accountId == null)
+                {
+                    return Forbid();
+                }
+                var response = await _reportGraveService.GetReportsForStaff(int.Parse(accountId), pageIndex, pageSize, Date);
+                return Ok(new
+                {
+                    Reports = response.reportList,
+                    TotalPage = response.totalPage
                 });
             }
             catch (Exception ex)

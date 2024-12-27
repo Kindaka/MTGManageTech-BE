@@ -60,6 +60,7 @@ namespace MartyrGraveManagement_DAL.UnitOfWorks.Implements
         private GenericRepository<RequestNoteHistory> _requestNoteHistoryRepository;
         private GenericRepository<RequestTask> _requestTaskRepository;
         private GenericRepository<RequestTaskImage> _requestTaskImageRepository;
+        private GenericRepository<RequestFeedback> _requestFeedbackRepository;
 
 
         public UnitOfWork(ApplicationDbContext context)
@@ -119,6 +120,7 @@ namespace MartyrGraveManagement_DAL.UnitOfWorks.Implements
         public IGenericRepository<RequestNoteHistory> RequestNoteHistoryRepository => _requestNoteHistoryRepository ??= new GenericRepository<RequestNoteHistory>(_context);
         public IGenericRepository<RequestTask> RequestTaskRepository => _requestTaskRepository ??= new GenericRepository<RequestTask>(_context);
         public IGenericRepository<RequestTaskImage> RequestTaskImageRepository => _requestTaskImageRepository ??= new GenericRepository<RequestTaskImage>(_context);
+        public IGenericRepository<RequestFeedback> RequestFeedbackRepository => _requestFeedbackRepository ??= new GenericRepository<RequestFeedback>(_context);
 
 
         public async Task<IDbContextTransaction> BeginTransactionAsync()

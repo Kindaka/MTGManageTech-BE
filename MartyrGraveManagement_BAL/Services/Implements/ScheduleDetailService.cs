@@ -252,7 +252,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
         }
 
         public async Task<string> DeleteScheduleDetail(int accountId, int Id)
-        {
+        {//
             using (var transaction = await _unitOfWork.BeginTransactionAsync())
             {
                 try
@@ -310,6 +310,36 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                                 {
                                     existingTask.Status = 1;
                                     await _unitOfWork.AssignmentTaskRepository.UpdateAsync(existingTask);
+                                }
+                            }
+                            else
+                            {
+                                return "Lịch trình này không phải của bạn";
+                            }
+                        }
+                        else
+                        {
+                            return "Đã quá hạn thời gian để hủy lịch trình (phải cập nhật 1 ngày trước ngày làm việc)";
+                        }
+                    }
+                    else if (scheduleDetail.ScheduleDetailType == 3)
+                    {
+                        var taskInSchedule = await _unitOfWork.RequestTaskRepository.GetByIDAsync(scheduleDetail.TaskId);
+                        if (taskInSchedule.Status == 2 || taskInSchedule.Status == 4 || taskInSchedule.Status == 5)
+                        {
+                            return "Task này đã hoàn thành hoặc đã thất bại hoặc đã hủy.";
+                        }
+
+                        if (scheduleDetail.Date > DateOnly.FromDateTime(DateTime.Now))
+                        {
+                            if (scheduleDetail.AccountId == accountId)
+                            {
+                                await _unitOfWork.ScheduleDetailRepository.DeleteAsync(scheduleDetail);
+                                var existingTask = (await _unitOfWork.RequestTaskRepository.GetAsync(t => t.RequestTaskId == scheduleDetail.TaskId)).FirstOrDefault();
+                                if (existingTask != null)
+                                {
+                                    existingTask.Status = 1;
+                                    await _unitOfWork.RequestTaskRepository.UpdateAsync(existingTask);
                                 }
                             }
                             else

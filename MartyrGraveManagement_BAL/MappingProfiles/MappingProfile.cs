@@ -19,6 +19,7 @@ using MartyrGraveManagement_BAL.ModelViews.MartyrGraveDTOs;
 using MartyrGraveManagement_BAL.ModelViews.MartyrGraveInformationDTOs;
 using MartyrGraveManagement_BAL.ModelViews.OrdersDTOs;
 using MartyrGraveManagement_BAL.ModelViews.PaymentDTOs;
+using MartyrGraveManagement_BAL.ModelViews.ReportGraveDTOs;
 using MartyrGraveManagement_BAL.ModelViews.RequestCustomerDTOs;
 using MartyrGraveManagement_BAL.ModelViews.RequestTaskDTOs;
 using MartyrGraveManagement_BAL.ModelViews.ScheduleDetailDTOs;
@@ -280,6 +281,9 @@ namespace MartyrGraveManagement_BAL.MappingProfiles
 
             // Ánh xạ cho ReportImage -> ReportImageDto
             CreateMap<ReportImage, RequestCustomerDtoResponse.ReportImageDto>();
+
+            CreateMap<ReportGrave, ReportGraveDtoResponse>();
+
 
             // Ánh xạ cho Request_Material -> RequestMaterialDto
             CreateMap<Request_Material, RequestCustomerDtoResponse.RequestMaterialDTOResponse>()

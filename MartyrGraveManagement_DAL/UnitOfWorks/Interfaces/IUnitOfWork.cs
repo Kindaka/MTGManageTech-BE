@@ -55,6 +55,7 @@ namespace MartyrGraveManagement_DAL.UnitOfWorks.Interfaces
         public IGenericRepository<RequestNoteHistory> RequestNoteHistoryRepository { get; }
         public IGenericRepository<RequestTask> RequestTaskRepository { get; }
         public IGenericRepository<RequestTaskImage> RequestTaskImageRepository { get; }
+        public IGenericRepository<RequestFeedback> RequestFeedbackRepository { get; }
 
 
 
