@@ -11,10 +11,12 @@ namespace MartyrGraveManagement_BAL.Services.Implements
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        public RequestCustomerService(IUnitOfWork unitOfWork, IMapper mapper)
+        private readonly IGoogleDriveService _googleDriveService;
+        public RequestCustomerService(IUnitOfWork unitOfWork, IMapper mapper, IGoogleDriveService googleDriveService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _googleDriveService = googleDriveService;
         }
 
         public async Task<(bool status, string response)> AcceptRequestForManagerAsync(RequestCustomerDtoManagerResponse dtoManagerResponse)
@@ -487,7 +489,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     requestResponse.ReportTask = new ReportTaskDto
                     {
                         ReportId = requestEntity.ReportGrave.ReportId,
-                        VideoFile = requestEntity.ReportGrave.VideoFile,
+                        //VideoFile = requestEntity.ReportGrave.VideoFile,
                         Description = requestEntity.ReportGrave.Description,
                         CreateAt = requestEntity.ReportGrave.CreateAt,
                         ReportImages = requestEntity.ReportGrave.ReportImages?.Select(img => new ReportImageDto
@@ -498,6 +500,18 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         }).ToList()
                     };
                 }
+
+                string videoDownloadUrl = null;
+                if (!string.IsNullOrEmpty(requestEntity.ReportGrave.VideoFile))
+                {
+                    var videoFileId = await _googleDriveService.GetFileIdByNameAsync(requestEntity.ReportGrave.VideoFile, "1UK_xzKBkLdcRooUTtlAbD0Nc1JONmmWG");
+                    if (!string.IsNullOrEmpty(videoFileId))
+                    {
+                        videoDownloadUrl = $"https://drive.google.com/file/d/{videoFileId}/preview";
+                    }
+                }
+
+                requestResponse.ReportTask.VideoFile = videoDownloadUrl;
 
                 // Lấy danh sách RequestMaterials
                 if (requestEntity.RequestMaterials != null)

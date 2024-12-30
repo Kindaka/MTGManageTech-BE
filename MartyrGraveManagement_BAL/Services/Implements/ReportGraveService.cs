@@ -25,7 +25,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             {
                 ReportGraveDtoResponse? response = null;
                 // Lấy thông tin báo cáo từ cơ sở dữ liệu
-                var report = await _unitOfWork.ReportGraveRepository.GetByIDAsync(id);
+                var report = (await _unitOfWork.ReportGraveRepository.GetAsync(r => r.ReportId == id, includeProperties: "RequestCustomer.Account,RequestCustomer.MartyrGrave")).FirstOrDefault();
                 if (report == null)
                 {
                     return response;
@@ -40,9 +40,10 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     var videoFileId = await _googleDriveService.GetFileIdByNameAsync(report.VideoFile, "1UK_xzKBkLdcRooUTtlAbD0Nc1JONmmWG");
                     if (!string.IsNullOrEmpty(videoFileId))
                     {
-                        videoDownloadUrl = $"https://drive.google.com/uc?id={videoFileId}";
+                        videoDownloadUrl = $"https://drive.google.com/file/d/{videoFileId}/preview";
                     }
                 }
+                var staff = await _unitOfWork.AccountRepository.GetByIDAsync(report.StaffId);
 
                 response = new ReportGraveDtoResponse
                 {
@@ -55,6 +56,12 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     UpdateAt = report.UpdateAt,
                     Status = report.Status,
                     //VideoContent = videoContent
+                    CustomerName = report.RequestCustomer.Account.FullName,
+                    CustomerPhone = report.RequestCustomer.Account.PhoneNumber,
+                    MartyrCode = report.RequestCustomer.MartyrGrave.MartyrCode,
+                    StaffName = staff.FullName,
+                    StaffPhone = staff.PhoneNumber,
+                    EndDate = report.RequestCustomer.EndDate
                 };
                 return response;
             }
@@ -70,7 +77,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             {
                 ReportGraveDtoResponse? response = null;
                 // Lấy thông tin báo cáo từ cơ sở dữ liệu
-                var report = (await _unitOfWork.ReportGraveRepository.GetAsync(r => r.RequestCustomer.RequestId == requestId)).FirstOrDefault();
+                var report = (await _unitOfWork.ReportGraveRepository.GetAsync(r => r.RequestCustomer.RequestId == requestId, includeProperties: "RequestCustomer.Account,RequestCustomer.MartyrGrave")).FirstOrDefault();
                 if (report == null)
                 {
                     return response;
@@ -85,10 +92,11 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     var videoFileId = await _googleDriveService.GetFileIdByNameAsync(report.VideoFile, "1UK_xzKBkLdcRooUTtlAbD0Nc1JONmmWG");
                     if (!string.IsNullOrEmpty(videoFileId))
                     {
-                        videoDownloadUrl = $"https://drive.google.com/uc?id={videoFileId}";
+                        videoDownloadUrl = $"https://drive.google.com/file/d/{videoFileId}/preview";
                     }
                 }
 
+                var staff = await _unitOfWork.AccountRepository.GetByIDAsync(report.StaffId);
                 response = new ReportGraveDtoResponse
                 {
                     ReportId = report.ReportId,
@@ -100,6 +108,12 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     UpdateAt = report.UpdateAt,
                     Status = report.Status,
                     //VideoContent = videoContent
+                    CustomerName = report.RequestCustomer.Account.FullName,
+                    CustomerPhone = report.RequestCustomer.Account.PhoneNumber,
+                    MartyrCode = report.RequestCustomer.MartyrGrave.MartyrCode,
+                    StaffName = staff.FullName,
+                    StaffPhone = staff.PhoneNumber,
+                    EndDate = report.RequestCustomer.EndDate
                 };
                 return response;
             }
@@ -128,12 +142,12 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 {
                     totalReport = (await _unitOfWork.ReportGraveRepository.GetAsync(
                         s => s.StaffId == staff.AccountId,
-                        includeProperties: "RequestCustomer")).Count();
+                        includeProperties: "RequestCustomer.Account,RequestCustomer.MartyrGrave")).Count();
                     totalPage = (int)Math.Ceiling(totalReport / (double)pageSize);
 
                     reports = await _unitOfWork.ReportGraveRepository.GetAsync(
                         s => s.StaffId == staff.AccountId,
-                        includeProperties: "RequestCustomer",
+                        includeProperties: "RequestCustomer.Account,RequestCustomer.MartyrGrave",
                         orderBy: q => q.OrderByDescending(r => r.CreateAt),
                         pageIndex: pageIndex,
                         pageSize: pageSize
@@ -144,13 +158,13 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     totalReport = (await _unitOfWork.ReportGraveRepository.GetAsync(
                         s => s.StaffId == staff.AccountId &&
                         s.CreateAt.Date == Date.Date,
-                        includeProperties: "RequestCustomer")).Count();
+                        includeProperties: "RequestCustomer.Account,RequestCustomer.MartyrGrave")).Count();
                     totalPage = (int)Math.Ceiling(totalReport / (double)pageSize);
 
                     reports = await _unitOfWork.ReportGraveRepository.GetAsync(
                         t => t.StaffId == staff.AccountId &&
                         t.CreateAt.Date == Date.Date,
-                        includeProperties: "RequestCustomer",
+                        includeProperties: "RequestCustomer.Account,RequestCustomer.MartyrGrave",
                         orderBy: q => q.OrderByDescending(r => r.CreateAt),
                         pageIndex: pageIndex,
                         pageSize: pageSize
@@ -166,6 +180,12 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 foreach (var report in reports)
                 {
                     var reportReponse = _mapper.Map<ReportGraveDtoResponse>(report);
+                    reportReponse.CustomerName = report.RequestCustomer.Account.FullName;
+                    reportReponse.CustomerPhone = report.RequestCustomer.Account.PhoneNumber;
+                    reportReponse.MartyrCode = report.RequestCustomer.MartyrGrave.MartyrCode;
+                    reportReponse.StaffName = staff.FullName;
+                    reportReponse.StaffPhone = staff.PhoneNumber;
+                    reportReponse.EndDate = report.RequestCustomer.EndDate;
                     string videoDownloadUrl = null;
                     if (!string.IsNullOrEmpty(report.VideoFile))
                     {
