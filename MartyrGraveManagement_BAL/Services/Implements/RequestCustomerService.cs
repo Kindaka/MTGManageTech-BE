@@ -501,17 +501,18 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     };
                 }
 
+                var report = (await _unitOfWork.ReportGraveRepository.GetAsync(r => r.RequestId == requestEntity.RequestId)).FirstOrDefault();
                 string videoDownloadUrl = null;
-                if (!string.IsNullOrEmpty(requestEntity.ReportGrave.VideoFile))
+                if (report?.VideoFile != null)
                 {
-                    var videoFileId = await _googleDriveService.GetFileIdByNameAsync(requestEntity.ReportGrave.VideoFile, "1UK_xzKBkLdcRooUTtlAbD0Nc1JONmmWG");
+                    var videoFileId = await _googleDriveService.GetFileIdByNameAsync(report.VideoFile, "1UK_xzKBkLdcRooUTtlAbD0Nc1JONmmWG");
                     if (!string.IsNullOrEmpty(videoFileId))
                     {
                         videoDownloadUrl = $"https://drive.google.com/file/d/{videoFileId}/preview";
+                        requestResponse.ReportTask.VideoFile = videoDownloadUrl;
                     }
                 }
 
-                requestResponse.ReportTask.VideoFile = videoDownloadUrl;
 
                 // Lấy danh sách RequestMaterials
                 if (requestEntity.RequestMaterials != null)
