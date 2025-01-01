@@ -598,8 +598,24 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         return false;
                     }
                     requestCustomer.Status = 7;
+                    requestCustomer.UpdateAt = DateTime.Now;
                     await _unitOfWork.RequestCustomerRepository.UpdateAsync(requestCustomer);
-
+                    var notification = new Notification
+                    {
+                        Title = $"Yêu cầu công việc dịch vụ theo yêu cầu của bạn đã được hoàn thành",
+                        Description = $"Yêu cầu {requestCustomer.RequestId} đã được hoàn thành vào lúc {requestCustomer.UpdateAt}, bạn có thể gửi feedback này để cải tiến dịch vụ.",
+                        CreatedDate = DateTime.Now,
+                        LinkTo = $"/request-detail/{requestCustomer.RequestId}",
+                        Status = true
+                    };
+                    await _unitOfWork.NotificationRepository.AddAsync(notification);
+                    var notificationAccount = new NotificationAccount
+                    {
+                        AccountId = requestCustomer.CustomerId,
+                        NotificationId = notification.NotificationId,
+                        Status = true
+                    };
+                    await _unitOfWork.NotificationAccountsRepository.AddAsync(notificationAccount);
                     // 7. Commit transaction nếu không có lỗi
                     await transaction.CommitAsync();
 

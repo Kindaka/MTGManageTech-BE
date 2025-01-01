@@ -233,6 +233,11 @@ RecurringJob.AddOrUpdate<IRecurringTaskService>(
     service => service.CreateRecurringTasksAsync(),
     Cron.Hourly());
 
+RecurringJob.AddOrUpdate<IRequestTaskBackgroundService>(
+    "CreateRequestTasks",
+    service => service.CheckExpiredRequestTask(),
+    Cron.Hourly());
+
 
 
 app.MapControllers();

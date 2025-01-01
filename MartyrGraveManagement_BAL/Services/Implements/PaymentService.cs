@@ -3,19 +3,14 @@ using MartyrGraveManagement_BAL.ModelViews.CustomerWalletDTOs;
 using MartyrGraveManagement_BAL.ModelViews.PaymentDTOs;
 using MartyrGraveManagement_BAL.ModelViews.TaskDTOs;
 using MartyrGraveManagement_BAL.Services.Interfaces;
+using MartyrGraveManagement_BAL.Utils;
 using MartyrGraveManagement_DAL.Entities;
 using MartyrGraveManagement_DAL.UnitOfWorks.Interfaces;
-using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Net.Http.Json;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
-using MartyrGraveManagement_BAL.Utils;
 using System.Text.Json;
 
 namespace MartyrGraveManagement_BAL.Services.Implements
@@ -27,7 +22,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
         private readonly IMapper _mapper;
         private readonly IConfiguration _configuration;
 
-        public PaymentService(IUnitOfWork unitOfWork, ITaskService taskService , IMapper mapper, IConfiguration configuration)
+        public PaymentService(IUnitOfWork unitOfWork, ITaskService taskService, IMapper mapper, IConfiguration configuration)
         {
             _unitOfWork = unitOfWork;
             _taskService = taskService;
@@ -186,12 +181,12 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                             await _unitOfWork.CartItemRepository.DeleteAsync(cartItem);
                         }
 
-                                        // Tạo thông báo sau khi thanh toán thành công
-                await CreateNotification(
-                    "Thanh toán đơn hàng thành công",
-                    $"Đơn hàng #{existedOrder.OrderId} đã được thanh toán thành công với số tiền {payment.PaymentAmount:N0} VNĐ qua {payment.PaymentMethod}.",
-                    existedOrder.AccountId, $"/order-detail-cus/{existedOrder.OrderId}"
-                );
+                        // Tạo thông báo sau khi thanh toán thành công
+                        await CreateNotification(
+                            "Thanh toán đơn hàng thành công",
+                            $"Đơn hàng #{existedOrder.OrderId} đã được thanh toán thành công với số tiền {payment.PaymentAmount:N0} VNĐ qua {payment.PaymentMethod}.",
+                            existedOrder.AccountId, $"/order-detail-cus/{existedOrder.OrderId}"
+                        );
 
                         // Lấy danh sách OrderDetail để tạo công việc cho nhân viên
                         var orderDetails = await _unitOfWork.OrderDetailRepository.GetAsync(od => od.OrderId == existedOrder.OrderId);
@@ -226,10 +221,10 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             {
                 var payments = await _unitOfWork.PaymentRepository.GetAsync(p => DateOnly.FromDateTime(p.PayDate.Date) >= DateOnly.FromDateTime(startDate.AddDays(1)) && DateOnly.FromDateTime(p.PayDate.Date) <= DateOnly.FromDateTime(endDate.AddDays(1)));
 
-                if( payments != null && payments.Any())
+                if (payments != null && payments.Any())
                 {
                     var paymentList = new List<PaymentDTOResponseForAdmin>();
-                    foreach ( var payment in payments )
+                    foreach (var payment in payments)
                     {
                         if (status != 0)
                         {
@@ -293,7 +288,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                                 continue;
                             }
                         }
-                        
+
                     }
                     return paymentList;
                 }
@@ -321,8 +316,8 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 var endpoint = _configuration["MoMo:PaymentEndpoint"];
 
                 // Kiểm tra cấu hình
-                if (string.IsNullOrEmpty(partnerCode) || string.IsNullOrEmpty(accessKey) || 
-                    string.IsNullOrEmpty(secretKey) || string.IsNullOrEmpty(returnUrl) || 
+                if (string.IsNullOrEmpty(partnerCode) || string.IsNullOrEmpty(accessKey) ||
+                    string.IsNullOrEmpty(secretKey) || string.IsNullOrEmpty(returnUrl) ||
                     string.IsNullOrEmpty(ipnUrl) || string.IsNullOrEmpty(endpoint))
                 {
                     throw new Exception("Missing MoMo configuration");
@@ -389,8 +384,8 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     throw new Exception("Invalid MoMo response: missing payUrl");
                 }
 
-                return new PaymentDTOResponse 
-                { 
+                return new PaymentDTOResponse
+                {
                     PaymentUrl = payUrl
                 };
             }
@@ -410,7 +405,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
         public async Task<PaymentDTOResponseForAdmin> GetPaymentById(int paymentId)
         {
             try
-            {                
+            {
                 var payments = (await _unitOfWork.PaymentRepository.GetAsync(p => p.PaymentId == paymentId, includeProperties: "Order.Account")).FirstOrDefault();
                 if (payments != null)
                 {
@@ -429,7 +424,8 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 }
                 return null;
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 throw new Exception($"Error: {ex.Message}");
             }
         }
@@ -448,7 +444,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     Description = "Bạn đã nạp tiền vào ví thành công",
                     BalanceAfterTransaction = 0
                 };
-                
+
                 await _unitOfWork.TransactionBalanceHistoryRepository.AddAsync(transaction);
                 await _unitOfWork.SaveAsync();
 
@@ -456,7 +452,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 {
                     // Tạo orderId duy nhất kết hợp giữa prefix, transactionId và timestamp
                     var uniqueOrderId = $"NAP-{transaction.TransactionId}-{DateTime.UtcNow.Ticks}";
-                    
+
                     // Tạo request object với đầy đủ properties
                     var momoRequest = new
                     {
@@ -489,7 +485,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     {
                         var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(rawHash));
                         var signature = BitConverter.ToString(hash).Replace("-", "").ToLower();
-                        
+
                         // Tạo request object mới với signature đã được tính toán
                         momoRequest = new
                         {
@@ -510,17 +506,17 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     // Gọi API MoMo
                     using (var client = new HttpClient())
                     {
-                        try 
+                        try
                         {
                             var response = await client.PostAsJsonAsync(_configuration["MoMo:PaymentEndpoint"], momoRequest);
                             var responseContent = await response.Content.ReadAsStringAsync();
-                            
+
                             // Parse response thành dynamic object
                             var responseData = JsonSerializer.Deserialize<JsonDocument>(responseContent);
                             var root = responseData.RootElement;
 
                             // Kiểm tra và đọc các giá trị từ response
-                            if (root.TryGetProperty("resultCode", out var resultCodeElement) && 
+                            if (root.TryGetProperty("resultCode", out var resultCodeElement) &&
                                 resultCodeElement.GetInt32() == 0)
                             {
                                 string payUrl = root.GetProperty("payUrl").GetString();
@@ -533,10 +529,10 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                             else
                             {
                                 // Lấy message lỗi nếu có
-                                string errorMessage = root.TryGetProperty("message", out var messageElement) 
-                                    ? messageElement.GetString() 
+                                string errorMessage = root.TryGetProperty("message", out var messageElement)
+                                    ? messageElement.GetString()
                                     : "Unknown error from MoMo";
-                                    
+
                                 throw new Exception($"MoMo payment creation failed: {errorMessage}");
                             }
                         }
@@ -565,17 +561,17 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     vnpay.AddRequestData("vnp_TxnRef", transaction.TransactionId.ToString());
 
                     string paymentUrl = vnpay.CreateRequestUrl(
-                        _configuration["VNPay:PaymentUrl"], 
+                        _configuration["VNPay:PaymentUrl"],
                         _configuration["VNPay:HashSecret"]
                     );
 
-                    return new WalletPaymentResponse 
-                    { 
+                    return new WalletPaymentResponse
+                    {
                         PaymentUrl = paymentUrl,
                         Message = "VNPAY payment URL created successfully"
                     };
                 }
-                
+
                 throw new Exception("Invalid payment method");
             }
             catch (Exception ex)
@@ -604,11 +600,11 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     else // Momo
                     {
                         isSuccess = paymentRequest.resultCode == "0";
-                        
+
                         // Tách orderId để lấy TransactionId
                         var orderIdParts = paymentRequest.orderId.Split('-');
                         transactionId = long.Parse(orderIdParts[1]); // Lấy phần TransactionId
-                        
+
                         amount = decimal.Parse(paymentRequest.amount);
                     }
 
@@ -617,7 +613,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     // Lấy transaction history
                     var transactionHistory = await _unitOfWork.TransactionBalanceHistoryRepository
                         .GetByIDAsync(transactionId);
-                        
+
                     if (transactionHistory == null) return false;
 
                     // Cập nhật hoặc tạo mới ví khách hàng

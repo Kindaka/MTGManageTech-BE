@@ -31,7 +31,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     {
                         return (false, "AccountId không tồn tại hoặc bạn không có quyền.");
                     }
-                    var request = (await _unitOfWork.RequestCustomerRepository.GetAsync(r => r.RequestId == dtoManagerResponse.RequestId, includeProperties: "MartyrGrave")).FirstOrDefault();
+                    var request = (await _unitOfWork.RequestCustomerRepository.GetAsync(r => r.RequestId == dtoManagerResponse.RequestId, includeProperties: "MartyrGrave,Account")).FirstOrDefault();
                     if (request == null)
                     {
                         return (false, "Request không tồn tại.");
@@ -151,6 +151,25 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                             {
                                 return (false, "Dịch vụ không tìm thấy");
                             }
+                        }
+                        if (request.Account.AccountId != null)
+                        {
+                            var notification = new Notification
+                            {
+                                Title = $"Yêu cầu của bạn đã được phê duyệt",
+                                Description = $"Yêu cầu #{request.RequestId} đã được quản lý phê duyệt, hãy kiểm tra lại yêu cầu.",
+                                CreatedDate = DateTime.Now,
+                                LinkTo = $"/request-detail/{request.RequestId}",
+                                Status = true
+                            };
+                            await _unitOfWork.NotificationRepository.AddAsync(notification);
+                            var notificationAccount = new NotificationAccount
+                            {
+                                AccountId = request.Account.AccountId,
+                                NotificationId = notification.NotificationId,
+                                Status = true
+                            };
+                            await _unitOfWork.NotificationAccountsRepository.AddAsync(notificationAccount);
                         }
                         await transaction.CommitAsync();
                         return (true, "Đã duyệt yêu cầu thành công");
@@ -283,6 +302,24 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     await _unitOfWork.RequestTaskRepository.AddAsync(taskEntity);
                     request.Status = 5; // Khách hàng đã đồng ý yêu cầu dịch vụ
                     await _unitOfWork.RequestCustomerRepository.UpdateAsync(request);
+                    var notification = new Notification
+                    {
+                        Title = $"Bạn có một công việc dịch vụ theo yêu cầu của khách hàng",
+                        Description = $"Bạn có một công việc mới theo yêu cầu có mã công việc là {taskEntity.RequestTaskId}, hãy kiểm tra lại công việc đó ở phần lịch làm việc.\n" +
+                                        "Cách để xác nhận làm việc: Bấm vào tạo công việc, chọn phần công việc theo yêu cầu khách hàng, xác nhận thêm vào lịch, bấm vào công việc đã thêm vào lịck, \n" +
+                                        "khi hoàn thành gửi hình ảnh mình chứng (nơi làm việc, kết quả công việc) để hoàn thành.",
+                        CreatedDate = DateTime.Now,
+                        LinkTo = $"/schedule-staff",
+                        Status = true
+                    };
+                    await _unitOfWork.NotificationRepository.AddAsync(notification);
+                    var notificationAccount = new NotificationAccount
+                    {
+                        AccountId = selectedStaff.AccountId,
+                        NotificationId = notification.NotificationId,
+                        Status = true
+                    };
+                    await _unitOfWork.NotificationAccountsRepository.AddAsync(notificationAccount);
                     await transaction.CommitAsync();
 
                     return (true, "Bạn đã chấp nhận dịch vụ thành công, hãy kiểm tra lại.");
@@ -389,6 +426,32 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     }
 
                     await _unitOfWork.RequestCustomerRepository.AddAsync(requestCustomer);
+                    // Tạo thông báo
+                    var notification = new Notification
+                    {
+                        Title = $"Bạn có một yêu cầu mới từ khách hàng {account.FullName}",
+                        Description = $"Yêu cầu #{requestCustomer.RequestId} đã được tạo thành công, quản ký vào xem và xác nhận yêu cầu.",
+                        CreatedDate = DateTime.Now,
+                        LinkTo = $"/manager/request-detail/{requestCustomer.RequestId}",
+                        Status = true
+                    };
+                    await _unitOfWork.NotificationRepository.AddAsync(notification);
+                    var manager = (await _unitOfWork.AccountRepository.GetAsync(m => m.AreaId == martyrGrave.AreaId && m.RoleId == 2)).FirstOrDefault();
+                    if (manager != null)
+                    {
+                        // Liên kết thông báo với tài khoản
+                        var notificationAccount = new NotificationAccount
+                        {
+                            AccountId = manager.AccountId,
+                            NotificationId = notification.NotificationId,
+                            Status = true
+                        };
+                        await _unitOfWork.NotificationAccountsRepository.AddAsync(notificationAccount);
+                    }
+                    else
+                    {
+                        return (false, $"Không tìm thấy quản lý của mộ liệt sĩ.");
+                    }
                     await transaction.CommitAsync();
                     return (true, "Đã tạo yêu cầu thành công, chờ xác nhận từ quản lý");
                 }
