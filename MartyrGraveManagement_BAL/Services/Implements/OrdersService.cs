@@ -208,6 +208,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     ExpectedCompletionDate = order.ExpectedCompletionDate,
                     Note = order.Note,
                     TotalPrice = order.TotalPrice,
+                    PhoneNumber = order.Account?.PhoneNumber,
                     Status = order.Status
                 };
 
@@ -288,6 +289,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     ExpectedCompletionDate = order.ExpectedCompletionDate,
                     Note = order.Note,
                     TotalPrice = order.TotalPrice,
+                    PhoneNumber = order.Account?.PhoneNumber,
                     Status = order.Status
                 };
 

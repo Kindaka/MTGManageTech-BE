@@ -44,11 +44,14 @@ namespace MartyrGraveManagement_BAL.ModelViews.RequestCustomerDTOs
         public class RequestTaskDto
         {
             public int RequestTaskId { get; set; }
+            public int StaffId { get; set; }
+            public string? PhoneNumber { get; set; }
             public string? Description { get; set; }
             public string? ImageWorkSpace { get; set; }
             public string? Reason { get; set; }
             public int Status { get; set; }
             public DateTime CreateAt { get; set; }
+            public DateTime UpdateAt { get; set; }
             public List<RequestTaskImageDto>? TaskImages { get; set; }
         }
 

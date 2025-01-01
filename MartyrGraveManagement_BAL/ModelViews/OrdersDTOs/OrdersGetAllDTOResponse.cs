@@ -16,7 +16,7 @@ namespace MartyrGraveManagement_BAL.ModelViews.OrdersDTOs
         public string? Note { get; set; }
         public decimal TotalPrice { get; set; }
         public int Status { get; set; }
-
+        public string? PhoneNumber { get; set; }
         public List<OrderDetailDtoResponse> OrderDetails { get; set; } = new List<OrderDetailDtoResponse>();
 
     }

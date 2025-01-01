@@ -535,8 +535,10 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         Description = requestEntity.RequestTask.Description,
                         ImageWorkSpace = requestEntity.RequestTask.ImageWorkSpace,
                         Reason = requestEntity.RequestTask.Reason,
-                        Status = requestEntity.RequestTask.Status,
+                        PhoneNumber = requestEntity.Account?.PhoneNumber,
                         CreateAt = requestEntity.RequestTask.CreateAt,
+                        UpdateAt = requestEntity.RequestTask.UpdateAt,
+                        Status = requestEntity.RequestTask.Status,
                         TaskImages = requestEntity.RequestTask.RequestTaskImages?.Select(img => new RequestTaskImageDto
                         {
                             RequestTaskImageId = img.RequestTaskImageId,

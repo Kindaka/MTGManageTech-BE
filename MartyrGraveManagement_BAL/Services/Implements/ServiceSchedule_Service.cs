@@ -234,6 +234,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         item.LatestAssignment = new AssignmentTaskInfo
                         {
                             StaffName = latestAssignment.Account?.FullName,
+                            PhoneNumber = latestAssignment.Account?.PhoneNumber,
                             ImageWorkSpace = latestAssignment.ImageWorkSpace,
                             Status = latestAssignment.Status,
                             TaskImages = latestAssignment.AssignmentTaskImages
