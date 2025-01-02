@@ -10,5 +10,7 @@ namespace MartyrGraveManagement_BAL.ModelViews.StaffDTOs
     {
         public int AccountId { get; set; }
         public string? StaffFullName { get; set; }
+        public string? PhoneNumber { get; set; }
+
     }
 }

@@ -196,7 +196,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 // Kiểm tra nếu đơn hàng không tồn tại
                 if (order == null)
                 {
-                    return null;  // Hoặc ném lỗi tùy yêu cầu
+                    return null; // Hoặc ném lỗi tùy yêu cầu
                 }
 
                 // Ánh xạ từ Order sang DTO
@@ -235,6 +235,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     {
                         orderDetailDto.StatusTask = taskStatus.Status;
                     }
+
                     var manager = await _unitOfWork.AccountRepository.GetByIDAsync(managerId);
                     if (manager.AreaId == orderDetail.MartyrGrave.AreaId)
                     {
@@ -248,7 +249,8 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                                     var staffDto = new StaffDtoResponse
                                     {
                                         AccountId = accountStaff.AccountId,
-                                        StaffFullName = accountStaff.FullName
+                                        StaffFullName = accountStaff.FullName,
+                                        PhoneNumber = accountStaff.PhoneNumber // Lấy thêm số điện thoại của Staff
                                     };
                                     orderDetailDto.Staffs?.Add(staffDto);
                                 }
@@ -328,7 +330,8 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                             orderDetailDto.Staffs.Add(new StaffDtoResponse
                             {
                                 AccountId = relatedTask.Account.AccountId,
-                                StaffFullName = relatedTask.Account.FullName
+                                StaffFullName = relatedTask.Account.FullName,
+                                PhoneNumber = relatedTask.Account.PhoneNumber
                             });
                         }
                     }

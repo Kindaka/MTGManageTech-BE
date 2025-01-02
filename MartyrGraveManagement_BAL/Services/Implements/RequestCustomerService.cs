@@ -472,7 +472,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 // Lấy thông tin request
                 var request = await _unitOfWork.RequestCustomerRepository.GetAsync(
                     r => r.RequestId == requestId,
-                    includeProperties: "Account,MartyrGrave.MartyrGraveInformations,RequestType,RequestNoteHistories,RequestTask.RequestTaskImages,ReportGrave.ReportImages,RequestMaterials.Material");
+                    includeProperties: "Account,MartyrGrave.MartyrGraveInformations,RequestType,RequestNoteHistories,RequestTask.RequestTaskImages,RequestTask.Account,ReportGrave.ReportImages,RequestMaterials.Material");
 
                 var requestEntity = request.FirstOrDefault();
                 if (requestEntity == null)
@@ -506,14 +506,13 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 {
                     requestResponse.Reasons = requestEntity.RequestNoteHistories
                         .OrderByDescending(n => n.CreateAt)
-                        .Select(n => new ReasonDto
+                        .Select(n => new RequestCustomerDtoResponse.ReasonDto
                         {
                             RejectReason = n.Note,
                             RejectReason_CreateAt = n.CreateAt
                         })
                         .ToList();
                 }
-
 
                 if (requestEntity.ServiceId.HasValue)
                 {
@@ -525,21 +524,22 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     }
                 }
 
-
                 // Lấy thông tin từ RequestTask
                 if (requestEntity.RequestTask != null)
                 {
-                    requestResponse.RequestTask = new RequestTaskDto
+                    requestResponse.RequestTask = new RequestCustomerDtoResponse.RequestTaskDto
                     {
                         RequestTaskId = requestEntity.RequestTask.RequestTaskId,
                         Description = requestEntity.RequestTask.Description,
                         ImageWorkSpace = requestEntity.RequestTask.ImageWorkSpace,
                         Reason = requestEntity.RequestTask.Reason,
-                        PhoneNumber = requestEntity.Account?.PhoneNumber,
+                        PhoneNumber = requestEntity.RequestTask.Account?.PhoneNumber,
+                        StaffName = requestEntity.RequestTask.Account?.FullName,
+                        StaffId = requestEntity.RequestTask.Account?.AccountId,
                         CreateAt = requestEntity.RequestTask.CreateAt,
                         UpdateAt = requestEntity.RequestTask.UpdateAt,
                         Status = requestEntity.RequestTask.Status,
-                        TaskImages = requestEntity.RequestTask.RequestTaskImages?.Select(img => new RequestTaskImageDto
+                        TaskImages = requestEntity.RequestTask.RequestTaskImages?.Select(img => new RequestCustomerDtoResponse.RequestTaskImageDto
                         {
                             RequestTaskImageId = img.RequestTaskImageId,
                             ImageRequestTaskCustomer = img.ImageRequestTaskCustomer,
@@ -554,7 +554,6 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     requestResponse.ReportTask = new ReportTaskDto
                     {
                         ReportId = requestEntity.ReportGrave.ReportId,
-                        //VideoFile = requestEntity.ReportGrave.VideoFile,
                         Description = requestEntity.ReportGrave.Description,
                         CreateAt = requestEntity.ReportGrave.CreateAt,
                         ReportImages = requestEntity.ReportGrave.ReportImages?.Select(img => new ReportImageDto
@@ -562,9 +561,16 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                             ImageId = img.ImageId,
                             UrlPath = img.UrlPath,
                             CreateAt = img.CreateAt
-                        }).ToList()
+                        }).ToList(),
+                        // Gán StaffId và PhoneNumber từ tài khoản nhân viên
+                        StaffId = requestEntity.ReportGrave.StaffId,
+                        PhoneNumber = (await _unitOfWork.AccountRepository.GetAsync(a => a.AccountId == requestEntity.ReportGrave.StaffId))
+                                        .FirstOrDefault()?.PhoneNumber,
+                        StaffName = (await _unitOfWork.AccountRepository.GetAsync(a => a.AccountId == requestEntity.ReportGrave.StaffId))
+                                        .FirstOrDefault()?.FullName
                     };
                 }
+
 
                 var report = (await _unitOfWork.ReportGraveRepository.GetAsync(r => r.RequestId == requestEntity.RequestId)).FirstOrDefault();
                 string videoDownloadUrl = null;
@@ -578,11 +584,10 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     }
                 }
 
-
                 // Lấy danh sách RequestMaterials
                 if (requestEntity.RequestMaterials != null)
                 {
-                    requestResponse.RequestMaterials = requestEntity.RequestMaterials.Select(m => new RequestMaterialDTOResponse
+                    requestResponse.RequestMaterials = requestEntity.RequestMaterials.Select(m => new RequestCustomerDtoResponse.RequestMaterialDTOResponse
                     {
                         RequestMaterialId = m.RequestMaterialId,
                         MaterialId = m.MaterialId,
@@ -600,6 +605,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 throw new Exception($"Error fetching request: {ex.Message}");
             }
         }
+
 
 
 
