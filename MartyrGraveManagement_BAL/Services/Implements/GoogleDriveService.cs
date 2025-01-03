@@ -118,7 +118,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
         {
             try
             {
-                string credentialsPath = "D:\\Capstone Project\\Group Project\\Google Drive\\credentials.json"; //Đường dẫn file credentials.json
+                string credentialsPath = "D:\\Capstone_Project_FA24\\BE\\credentials.json"; //Đường dẫn file credentials.json
                 // Set up the flow and the data store
                 using var stream = new FileStream(credentialsPath, FileMode.Open, FileAccess.Read);
                 var credential = GoogleWebAuthorizationBroker.AuthorizeAsync(

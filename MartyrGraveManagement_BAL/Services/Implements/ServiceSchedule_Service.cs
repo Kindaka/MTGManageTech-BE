@@ -201,7 +201,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             try
             {
                 var serviceSchedule = (await _unitOfWork.ServiceScheduleRepository.GetAsync(
-                    s => s.ServiceScheduleId == serviceScheduleId, 
+                    s => s.ServiceScheduleId == serviceScheduleId,
                     includeProperties: "Service,MartyrGrave,MartyrGrave.Location,Account,MartyrGrave.MartyrGraveInformations,AssignmentTasks,AssignmentTasks.Account,AssignmentTasks.AssignmentTaskImages"))
                     .FirstOrDefault();
 
@@ -210,16 +210,16 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     var item = _mapper.Map<ServiceScheduleDetailResponse>(serviceSchedule);
                     item.ServiceName = serviceSchedule.Service.ServiceName;
                     item.ServiceImage = serviceSchedule.Service.ImagePath;
-                    
+
                     // Thông tin liệt sĩ
                     item.MartyrName = serviceSchedule.MartyrGrave.MartyrGraveInformations.FirstOrDefault()?.Name;
                     item.MartyrCode = serviceSchedule.MartyrGrave.MartyrCode;
-                    
+
                     // Thông tin vị trí
                     item.RowNumber = serviceSchedule.MartyrGrave.Location.RowNumber;
                     item.MartyrNumber = serviceSchedule.MartyrGrave.Location.MartyrNumber;
                     item.AreaNumber = serviceSchedule.MartyrGrave.Location.AreaNumber;
-                    
+
                     // Thông tin người đặt lịch
                     item.AccountName = serviceSchedule.Account.FullName;
                     item.PhoneNumber = serviceSchedule.Account.PhoneNumber;
@@ -233,13 +233,18 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     {
                         item.LatestAssignment = new AssignmentTaskInfo
                         {
+                            AssignmentTaskId = latestAssignment.AssignmentTaskId,
                             StaffName = latestAssignment.Account?.FullName,
                             PhoneNumber = latestAssignment.Account?.PhoneNumber,
                             ImageWorkSpace = latestAssignment.ImageWorkSpace,
                             Status = latestAssignment.Status,
                             TaskImages = latestAssignment.AssignmentTaskImages
-                                ?.Select(i => i.ImagePath)
-                                .ToList() ?? new List<string>()
+                                ?.Select(i => new AssignmentTaskImageDto
+                                {
+                                    ImagePath = i.ImagePath,
+                                    CreateAt = i.CreateAt 
+                                })
+                                .ToList() ?? new List<AssignmentTaskImageDto>()
                         };
                     }
 
@@ -252,5 +257,6 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 throw new Exception(ex.Message);
             }
         }
+
     }
 }

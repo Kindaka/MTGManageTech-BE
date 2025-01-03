@@ -566,11 +566,18 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     var location = await _unitOfWork.LocationRepository.GetByIDAsync(martyr.LocationId);
                     if (location != null)
                     {
-                        task.Service_Schedule.MartyrGrave.Location = location;
+                        // Tạo GraveLocation từ Location
+                        var graveLocation = $"{location.AreaNumber}-{location.RowNumber}-{location.MartyrNumber}";
+
+                        // Gán GraveLocation vào đối tượng AssignmentTaskResponse
+                        var response = _mapper.Map<AssignmentTaskResponse>(task);
+                        response.GraveLocation = graveLocation; // Gán graveLocation vào thuộc tính GraveLocation của response
+
+                        return response;
                     }
                 }
 
-                return _mapper.Map<AssignmentTaskResponse>(task);
+                return _mapper.Map<AssignmentTaskResponse>(task); // Trả về nếu không có thông tin về vị trí mộ
             }
             catch (Exception ex)
             {

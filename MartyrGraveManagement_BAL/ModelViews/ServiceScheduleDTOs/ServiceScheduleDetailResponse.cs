@@ -27,10 +27,22 @@ namespace MartyrGraveManagement_BAL.ModelViews.ServiceScheduleDTOs
 
     public class AssignmentTaskInfo
     {
+        public int AssignmentTaskId { get; set; }
+
         public string? StaffName { get; set; }
         public string? PhoneNumber { get; set; }
         public string? ImageWorkSpace { get; set; }
         public int Status { get; set; }
-        public List<string> TaskImages { get; set; } = new List<string>();
+        public List<AssignmentTaskImageDto>? TaskImages { get; set; }
+
     }
+
+
+    public class AssignmentTaskImageDto
+    {
+        public string ImagePath { get; set; }
+        public DateTime CreateAt { get; set; }
+    }
+
+
 }
