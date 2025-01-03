@@ -192,6 +192,26 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         await _unitOfWork.RequestNoteHistoryRepository.AddAsync(noteHistory);
                         request.Status = 3;
                         await _unitOfWork.RequestCustomerRepository.UpdateAsync(request);
+                        if (request.Account.AccountId != null)
+                        {
+                            var notification = new Notification
+                            {
+                                Title = $"Yêu cầu của bạn đã bị từ chối",
+                                Description = $"Yêu cầu #{request.RequestId} đã bị quản lý từ chối, bạn hãy xem lại lời nhắn của quản lý về nguyên nhân. Thân ái!. \n" +
+                                                $"Mọi thắc mắc hãy liên hệ quản lý qua SĐT {manager.PhoneNumber}",
+                                CreatedDate = DateTime.Now,
+                                LinkTo = $"/request-detail/{request.RequestId}",
+                                Status = true
+                            };
+                            await _unitOfWork.NotificationRepository.AddAsync(notification);
+                            var notificationAccount = new NotificationAccount
+                            {
+                                AccountId = request.Account.AccountId,
+                                NotificationId = notification.NotificationId,
+                                Status = true
+                            };
+                            await _unitOfWork.NotificationAccountsRepository.AddAsync(notificationAccount);
+                        }
                         await transaction.CommitAsync();
                         return (true, "Đã từ chối yêu cầu");
                     }
@@ -751,6 +771,139 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 throw new Exception(ex.Message);
             }
 
+        }
+
+        public async Task<(bool status, string response)> UpdateRequestForManagerAsync(UpdateRequestCustomerDtoManagerResponse dtoManagerResponse)
+        {
+            using (var transaction = await _unitOfWork.BeginTransactionAsync())
+            {
+                try
+                {
+                    // Kiểm tra AccountID có tồn tại không
+                    var manager = await _unitOfWork.AccountRepository.GetByIDAsync(dtoManagerResponse.ManagerId);
+                    if (manager == null || manager.RoleId != 2)
+                    {
+                        return (false, "AccountId không tồn tại hoặc bạn không có quyền.");
+                    }
+                    var request = (await _unitOfWork.RequestCustomerRepository.GetAsync(r => r.RequestId == dtoManagerResponse.RequestId, includeProperties: "MartyrGrave,Account")).FirstOrDefault();
+                    if (request == null)
+                    {
+                        return (false, "Request không tồn tại.");
+                    }
+                    if (request.MartyrGrave.AreaId != manager.AreaId)
+                    {
+                        return (false, "Request không thuộc khu vực của bạn.");
+                    }
+                    var requestType = await _unitOfWork.RequestTypeRepository.GetByIDAsync(request.TypeId);
+
+                    if (requestType.TypeId == 1)
+                    {
+
+                    }
+                    else if (requestType.TypeId == 2)
+                    {
+                        if (dtoManagerResponse.MaterialIds.Any())
+                        {
+                            if (request.Status == 3 || request.Status == 4)
+                            {
+                                var oldRequestMaterial = await _unitOfWork.RequestMaterialRepository.GetAsync(r => r.RequestId == dtoManagerResponse.RequestId);
+                                if (oldRequestMaterial != null)
+                                {
+                                    foreach (var material in oldRequestMaterial)
+                                    {
+                                        await _unitOfWork.RequestMaterialRepository.DeleteAsync(material);
+                                    }
+                                }
+                                decimal expectedPrice = 0;
+                                foreach (var materialId in dtoManagerResponse.MaterialIds)
+                                {
+                                    var material = await _unitOfWork.MaterialRepository.GetByIDAsync(materialId);
+                                    if (material == null)
+                                    {
+                                        continue;
+                                    }
+                                    var existedRequestMaterial = (await _unitOfWork.RequestMaterialRepository.GetAsync(r => r.RequestId == request.RequestId && r.MaterialId == materialId)).FirstOrDefault();
+                                    if (existedRequestMaterial != null)
+                                    {
+                                        continue;
+                                    }
+                                    expectedPrice += material.Price;
+                                    var request_Material = new Request_Material
+                                    {
+                                        RequestId = request.RequestId,
+                                        MaterialId = materialId,
+                                        CreatedAt = DateTime.Now,
+                                    };
+                                    await _unitOfWork.RequestMaterialRepository.AddAsync(request_Material);
+                                }
+                                if (expectedPrice > 10000)
+                                {
+                                    request.Price = expectedPrice + (expectedPrice * 0.05m);
+                                    request.Status = 4;
+                                    await _unitOfWork.RequestCustomerRepository.UpdateAsync(request);
+                                    if (dtoManagerResponse.Note != null)
+                                    {
+                                        var requestNote = new RequestNoteHistory
+                                        {
+                                            Note = dtoManagerResponse.Note,
+                                            CreateAt = DateTime.Now,
+                                            UpdateAt = DateTime.Now,
+                                            RequestId = request.RequestId,
+                                            AccountId = manager.AccountId,
+                                            Status = true
+                                        };
+                                        await _unitOfWork.RequestNoteHistoryRepository.AddAsync(requestNote);
+                                    }
+                                }
+                                else
+                                {
+                                    return (false, "Giá dịch vụ phải lớn hơn 10000 mới thực hiện được.");
+                                }
+                            }
+                            else
+                            {
+                                return (false, "Yêu cầu không ở trạng thái để cập nhật (trạng thái từ chối hoặc trạng thái đã báo giá");
+                            }
+                        }
+                        else
+                        {
+                            return (false, "Phải thêm ít nhất một vật liệu để báo giá dịch vụ");
+                        }
+                    }
+                    else if (requestType.TypeId == 3)
+                    {
+
+
+                    }
+                    if (request.Account.AccountId != null)
+                    {
+                        var notification = new Notification
+                        {
+                            Title = $"Yêu cầu của bạn đã được cập nhật bởi quản lý.",
+                            Description = $"Yêu cầu #{request.RequestId} đã được quản lý cập nhật lại, hãy kiểm tra lại yêu cầu.",
+                            CreatedDate = DateTime.Now,
+                            LinkTo = $"/request-detail/{request.RequestId}",
+                            Status = true
+                        };
+                        await _unitOfWork.NotificationRepository.AddAsync(notification);
+                        var notificationAccount = new NotificationAccount
+                        {
+                            AccountId = request.Account.AccountId,
+                            NotificationId = notification.NotificationId,
+                            Status = true
+                        };
+                        await _unitOfWork.NotificationAccountsRepository.AddAsync(notificationAccount);
+                    }
+                    await transaction.CommitAsync();
+                    return (true, "Đã cập nhật yêu cầu thành công");
+
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    throw new Exception(ex.Message);
+                }
+            }
         }
     }
 }

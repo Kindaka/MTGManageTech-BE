@@ -241,6 +241,53 @@ namespace MartyrGraveManagement.Controllers
                 return StatusCode(500, new { message = $"Internal server error: {ex.Message}" });
             }
         }
+        /// <summary>
+        /// Update a request for manager.
+        /// </summary>
+        [Authorize(Policy = "RequireManagerRole")]
+        [HttpPut("UpdateRequest")]
+        public async Task<IActionResult> UpdateRequestForManager(UpdateRequestCustomerDtoManagerResponse dtoManagerResponse)
+        {
+            try
+            {
+                var tokenAccountIdClaim = User.FindFirst("AccountId");
+                if (tokenAccountIdClaim == null || string.IsNullOrEmpty(tokenAccountIdClaim.Value))
+                {
+                    return Forbid("Không tìm thấy AccountId trong token.");
+                }
+
+                var tokenAccountId = int.Parse(tokenAccountIdClaim.Value);
+                dtoManagerResponse.ManagerId = tokenAccountId;
+                // Gọi service để tạo task từ danh sách
+                var request = await _requestCustomerService.UpdateRequestForManagerAsync(dtoManagerResponse);
+                if (request.status)
+                {
+                    return Ok(new { message = "Requests created successfully.", request.response });
+                }
+                else
+                {
+                    return BadRequest(new { message = $"{request.response}" });
+                }
+
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(403, new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = $"Internal server error: {ex.Message}" });
+            }
+        }
+
 
         /// <summary>
         /// Accept a request service from Manager for Customer booking request service.

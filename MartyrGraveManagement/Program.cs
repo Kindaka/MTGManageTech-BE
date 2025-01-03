@@ -215,7 +215,7 @@ RecurringJob.AddOrUpdate<ITaskBackgroundService>(
 RecurringJob.AddOrUpdate<IOrderBackgroundService>(
     "check-expired-orders-payment",
     service => service.CheckExpiredOrderPayment(),
-    Cron.Hourly());
+    Cron.Minutely());
 
 RecurringJob.AddOrUpdate<IHolidayEventBackgroundService>(
     "check-and-send-holiday-event-notifications",

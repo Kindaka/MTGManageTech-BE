@@ -36,7 +36,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             {
                 try
                 {
-                    var existedOrder = await _unitOfWork.OrderRepository.GetByIDAsync(int.Parse(paymentRequest.vnp_TxnRef));
+                    var existedOrder = await _unitOfWork.OrderRepository.GetByIDAsync(long.Parse(paymentRequest.vnp_TxnRef));
                     if (existedOrder != null)
                     {
                         var existedPayment = await _unitOfWork.PaymentRepository.GetAsync(p => p.OrderId == existedOrder.OrderId);

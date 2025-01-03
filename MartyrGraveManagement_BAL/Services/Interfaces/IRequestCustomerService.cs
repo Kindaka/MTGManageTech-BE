@@ -6,6 +6,7 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
     {
         Task<(bool status, string response)> CreateRequestsAsync(RequestCustomerDtoRequest request);
         Task<(bool status, string response)> AcceptRequestForManagerAsync(RequestCustomerDtoManagerResponse dtoManagerResponse);
+        Task<(bool status, string response)> UpdateRequestForManagerAsync(UpdateRequestCustomerDtoManagerResponse dtoManagerResponse);
         Task<(bool status, string response)> AcceptServiceRequestForCustomerAsync(int requestId, int customerId);
 
         Task<(IEnumerable<RequestCustomerDtoResponse> requestList, int totalPage)> GetRequestsByAccountIdAsync(

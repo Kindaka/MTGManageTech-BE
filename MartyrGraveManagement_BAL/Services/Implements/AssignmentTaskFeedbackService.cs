@@ -3,11 +3,6 @@ using MartyrGraveManagement_BAL.ModelViews.AssignmentTaskFeedbackDTOs;
 using MartyrGraveManagement_BAL.Services.Interfaces;
 using MartyrGraveManagement_DAL.Entities;
 using MartyrGraveManagement_DAL.UnitOfWorks.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MartyrGraveManagement_BAL.Services.Implements
 {
@@ -98,8 +93,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
         {
             // Truy xuất phản hồi bao gồm thông tin tài khoản khách hàng và chi tiết đơn hàng
             var feedback = await _unitOfWork.AssignmentTaskFeedbackRepository.GetAsync(
-                f => f.AssignmentTaskId == id,
-                includeProperties: "Account,Service_Schedule"
+                f => f.AssignmentTaskId == id
             );
             var feedbackEntity = feedback.FirstOrDefault();
 
@@ -150,7 +144,6 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
                 // Lấy danh sách phản hồi với thông tin tài khoản khách hàng và chi tiết đơn hàng
                 var feedbacks = await _unitOfWork.AssignmentTaskFeedbackRepository.GetAllAsync(
-                    includeProperties: "Account,Service_Schedule",
                     pageIndex: page,
                     pageSize: pageSize
                 );
@@ -179,7 +172,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         Status = feedback.Status,
                         ResponseContent = feedback.ResponseContent,
                         Rating = feedback.Rating,
-                        CustomerName =  customerAccount.FullName, // Tên khách hàng
+                        CustomerName = customerAccount.FullName, // Tên khách hàng
                         StaffId = feedback.StaffId ?? 0, // Gán StaffId nếu có
                         FullNameStaff = fullNameStaff // Tên nhân viên
                     };
@@ -378,8 +371,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
         {
             // Truy xuất phản hồi bao gồm thông tin tài khoản khách hàng và chi tiết đơn hàng
             var feedback = await _unitOfWork.AssignmentTaskFeedbackRepository.GetAsync(
-                f => f.AssignmentTaskId == taskId,
-                includeProperties: "Account,Service_Schedule"
+                f => f.AssignmentTaskId == taskId
             );
             var feedbackEntity = feedback.FirstOrDefault();
 

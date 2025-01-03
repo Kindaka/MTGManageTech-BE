@@ -1,21 +1,15 @@
-﻿using MartyrGraveManagement_BAL.ModelViews.MartyrGraveDTOs;
+﻿using AutoMapper;
+using MartyrGraveManagement_BAL.ModelViews.CustomerDTOs;
+using MartyrGraveManagement_BAL.ModelViews.EmailDTOs;
+using MartyrGraveManagement_BAL.ModelViews.MartyrGraveDTOs;
+using MartyrGraveManagement_BAL.ModelViews.MartyrGraveInformationDTOs;
 using MartyrGraveManagement_BAL.Services.Interfaces;
 using MartyrGraveManagement_DAL.Entities;
 using MartyrGraveManagement_DAL.UnitOfWorks.Interfaces;
-using AutoMapper;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using System.Net.WebSockets;
+using OfficeOpenXml;
+using System.Linq.Expressions;
 using System.Security.Cryptography;
 using System.Text;
-using System.Security.Principal;
-using MartyrGraveManagement_BAL.ModelViews.MartyrGraveInformationDTOs;
-using MartyrGraveManagement_BAL.ModelViews.EmailDTOs;
-using MartyrGraveManagement_BAL.ModelViews.CustomerDTOs;
-using System.Linq.Expressions;
-using OfficeOpenXml;
-using Microsoft.VisualBasic;
 
 namespace MartyrGraveManagement_BAL.Services.Implements
 {
@@ -334,16 +328,16 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
                     var mapping = new MartyrGraveGetAllForAdminDtoResponse
                     {
-                         martyrId = m.MartyrId,
-                         Code = m.MartyrCode,
-                         Name = m.MartyrGraveInformations.FirstOrDefault()?.Name, // Lấy tên từ MartyrGraveInformation
-                         martyrCode = m.MartyrCode,
-                         AreaDescription = m.Area.Description,
-                         GraveImage = m.GraveImages.FirstOrDefault()?.UrlPath ?? "Unknown",
-                         Location = $"{m.Location.AreaNumber}-{m.Location.RowNumber}-{m.Location.MartyrNumber}", // Định dạng vị trí
-                         RelativeName = m.Account?.FullName, // Lấy tên người thân từ Account
-                         RelativePhone = m.Account?.PhoneNumber, // Lấy số điện thoại người thân từ Account
-                         Status = m.Status // Lấy trạng thái của MartyrGrave
+                        martyrId = m.MartyrId,
+                        Code = m.MartyrCode,
+                        Name = m.MartyrGraveInformations.FirstOrDefault()?.Name, // Lấy tên từ MartyrGraveInformation
+                        martyrCode = m.MartyrCode,
+                        AreaDescription = m.Area.Description,
+                        GraveImage = m.GraveImages.FirstOrDefault()?.UrlPath ?? "Unknown",
+                        Location = $"{m.Location.AreaNumber}-{m.Location.RowNumber}-{m.Location.MartyrNumber}", // Định dạng vị trí
+                        RelativeName = m.Account?.FullName, // Lấy tên người thân từ Account
+                        RelativePhone = m.Account?.PhoneNumber, // Lấy số điện thoại người thân từ Account
+                        Status = m.Status // Lấy trạng thái của MartyrGrave
                     };
                     martyrGraveList.Add(mapping); // Thêm kết quả vào danh sách
 
@@ -617,9 +611,9 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     await _unitOfWork.SaveAsync();
 
                     // Thêm lại các thông tin mới từ DTO
-                    
 
-                    
+
+
 
                     // Thêm các ảnh mới
                     if (martyrGraveDto.Image.Any())
@@ -698,19 +692,26 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             return new string(result);
         }
 
-        
+
 
         public async Task<List<MartyrGraveDtoResponse>> GetMartyrGraveByCustomerId(int customerId)
         {
             try
             {
                 List<MartyrGraveDtoResponse> graveList = new List<MartyrGraveDtoResponse>();
-                var graves = await _unitOfWork.MartyrGraveRepository.GetAsync(g => g.AccountId == customerId);
+                var graves = await _unitOfWork.MartyrGraveRepository.GetAsync(g => g.AccountId == customerId, includeProperties: "Location");
                 if (graves.Any())
                 {
                     foreach (var grave in graves)
                     {
                         var graveView = _mapper.Map<MartyrGraveDtoResponse>(grave);
+                        if (grave.Location != null)
+                        {
+                            graveView.RowNumber = grave.Location.RowNumber;
+                            graveView.MartyrNumber = grave.Location.MartyrNumber;
+                            graveView.AreaNumber = grave.Location.AreaNumber;
+                        }
+
                         var graveInformations = await _unitOfWork.MartyrGraveInformationRepository.GetAsync(g => g.MartyrId == grave.MartyrId);
                         if (graveInformations.Any())
                         {
@@ -758,7 +759,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
 
 
-        
+
 
         private string ConvertToUnaccentedLowercaseString(string input)
         {
@@ -999,7 +1000,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
         private string ExportPhoneAndPasswordsToExcel(List<(string PhoneNumber, string Password)> phonePasswordList, string filePath)
         {
-            var outputFilePath = filePath; 
+            var outputFilePath = filePath;
 
             using (var package = new ExcelPackage())
             {
@@ -1073,7 +1074,105 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
         }
 
+        public async Task<(List<MaintenanceHistoryDtoResponse> maintenanceHistory, int totalPage)> GetMaintenanceHistoryInMartyrGrave(int customerId, int martyrGraveId, int taskType, int pageIndex, int pageSize)
+        {
+            try
+            {
+                var maintenanceHistoryDtoResponses = new List<MaintenanceHistoryDtoResponse>();
+                var martyrGrave = (await _unitOfWork.MartyrGraveRepository.GetAsync(m => m.MartyrId == martyrGraveId, includeProperties: "Account")).FirstOrDefault();
+                if (martyrGrave == null || martyrGrave.Account.AccountId != customerId)
+                {
+                    return (maintenanceHistoryDtoResponses, 0);
+                }
+
+                int totalPage = 0;
+                if (taskType == 1)
+                {
+                    int totalTask = (await _unitOfWork.TaskRepository.GetAsync(s => s.OrderDetail.MartyrGrave.MartyrId == martyrGraveId, includeProperties: "OrderDetail.MartyrGrave")).Count();
+                    totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
+                    var task = (await _unitOfWork.TaskRepository.GetAsync(t => t.OrderDetail.MartyrGrave.MartyrId == martyrGraveId, includeProperties: "OrderDetail.Service,OrderDetail.MartyrGrave,OrderDetail.Order.Account,Account", pageIndex: pageIndex, pageSize: pageSize)).OrderByDescending(t => t.EndDate);
+                    if (task != null)
+                    {
+                        foreach (var item in task)
+                        {
+                            var taskResponse = new MaintenanceHistoryDtoResponse
+                            {
+                                CustomerName = item.OrderDetail.Order.Account.FullName,
+                                CustomerPhone = item.OrderDetail.Order.Account.PhoneNumber,
+                                ServiceName = item.OrderDetail.Service.ServiceName,
+                                MartyrCode = item.OrderDetail.MartyrGrave.MartyrCode,
+                                EndDate = DateOnly.FromDateTime(item.EndDate),
+                                Description = item.Description,
+                                StaffName = item.Account.FullName,
+                                StaffPhone = item.Account.PhoneNumber,
+                                Status = item.Status
+                            };
+                            maintenanceHistoryDtoResponses.Add(taskResponse);
+                        }
+                    }
+                }
+                else if (taskType == 2)
+                {
+                    int totalTask = (await _unitOfWork.AssignmentTaskRepository.GetAsync(t => t.Service_Schedule.MartyrGrave.MartyrId == martyrGraveId, includeProperties: "Service_Schedule.MartyrGrave")).Count();
+                    totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
+                    var task = (await _unitOfWork.AssignmentTaskRepository.GetAsync(t => t.Service_Schedule.MartyrGrave.MartyrId == martyrGraveId, includeProperties: "Service_Schedule.Service,Service_Schedule.MartyrGrave,Service_Schedule.Account,Account", pageIndex: pageIndex, pageSize: pageSize)).OrderByDescending(t => t.EndDate);
+                    if (task != null)
+                    {
+                        foreach (var item in task)
+                        {
+                            var scheduleStaff = new MaintenanceHistoryDtoResponse
+                            {
+                                CustomerName = item.Service_Schedule.Account.FullName,
+                                CustomerPhone = item.Service_Schedule.Account.PhoneNumber,
+                                ServiceName = item.Service_Schedule.Service.ServiceName,
+                                MartyrCode = item.Service_Schedule.MartyrGrave.MartyrCode,
+                                EndDate = DateOnly.FromDateTime(item.EndDate),
+                                Description = item.Description,
+                                StaffName = item.Account.FullName,
+                                StaffPhone = item.Account.PhoneNumber,
+                                Status = item.Status
+                            };
+                            maintenanceHistoryDtoResponses.Add(scheduleStaff);
+                        }
+                    }
+                }
+                else if (taskType == 3)
+                {
+                    int totalTask = (await _unitOfWork.RequestTaskRepository.GetAsync(t => t.RequestCustomer.MartyrGrave.MartyrId == martyrGraveId, includeProperties: "RequestCustomer.MartyrGrave")).Count();
+                    totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
+                    var task = (await _unitOfWork.RequestTaskRepository.GetAsync(t => t.RequestCustomer.MartyrGrave.MartyrId == martyrGraveId, includeProperties: "RequestCustomer.MartyrGrave,RequestCustomer.RequestType,Account,RequestCustomer.Account,Account", pageIndex: pageIndex, pageSize: pageSize)).OrderByDescending(t => t.EndDate);
+                    if (task != null)
+                    {
+                        foreach (var item in task)
+                        {
+                            var scheduleStaff = new MaintenanceHistoryDtoResponse
+                            {
+                                CustomerName = item.RequestCustomer.Account.FullName,
+                                CustomerPhone = item.RequestCustomer.Account.PhoneNumber,
+                                ServiceName = item.RequestCustomer.RequestType.TypeName,
+                                MartyrCode = item.RequestCustomer.MartyrGrave.MartyrCode,
+                                EndDate = item.EndDate,
+                                Description = item.Description,
+                                StaffName = item.Account.FullName,
+                                StaffPhone = item.Account.PhoneNumber,
+                                Status = item.Status
+                            };
+                            maintenanceHistoryDtoResponses.Add(scheduleStaff);
+                        }
+                    }
+                }
+                else
+                {
+                    return (maintenanceHistoryDtoResponses, 0);
+                }
 
 
+                return (maintenanceHistoryDtoResponses, totalPage);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
     }
 }

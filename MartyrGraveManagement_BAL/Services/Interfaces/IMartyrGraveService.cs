@@ -1,11 +1,4 @@
-﻿using MartyrGraveManagement_BAL.ModelViews.CustomerDTOs;
-using MartyrGraveManagement_BAL.ModelViews.MartyrGraveDTOs;
-using MartyrGraveManagement_DAL.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using MartyrGraveManagement_BAL.ModelViews.MartyrGraveDTOs;
 
 namespace MartyrGraveManagement_BAL.Services.Interfaces
 {
@@ -25,5 +18,7 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
         Task<List<MartyrGraveSearchDtoResponse>> SearchMartyrGravesAsync(MartyrGraveSearchDtoRequest searchCriteria, int page, int pageSize);
 
         Task<(List<MartyrGraveByAreaDtoResponse> martyrGraves, int totalPage)> GetMartyrGraveByAreaIdAsync(int areaId, int pageIndex, int pageSize);
+
+        Task<(List<MaintenanceHistoryDtoResponse> maintenanceHistory, int totalPage)> GetMaintenanceHistoryInMartyrGrave(int customerId, int martyrGraveId, int taskType, int pageIndex, int pageSize);
     }
 }

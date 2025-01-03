@@ -1,11 +1,7 @@
-﻿using MartyrGraveManagement_BAL.ModelViews.CustomerDTOs;
-using MartyrGraveManagement_BAL.ModelViews.MartyrGraveDTOs;
-using MartyrGraveManagement_BAL.Services.Implements;
+﻿using MartyrGraveManagement_BAL.ModelViews.MartyrGraveDTOs;
 using MartyrGraveManagement_BAL.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace MartyrGraveManagement.Controllers
 {
@@ -62,6 +58,45 @@ namespace MartyrGraveManagement.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+        /// <summary>
+        /// Get all tasks for a specific martyr grave
+        /// </summary>
+        [HttpGet("getTasks-martyr-grave/{martyrGraveId}")]
+        public async Task<IActionResult> GetTasksByMartyrGraveId(int martyrGraveId, int taskType, int pageIndex = 1, int pageSize = 5)
+        {
+            try
+            {
+                var accountId = User.FindFirst("AccountId")?.Value; // Giả sử bạn lưu userId trong token
+                int userId;
+                if (accountId == null)
+                {
+                    userId = 0;
+                }
+                else
+                {
+                    userId = int.Parse(accountId);
+                }
+                var tasks = await _martyrGraveService.GetMaintenanceHistoryInMartyrGrave(userId, martyrGraveId, taskType, pageIndex, pageSize);
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Tasks retrieved successfully",
+                    data = tasks.maintenanceHistory,
+                    totalPage = tasks.totalPage
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "Error retrieving tasks",
+                    error = ex.Message
+                });
+            }
+        }
+
 
         /// <summary>
         /// Gets a specific martyr grave by its ID.
@@ -165,7 +200,7 @@ namespace MartyrGraveManagement.Controllers
                 }
             }
         }
-    
+
 
         /// <summary>
         /// Creates a new martyr grave version 2.
@@ -179,9 +214,9 @@ namespace MartyrGraveManagement.Controllers
             try
             {
                 var createGrave = await _martyrGraveService.CreateMartyrGraveAsyncV2(martyrGraveDto);
-                if(createGrave.status)
+                if (createGrave.status)
                 {
-                    return Ok(new { result = createGrave.result, phone = createGrave.phone, password = createGrave.password});
+                    return Ok(new { result = createGrave.result, phone = createGrave.phone, password = createGrave.password });
                 }
                 else
                 {
