@@ -2,6 +2,7 @@
 using MartyrGraveManagement_BAL.ModelViews.AssignmentTaskDTOs;
 using MartyrGraveManagement_BAL.ModelViews.RequestMaterialDTOs;
 using MartyrGraveManagement_BAL.ModelViews.RequestTaskDTOs;
+using MartyrGraveManagement_BAL.ModelViews.StaffDTOs;
 using MartyrGraveManagement_BAL.ModelViews.TaskDTOs;
 using MartyrGraveManagement_BAL.Services.Interfaces;
 using MartyrGraveManagement_DAL.Entities;
@@ -267,7 +268,28 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         var location = await _unitOfWork.LocationRepository.GetByIDAsync(martyrGrave.LocationId);
                         taskDto.GraveLocation = $"K{location.AreaNumber}-R{location.RowNumber}-{location.MartyrNumber}";
                     }
-
+                    if (task.Status == 2)
+                    {
+                        if (account.AreaId == task.RequestCustomer?.MartyrGrave?.AreaId)
+                        {
+                            var accountStaffs = await _unitOfWork.AccountRepository.GetAsync(s => s.AreaId == task.RequestCustomer.MartyrGrave.AreaId && s.RoleId == 3 && s.Status == true);
+                            if (accountStaffs != null)
+                            {
+                                foreach (var accountStaff in accountStaffs)
+                                {
+                                    if (accountStaff.Status == true)
+                                    {
+                                        var staffDto = new StaffDtoResponse
+                                        {
+                                            AccountId = accountStaff.AccountId,
+                                            StaffFullName = accountStaff.FullName
+                                        };
+                                        taskDto.Staffs?.Add(staffDto);
+                                    }
+                                }
+                            }
+                        }
+                    }
                     taskResponses.Add(taskDto);
                 }
 

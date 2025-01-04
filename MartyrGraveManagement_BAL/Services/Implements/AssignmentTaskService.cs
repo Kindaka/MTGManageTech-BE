@@ -1,18 +1,9 @@
 ﻿using AutoMapper;
-using DocumentFormat.OpenXml.ExtendedProperties;
-using MartyrGraveManagement_BAL.ModelViews.AssignmentTaskDtoRequest;
 using MartyrGraveManagement_BAL.ModelViews.AssignmentTaskDTOs;
-using MartyrGraveManagement_BAL.ModelViews.ServiceScheduleDTOs;
 using MartyrGraveManagement_BAL.ModelViews.StaffDTOs;
-using MartyrGraveManagement_BAL.ModelViews.TaskDTOs;
 using MartyrGraveManagement_BAL.Services.Interfaces;
 using MartyrGraveManagement_DAL.Entities;
 using MartyrGraveManagement_DAL.UnitOfWorks.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MartyrGraveManagement_BAL.Services.Implements
 {
@@ -33,79 +24,79 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 //var taskResponses = new List<TaskDtoResponse>();
 
 
-                    // Kiểm tra xem OrderId có tồn tại không
-                    var serviceSchedule = (await _unitOfWork.ServiceScheduleRepository.GetAsync(s => s.ServiceScheduleId == serviceScheduleId, includeProperties:"Service")).FirstOrDefault();
-                    if (serviceSchedule == null)
-                    {
-                        throw new KeyNotFoundException("Id không tồn tại.");
-                    }
+                // Kiểm tra xem OrderId có tồn tại không
+                var serviceSchedule = (await _unitOfWork.ServiceScheduleRepository.GetAsync(s => s.ServiceScheduleId == serviceScheduleId, includeProperties: "Service")).FirstOrDefault();
+                if (serviceSchedule == null)
+                {
+                    throw new KeyNotFoundException("Id không tồn tại.");
+                }
 
-                    // Kiểm tra trạng thái của Order, nếu không phải là 1 thì không cho tạo Task
-                    if (serviceSchedule.Status != true)
-                    {
-                        throw new InvalidOperationException("Đơn hàng không ở trạng thái hợp lệ để tạo Task.");
-                    }
+                // Kiểm tra trạng thái của Order, nếu không phải là 1 thì không cho tạo Task
+                if (serviceSchedule.Status != true)
+                {
+                    throw new InvalidOperationException("Đơn hàng không ở trạng thái hợp lệ để tạo Task.");
+                }
 
 
-                    // Kiểm tra xem khu vực của MartyrGrave trong OrderDetail
-                    var martyrGrave = await _unitOfWork.MartyrGraveRepository.GetByIDAsync(serviceSchedule.MartyrId);
-                    if (martyrGrave == null)
-                    {
-                        throw new InvalidOperationException("MartyrGrave không tồn tại.");
-                    }
+                // Kiểm tra xem khu vực của MartyrGrave trong OrderDetail
+                var martyrGrave = await _unitOfWork.MartyrGraveRepository.GetByIDAsync(serviceSchedule.MartyrId);
+                if (martyrGrave == null)
+                {
+                    throw new InvalidOperationException("MartyrGrave không tồn tại.");
+                }
 
-                    // Lấy danh sách nhân viên thuộc cùng khu vực
-                    var staffAccounts = await _unitOfWork.AccountRepository
-                        .FindAsync(a => a.RoleId == 3 && a.AreaId == martyrGrave.AreaId);
+                // Lấy danh sách nhân viên thuộc cùng khu vực
+                var staffAccounts = await _unitOfWork.AccountRepository
+                    .FindAsync(a => a.RoleId == 3 && a.AreaId == martyrGrave.AreaId);
 
-                    if (!staffAccounts.Any())
-                    {
-                        throw new InvalidOperationException("Không có nhân viên nào thuộc khu vực phù hợp để nhận công việc.");
-                    }
+                if (!staffAccounts.Any())
+                {
+                    throw new InvalidOperationException("Không có nhân viên nào thuộc khu vực phù hợp để nhận công việc.");
+                }
 
-                    // Sắp xếp danh sách nhân viên dựa trên số lượng công việc
-                    var staffWorkloads = new Dictionary<int, int>();
-                    foreach (var staff in staffAccounts)
-                    {
-                        var taskCount = await _unitOfWork.AssignmentTaskRepository
-                            .CountAsync(t => t.StaffId == staff.AccountId); // Lấy công việc đang được chỉ định
-                        staffWorkloads[staff.AccountId] = taskCount;
-                    }
+                // Sắp xếp danh sách nhân viên dựa trên số lượng công việc
+                var staffWorkloads = new Dictionary<int, int>();
+                foreach (var staff in staffAccounts)
+                {
+                    var taskCount = await _unitOfWork.AssignmentTaskRepository
+                        .CountAsync(t => t.StaffId == staff.AccountId); // Lấy công việc đang được chỉ định
+                    staffWorkloads[staff.AccountId] = taskCount;
+                }
 
-                    var sortedStaffAccounts = staffAccounts
-                        .OrderBy(staff => staffWorkloads[staff.AccountId])
-                        .ToList();
+                var sortedStaffAccounts = staffAccounts
+                    .OrderBy(staff => staffWorkloads[staff.AccountId])
+                    .ToList();
 
-                    // Lấy nhân viên có ít công việc nhất
-                    var selectedStaff = sortedStaffAccounts.First();
+                // Lấy nhân viên có ít công việc nhất
+                var selectedStaff = sortedStaffAccounts.First();
 
-                    DateTime? serviceDate = null;
+                DateTime? serviceDate = null;
 
-                    if (serviceSchedule.Service.RecurringType == 1)
-                    {
-                        serviceDate = GetNextWeeklyServiceDate(serviceSchedule.DayOfWeek);
-                    }
-                    else if (serviceSchedule.Service.RecurringType == 2)
-                    {
-                        serviceDate = GetNextMonthlyServiceDate(serviceSchedule.DayOfMonth);
-                    }
+                if (serviceSchedule.Service.RecurringType == 1)
+                {
+                    serviceDate = GetNextWeeklyServiceDate(serviceSchedule.DayOfWeek);
+                }
+                else if (serviceSchedule.Service.RecurringType == 2)
+                {
+                    serviceDate = GetNextMonthlyServiceDate(serviceSchedule.DayOfMonth);
+                }
 
-                    // Tạo task mới và gắn Note của Order vào Description
-                    var taskEntity = new AssignmentTask
-                    {
-                        StaffId = selectedStaff.AccountId,
-                        ServiceScheduleId = serviceScheduleId,
-                        CreateAt = DateTime.Now,
-                        EndDate = (DateTime)serviceDate,
-                        Description = serviceSchedule.Note,  // Gắn Note của Order vào Description của Task
-                        Status = 1  // Trạng thái ban đầu là 'assigned'
-                    };
+                // Tạo task mới và gắn Note của Order vào Description
+                var taskEntity = new AssignmentTask
+                {
+                    StaffId = selectedStaff.AccountId,
+                    ServiceScheduleId = serviceScheduleId,
+                    CreateAt = DateTime.Now,
+                    EndDate = (DateTime)serviceDate,
+                    Description = serviceSchedule.Note,  // Gắn Note của Order vào Description của Task
+                    Status = 1  // Trạng thái ban đầu là 'assigned'
+                };
 
-                    // Thêm Task vào cơ sở dữ liệu
-                    await _unitOfWork.AssignmentTaskRepository.AddAsync(taskEntity);
+                // Thêm Task vào cơ sở dữ liệu
+                await _unitOfWork.AssignmentTaskRepository.AddAsync(taskEntity);
 
-                    
-                
+
+
 
                 await _unitOfWork.SaveAsync();
 
@@ -169,7 +160,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 try
                 {
                     // 1. Kiểm tra TaskId có tồn tại không
-                    var task = (await _unitOfWork.AssignmentTaskRepository.GetAsync(t => t.AssignmentTaskId == taskId, includeProperties:"Account,Service_Schedule.Service")).FirstOrDefault();
+                    var task = (await _unitOfWork.AssignmentTaskRepository.GetAsync(t => t.AssignmentTaskId == taskId, includeProperties: "Account,Service_Schedule.Service")).FirstOrDefault();
                     if (task == null)
                     {
                         throw new KeyNotFoundException("TaskId does not exist.");
@@ -433,7 +424,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     taskResponses.Add(taskAssignment);
                 }
 
-                
+
                 return (taskResponses, totalPage);
             }
             catch (Exception ex)
@@ -460,7 +451,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 if (Date == DateTime.MinValue)
                 {
                     totalTask = (await _unitOfWork.AssignmentTaskRepository.GetAsync(
-                        s => s.Service_Schedule.MartyrGrave.AreaId == manager.AreaId, 
+                        s => s.Service_Schedule.MartyrGrave.AreaId == manager.AreaId,
                         includeProperties: "Service_Schedule.MartyrGrave")).Count();
                     totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
 
@@ -474,13 +465,13 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 else
                 {
                     totalTask = (await _unitOfWork.AssignmentTaskRepository.GetAsync(
-                        s => s.Service_Schedule.MartyrGrave.AreaId == manager.AreaId && 
+                        s => s.Service_Schedule.MartyrGrave.AreaId == manager.AreaId &&
                         s.EndDate.Date == Date.Date,
                         includeProperties: "Service_Schedule.MartyrGrave")).Count();
                     totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
 
                     tasks = await _unitOfWork.AssignmentTaskRepository.GetAsync(
-                        t => t.Service_Schedule.MartyrGrave.AreaId == manager.AreaId && 
+                        t => t.Service_Schedule.MartyrGrave.AreaId == manager.AreaId &&
                         t.EndDate.Date == Date.Date,
                         includeProperties: "Service_Schedule.Service.ServiceCategory,Service_Schedule.MartyrGrave,Service_Schedule.Account,Account,AssignmentTaskImages",
                         pageIndex: pageIndex,
@@ -492,7 +483,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 {
                     return (new List<AssignmentTaskResponse>(), 0);
                 }
-                var responses = new List<AssignmentTaskResponse>(); 
+                var responses = new List<AssignmentTaskResponse>();
                 // Lấy thông tin vị trí cho tất cả các task
                 foreach (var task in tasks)
                 {
@@ -509,7 +500,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                             taskReponse.GraveLocation = $"K{location.AreaNumber}-R{location.RowNumber}-{location.MartyrNumber}";
                         }
                     }
-                    if (taskReponse.Status == 2)
+                    if (task.Status == 2)
                     {
                         if (manager.AreaId == task.Service_Schedule?.MartyrGrave?.AreaId)
                         {
@@ -533,7 +524,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     }
                     responses.Add(taskReponse);
                 }
-                
+
 
                 //var responses = tasks.Select(t => _mapper.Map<AssignmentTaskResponse>(t)).ToList();
                 return (responses, totalPage);

@@ -1,4 +1,5 @@
 ﻿using MartyrGraveManagement_BAL.ModelViews.RequestMaterialDTOs;
+using MartyrGraveManagement_BAL.ModelViews.StaffDTOs;
 using MartyrGraveManagement_BAL.ModelViews.TaskDTOs;
 
 namespace MartyrGraveManagement_BAL.ModelViews.RequestTaskDTOs
@@ -26,6 +27,8 @@ namespace MartyrGraveManagement_BAL.ModelViews.RequestTaskDTOs
         public string? ServiceDescription { get; set; }
         public string? GraveLocation { get; set; }
 
-        public List<RequestMaterialDtoResponse> Materials { get; set; } = new List<RequestMaterialDtoResponse> { };
+        public List<RequestMaterialDtoResponse>? Materials { get; set; } = new List<RequestMaterialDtoResponse> { };
+
+        public List<StaffDtoResponse>? Staffs { get; set; } = new List<StaffDtoResponse>();
     }
 }

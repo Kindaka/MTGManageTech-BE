@@ -1,14 +1,9 @@
 ﻿using AutoMapper;
-using DocumentFormat.OpenXml.Drawing.Charts;
+using MartyrGraveManagement_BAL.ModelViews.StaffDTOs;
 using MartyrGraveManagement_BAL.ModelViews.TaskDTOs;
 using MartyrGraveManagement_BAL.Services.Interfaces;
 using MartyrGraveManagement_DAL.Entities;
 using MartyrGraveManagement_DAL.UnitOfWorks.Interfaces;
-using Microsoft.Identity.Client;
-using System;
-using System.CodeDom;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace MartyrGraveManagement_BAL.Services.Implements
 {
@@ -274,11 +269,31 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         taskDto.GraveLocation = $"K{location.AreaNumber}-R{location.RowNumber}-{location.MartyrNumber}";
                     }
 
+                    if (task.Status == 2)
+                    {
+                        // Lấy danh sách nhân viên thuộc cùng AreaId
+                        var accountStaffs = await _unitOfWork.AccountRepository.GetAsync(
+                        s => s.AreaId == task.OrderDetail.MartyrGrave.AreaId && s.RoleId == 3 && s.Status == true
+                    );
+
+
+                        // Thêm danh sách nhân viên vào DTO
+                        if (accountStaffs != null && accountStaffs.Any())
+                        {
+                            taskDto.Staffs = accountStaffs.Select(accountStaff => new StaffDtoResponse
+                            {
+                                AccountId = accountStaff.AccountId,
+                                StaffFullName = accountStaff.FullName
+                            }).ToList();
+                        }
+                    }
+
                     taskResponses.Add(taskDto);
                 }
 
                 return (taskResponses, totalPage);
-            }catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 throw new Exception(ex.Message);
             }
@@ -321,7 +336,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 taskDto.GraveLocation = $"K{location.AreaNumber}-R{location.RowNumber}-{location.MartyrNumber}";
             }
             var taskImages = await _unitOfWork.TaskImageRepository.GetAsync(i => i.TaskId == singleTask.TaskId);
-            if(taskImages != null)
+            if (taskImages != null)
             {
                 foreach (var image in taskImages)
                 {
@@ -740,11 +755,12 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 //await _unitOfWork.SaveAsync();
 
                 return taskResponses;
-            }catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 throw new Exception(ex.Message);
             }
-            
+
         }
 
 
@@ -994,7 +1010,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 try
                 {
                     // 1. Kiểm tra TaskId có tồn tại không
-                    var task = (await _unitOfWork.TaskRepository.GetAsync(t => t.TaskId == taskId, includeProperties:"OrderDetail.Service,Account")).FirstOrDefault();
+                    var task = (await _unitOfWork.TaskRepository.GetAsync(t => t.TaskId == taskId, includeProperties: "OrderDetail.Service,Account")).FirstOrDefault();
                     if (task == null)
                     {
                         throw new KeyNotFoundException("TaskId does not exist.");
@@ -1136,7 +1152,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     // 3. Cập nhật hình ảnh
                     task.ImageWorkSpace = imageUpdateDto.ImageWorkSpace;  // Ảnh không gian bàn làm việc
 
-                    foreach(var image in imageUpdateDto.UrlImages)
+                    foreach (var image in imageUpdateDto.UrlImages)
                     {
                         if (image != null)
                         {
@@ -1212,7 +1228,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 try
                 {
                     // 1. Kiểm tra xem TaskId có tồn tại không
-                    var task = (await _unitOfWork.TaskRepository.GetAsync(t => t.DetailId == detailId, includeProperties:"OrderDetail.Service,OrderDetail.MartyrGrave,Account")).FirstOrDefault();
+                    var task = (await _unitOfWork.TaskRepository.GetAsync(t => t.DetailId == detailId, includeProperties: "OrderDetail.Service,OrderDetail.MartyrGrave,Account")).FirstOrDefault();
                     if (task == null)
                     {
                         throw new KeyNotFoundException("TaskId does not exist.");

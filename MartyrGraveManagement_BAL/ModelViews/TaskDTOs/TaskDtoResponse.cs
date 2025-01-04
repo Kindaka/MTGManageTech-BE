@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using MartyrGraveManagement_BAL.ModelViews.StaffDTOs;
 
 namespace MartyrGraveManagement_BAL.ModelViews.TaskDTOs
 {
@@ -28,5 +24,7 @@ namespace MartyrGraveManagement_BAL.ModelViews.TaskDTOs
         public string? ServiceImage { get; set; }
         public string? CategoryName { get; set; }
         public string? GraveLocation { get; set; }
+
+        public List<StaffDtoResponse>? Staffs { get; set; } = new List<StaffDtoResponse>();
     }
 }
