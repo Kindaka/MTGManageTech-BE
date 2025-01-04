@@ -514,7 +514,19 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 {
                     requestResponse.MartyrCode = requestEntity.MartyrGrave.MartyrCode;
                     var martyrInfo = requestEntity.MartyrGrave.MartyrGraveInformations?.FirstOrDefault();
-                    requestResponse.MartyrName = martyrInfo?.Name;
+                    requestResponse.MartyrName = martyrInfo?.Name;       
+                    var areaId = requestEntity.MartyrGrave.AreaId;
+                    if (areaId > 0)
+                    {
+                        var managerAccount = (await _unitOfWork.AccountRepository.GetAsync(
+                            a => a.AreaId == areaId 
+                        )).FirstOrDefault();
+                        if (managerAccount != null)
+                        {  
+                            requestResponse.ManagerPhoneNumber = managerAccount.PhoneNumber;
+                            requestResponse.ManagerName = managerAccount.FullName;
+                        }
+                    }
                 }
 
                 if (requestEntity.RequestType != null)
