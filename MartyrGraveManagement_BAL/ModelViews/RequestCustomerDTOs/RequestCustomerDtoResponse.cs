@@ -25,6 +25,9 @@ namespace MartyrGraveManagement_BAL.ModelViews.RequestCustomerDTOs
         public string? CustomerName { get; set; }
         public string? CustomerPhone { get; set; }
 
+        public string ManagerPhoneNumber { get; set; }
+        public string ManagerName { get; set; }
+
         public string? MartyrCode { get; set; }
         public string? MartyrName { get; set; }
         public string? RequestTypeName { get; set; }
