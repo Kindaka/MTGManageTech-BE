@@ -920,6 +920,144 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
         }
 
+        private async Task<(bool status, string result, List<(string? phone, string? password)> outputList)> CreateMartyrGraveListAsyncV4(List<MartyrGraveDtoRequest> martyrGraveList)
+        {
+            var outputList = new List<(string? phone, string? password)>();
+            var newAccounts = new List<Account>();
+            var newMartyrGraves = new List<MartyrGrave>();
+            var newMartyrGraveInfos = new List<MartyrGraveInformation>();
+            var newGraveImages = new List<GraveImage>();
+
+            // Pre-fetch areas, locations, and existing customers
+            var areaNumbers = martyrGraveList.Select(m => m.AreaNumber).Distinct().ToList();
+            var locationKeys = martyrGraveList
+                .Select(m => (m.AreaNumber, m.RowNumber, m.MartyrNumber))
+                .Distinct().ToList();
+            var customerPhones = martyrGraveList.Select(m => m.Customer.Phone).Distinct().ToList();
+
+            var areas = (await _unitOfWork.AreaRepository.GetAsync(a => areaNumbers.Contains(a.AreaNumber)))
+                .ToDictionary(a => a.AreaNumber);
+
+            var locations = (await _unitOfWork.LocationRepository.GetAsync(l =>
+                areaNumbers.Contains(l.AreaNumber) &&
+                locationKeys.Select(k => k.RowNumber).Contains(l.RowNumber) &&
+                locationKeys.Select(k => k.MartyrNumber).Contains(l.MartyrNumber)))
+                .ToDictionary(l => (l.AreaNumber, l.RowNumber, l.MartyrNumber));
+
+            var existingCustomers = (await _unitOfWork.AccountRepository.FindAsync(c => customerPhones.Contains(c.PhoneNumber)))
+                .ToDictionary(c => c.PhoneNumber);
+
+            using (var transaction = await _unitOfWork.BeginTransactionAsync())
+            {
+                try
+                {
+                    foreach (var martyrGraveDto in martyrGraveList)
+                    {
+                        // Validate and look up area and location
+                        if (!areas.TryGetValue(martyrGraveDto.AreaNumber, out var area) ||
+                            !locations.TryGetValue((martyrGraveDto.AreaNumber, martyrGraveDto.RowNumber, martyrGraveDto.MartyrNumber), out var location))
+                        {
+                            // Log or handle missing area/location
+                            continue;
+                        }
+
+                        var customerPhone = martyrGraveDto.Customer.Phone;
+                        var customerUserName = martyrGraveDto.Customer.UserName;
+                        if (string.IsNullOrEmpty(customerPhone) || string.IsNullOrEmpty(customerUserName))
+                        {
+                            // Log or skip missing mandatory data
+                            continue;
+                        }
+
+                        string? password = null;
+                        if (!existingCustomers.TryGetValue(customerPhone, out var existingCustomer))
+                        {
+                            // Create new account
+                            password = CreateRandomPassword(8);
+                            var account = new Account
+                            {
+                                FullName = customerUserName,
+                                PhoneNumber = customerPhone,
+                                Address = martyrGraveDto.Customer.Address,
+                                EmailAddress = martyrGraveDto.Customer.EmailAddress,
+                                DateOfBirth = martyrGraveDto.Customer.Dob,
+                                RoleId = 4,
+                                Status = true,
+                                CustomerCode = GenerateCustomerCode(customerUserName, customerPhone),
+                                CreateAt = DateTime.Now,
+                                HashedPassword = await HashPassword(password)
+                            };
+                            // Lưu vào database
+                            await _unitOfWork.AccountRepository.AddAsync(account);
+                            await _unitOfWork.SaveAsync(); // Lưu để AccountId được gán
+
+                            // Thêm vào existingCustomers
+                            existingCustomers[customerPhone] = account;
+                        }
+
+                        // Generate martyr code and skip if duplicate
+                        var martyrCode = GenerateMartyrCode(location.AreaNumber, location.RowNumber, location.MartyrNumber);
+                        if (newMartyrGraves.Any(m => m.MartyrCode == martyrCode) ||
+                            (await _unitOfWork.MartyrGraveRepository.FindAsync(m => m.MartyrCode == martyrCode)).Any())
+                        {
+                            continue;
+                        }
+
+                        // Create martyr grave
+                        var martyrGrave = new MartyrGrave
+                        {
+                            AreaId = area.AreaId,
+                            LocationId = location.LocationId,
+                            MartyrCode = martyrCode,
+                            Status = 1,
+                            AccountId = existingCustomers[customerPhone].AccountId
+                        };
+                        // Lưu vào database
+                        await _unitOfWork.MartyrGraveRepository.AddAsync(martyrGrave);
+                        await _unitOfWork.SaveAsync(); // Lưu để AccountId được gán
+
+                        // Add martyr grave information
+                        newMartyrGraveInfos.AddRange(martyrGraveDto.Informations.Select(info => new MartyrGraveInformation
+                        {
+                            MartyrId = martyrGrave.MartyrId, // Will be updated after insertion
+                            Name = info.Name,
+                            NickName = info.NickName,
+                            Position = info.Position,
+                            Medal = info.Medal,
+                            HomeTown = info.HomeTown,
+                            DateOfBirth = info.DateOfBirth,
+                            DateOfSacrifice = info.DateOfSacrifice
+                        }));
+
+                        // Add grave images
+                        newGraveImages.AddRange(martyrGraveDto.Image.Select(img => new GraveImage
+                        {
+                            MartyrId = martyrGrave.MartyrId, // Will be updated after insertion
+                            UrlPath = img.UrlPath
+                        }));
+
+                        // Collect output details
+                        outputList.Add((customerPhone, password));
+                    }
+
+                    // Bulk insert new data
+                    if (newAccounts.Any()) await _unitOfWork.AccountRepository.AddRangeAsync(newAccounts);
+                    if (newMartyrGraves.Any()) await _unitOfWork.MartyrGraveRepository.AddRangeAsync(newMartyrGraves);
+                    if (newMartyrGraveInfos.Any()) await _unitOfWork.MartyrGraveInformationRepository.AddRangeAsync(newMartyrGraveInfos);
+                    if (newGraveImages.Any()) await _unitOfWork.GraveImageRepository.AddRangeAsync(newGraveImages);
+
+                    await _unitOfWork.SaveAsync();
+                    await transaction.CommitAsync();
+
+                    return (true, "All records processed successfully", outputList);
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    throw new Exception("Error during bulk insertion: " + ex.Message);
+                }
+            }
+        }
 
 
 
@@ -940,62 +1078,85 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     // Loop through the rows and create MartyrGraveDtoRequest objects
                     for (int row = 2; row <= worksheet.Dimension.End.Row; row++) // Start at row 2 to skip headers
                     {
-                        // Map data from the Excel sheet to the DTO
-                        var martyrGraveDto = new MartyrGraveDtoRequest
+                        // Validate and map data
+                        if (int.TryParse(worksheet.Cells[row, 8].Text, out var areaNumber) &&
+                            int.TryParse(worksheet.Cells[row, 9].Text, out var rowNumber) &&
+                            int.TryParse(worksheet.Cells[row, 10].Text, out var martyrNumber) &&
+                            !string.IsNullOrWhiteSpace(worksheet.Cells[row, 11].Text) &&
+                            !string.IsNullOrWhiteSpace(worksheet.Cells[row, 12].Text))
                         {
-                            AreaNumber = int.Parse(worksheet.Cells[row, 8].Text),
-                            RowNumber = int.Parse(worksheet.Cells[row, 9].Text),
-                            MartyrNumber = int.Parse(worksheet.Cells[row, 10].Text),
-                            Customer = new CustomerDtoRequest
+                            var martyrGraveDto = new MartyrGraveDtoRequest
                             {
-                                UserName = worksheet.Cells[row, 11].Text,
-                                Phone = worksheet.Cells[row, 12].Text,
-                                Address = worksheet.Cells[row, 13].Text,
-                                Dob = worksheet.Cells[row, 14].Text
-                            },
-                            Informations = new List<MartyrGraveInformationDtoRequest>
-                            {
-                                new MartyrGraveInformationDtoRequest
+                                AreaNumber = areaNumber,
+                                RowNumber = rowNumber,
+                                MartyrNumber = martyrNumber,
+                                Customer = new CustomerDtoRequest
                                 {
-                                    Name = worksheet.Cells[row, 1].Text,
-                                    NickName = worksheet.Cells[row, 2].Text,
-                                    Position = worksheet.Cells[row, 3].Text,
-                                    Medal = worksheet.Cells[row, 4].Text,
-                                    HomeTown = worksheet.Cells[row, 5].Text,
-                                    DateOfBirth = worksheet.Cells[row, 6].Text,
-                                    DateOfSacrifice = worksheet.Cells[row, 7].Text
-                                }
-                            },
-                        };
+                                    UserName = worksheet.Cells[row, 11].Text,
+                                    Phone = worksheet.Cells[row, 12].Text,
+                                    Address = worksheet.Cells[row, 13].Text,
+                                    Dob = worksheet.Cells[row, 14].Text
+                                },
+                                Informations = new List<MartyrGraveInformationDtoRequest>
+                        {
+                            new MartyrGraveInformationDtoRequest
+                            {
+                                Name = worksheet.Cells[row, 1].Text,
+                                NickName = worksheet.Cells[row, 2].Text,
+                                Position = worksheet.Cells[row, 3].Text,
+                                Medal = worksheet.Cells[row, 4].Text,
+                                HomeTown = worksheet.Cells[row, 5].Text,
+                                DateOfBirth = worksheet.Cells[row, 6].Text,
+                                DateOfSacrifice = worksheet.Cells[row, 7].Text
+                            }
+                        },
+                            };
 
-                        martyrGraveList.Add(martyrGraveDto);
+                            martyrGraveList.Add(martyrGraveDto);
+                        }
+                        else
+                        {
+                            // Log invalid row
+                            Console.WriteLine($"Invalid data at row {row}");
+                        }
                     }
 
-                    // Now pass the entire list to CreateMartyrGraveAsyncV3 in one batch
-                    var (status, result, phonePasswordPairs) = await CreateMartyrGraveListAsyncV3(martyrGraveList);
-
-                    if (status)
+                    // Process the entire list in batches
+                    if (martyrGraveList.Any())
                     {
-                        outputList.AddRange(phonePasswordPairs);
-                        // Commit the transaction after processing all records
-                        await _unitOfWork.SaveAsync();
+                        const int batchSize = 100; // Define batch size
+                        for (int i = 0; i < martyrGraveList.Count; i += batchSize)
+                        {
+                            var batch = martyrGraveList.Skip(i).Take(batchSize).ToList();
+                            var (status, result, phonePasswordPairs) = await CreateMartyrGraveListAsyncV4(batch);
+
+                            if (status)
+                            {
+                                outputList.AddRange(phonePasswordPairs);
+                            }
+                            else
+                            {
+                                // Log issues for the current batch
+                                Console.WriteLine($"Batch {i / batchSize + 1} failed: {result}");
+                            }
+                        }
+
+                        // Export the phone and password data to an output Excel file
+                        var outputFilePath = ExportPhoneAndPasswordsToExcel(outputList, filePath);
+                        return (true, $"Data processed successfully. Exported to {outputFilePath}");
                     }
                     else
                     {
-                        // Handle failure if needed
-                        return (false, "Failed to process all martyr graves: " + result);
+                        return (false, "No valid data found in the Excel file.");
                     }
                 }
-
-                // Export the phone and password data to an output Excel file
-                var outputFilePath = ExportPhoneAndPasswordsToExcel(outputList, filePath);
-                return (true, $"Data processed successfully. Exported to {outputFilePath}");
             }
             catch (Exception ex)
             {
                 return (false, "Error reading or processing the Excel file: " + ex.Message);
             }
         }
+
 
 
         private string ExportPhoneAndPasswordsToExcel(List<(string PhoneNumber, string Password)> phonePasswordList, string filePath)

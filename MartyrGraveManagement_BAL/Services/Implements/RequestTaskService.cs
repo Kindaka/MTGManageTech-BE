@@ -260,6 +260,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     // Lấy thông tin từ OrderDetail, Service, và MartyrGrave
                     taskDto.ServiceName = task.RequestCustomer?.RequestType?.TypeName;
                     taskDto.ServiceDescription = task.RequestCustomer?.RequestType?.TypeDescription;
+                    taskDto.CategoryName = "Yêu cầu thân nhân";
 
                     // Ghép vị trí mộ từ AreaNumber, RowNumber, và MartyrNumber
                     var martyrGrave = task.RequestCustomer?.MartyrGrave;

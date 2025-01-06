@@ -26,6 +26,7 @@ namespace MartyrGraveManagement_BAL.ModelViews.RequestTaskDTOs
         public string? ServiceName { get; set; }
         public string? ServiceDescription { get; set; }
         public string? GraveLocation { get; set; }
+        public string? CategoryName { get; set; }
 
         public List<RequestMaterialDtoResponse>? Materials { get; set; } = new List<RequestMaterialDtoResponse> { };
 

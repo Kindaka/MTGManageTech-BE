@@ -1,12 +1,28 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace MartyrGraveManagement_DAL.Entities
 {
     public class ApplicationDbContext : DbContext
     {
+        public ApplicationDbContext() { }
+
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options)
         {
+        }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            if (!optionsBuilder.IsConfigured)
+            {
+                IConfigurationRoot configuration = new ConfigurationBuilder()
+                   .SetBasePath(Directory.GetCurrentDirectory())
+                   .AddJsonFile("appsettings.json")
+                   .Build();
+                var connectionString = configuration.GetConnectionString("DefaultConnection");
+                optionsBuilder.UseSqlServer(connectionString);
+            }
         }
 
         public DbSet<ServiceCategory> ServiceCategories { get; set; }
@@ -44,6 +60,7 @@ namespace MartyrGraveManagement_DAL.Entities
         public DbSet<ScheduleDetail> ScheduleTasks { get; set; }
         //public DbSet<Attendance> Attendances { get; set; }
         public DbSet<Material_Service> Material_Services { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -283,7 +283,8 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                             taskDto.Staffs = accountStaffs.Select(accountStaff => new StaffDtoResponse
                             {
                                 AccountId = accountStaff.AccountId,
-                                StaffFullName = accountStaff.FullName
+                                StaffFullName = accountStaff.FullName,
+                                PhoneNumber = accountStaff.PhoneNumber
                             }).ToList();
                         }
                     }
