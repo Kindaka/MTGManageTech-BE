@@ -2,9 +2,7 @@
 using MartyrGraveManagement_BAL.ModelViews.PaymentDTOs;
 using MartyrGraveManagement_BAL.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using System.Text.Json;
 
 namespace MartyrGraveManagement.Controllers
@@ -14,8 +12,8 @@ namespace MartyrGraveManagement.Controllers
     public class PaymentController : ControllerBase
     {
         private readonly IPaymentService _paymentService;
-        private static readonly string URL_SUCCESS = "http://localhost:3000/checkout-success";
-        private static readonly string URL_ERROR = "http://localhost:3000/checkout-fail";
+        private static readonly string URL_SUCCESS = "https://mtg-two.vercel.app/checkout-success";
+        private static readonly string URL_ERROR = "https://mtg-two.vercel.app/checkout-fail";
         private readonly ILogger<PaymentController> _logger;
 
         public PaymentController(IPaymentService paymentService, ILogger<PaymentController> logger)
@@ -57,7 +55,7 @@ namespace MartyrGraveManagement.Controllers
                         return Redirect(URL_ERROR);
                     }
                 }
-                
+
                 return Redirect(URL_ERROR);
             }
             catch (Exception ex)
