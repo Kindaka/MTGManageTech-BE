@@ -21,7 +21,7 @@ namespace MartyrGraveManagement.Controllers
         }
 
         /// <summary>
-        /// View Blog By AccountId (Staff)
+        /// View Blog By  AccountId (Staff)
         /// </summary>
         [Authorize(Policy = "RequireStaffRole")]
         [HttpGet("GetBlogByAccountId/{accountId}")]
