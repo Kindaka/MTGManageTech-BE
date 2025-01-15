@@ -4,9 +4,11 @@ using MartyrGraveManagement_BAL.ModelViews.EmailDTOs;
 using MartyrGraveManagement_BAL.ModelViews.MartyrGraveDTOs;
 using MartyrGraveManagement_BAL.ModelViews.MartyrGraveInformationDTOs;
 using MartyrGraveManagement_BAL.Services.Interfaces;
+using MartyrGraveManagement_BAL.Utils;
 using MartyrGraveManagement_DAL.Entities;
 using MartyrGraveManagement_DAL.UnitOfWorks.Interfaces;
 using OfficeOpenXml;
+using System.Globalization;
 using System.Linq.Expressions;
 using System.Security.Cryptography;
 using System.Text;
@@ -43,124 +45,127 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             return $"Customer-{lastName}-{phone}";
         }
 
-        //public async Task<MartyrGraveDtoResponse> CreateMartyrGraveAsync(MartyrGraveDtoRequest martyrGraveDto)
-        //{//
-        //    // Kiểm tra AreaId có tồn tại không
-        //    var area = await _unitOfWork.AreaRepository.GetByIDAsync(martyrGraveDto.AreaId);
-        //    if (area == null)
-        //    {
-        //        throw new KeyNotFoundException("AreaId does not exist.");
-        //    }
-
-        //    // Tạo thực thể từ DTO
-        //    var martyrGrave = _mapper.Map<MartyrGrave>(martyrGraveDto);
-
-        //    // Gọi hàm GenerateMartyrCode để tạo mã MartyrCode
-        //    //martyrGrave.MartyrCode = GenerateMartyrCode(martyrGrave.AreaNumber, martyrGrave.RowNumber, martyrGrave.MartyrNumber);
-
-        //    // Thêm MartyrGrave vào cơ sở dữ liệu
-        //    await _unitOfWork.MartyrGraveRepository.AddAsync(martyrGrave);
-        //    await _unitOfWork.SaveAsync();
-
-        //    // Trả về DTO response
-        //    return _mapper.Map<MartyrGraveDtoResponse>(martyrGrave);
-        //}
-
-        //public async Task<MartyrGraveDtoResponse> UpdateMartyrGraveAsync(int id, MartyrGraveDtoRequest martyrGraveDto)
-        //{//
-        //    // Kiểm tra AreaId có tồn tại không
-        //    var area = await _unitOfWork.AreaRepository.GetByIDAsync(martyrGraveDto.AreaId);
-        //    if (area == null)
-        //    {
-        //        throw new KeyNotFoundException("AreaId does not exist.");
-        //    }
-
-        //    var martyrGrave = await _unitOfWork.MartyrGraveRepository.GetByIDAsync(id);
-        //    if (martyrGrave == null)
-        //    {
-        //        return null;
-        //    }
-
-        //    // Cập nhật các thuộc tính từ DTO sang thực thể
-        //    _mapper.Map(martyrGraveDto, martyrGrave);
-
-        //    // Tạo lại MartyrCode dựa trên các thông tin mới
-        //    //martyrGrave.MartyrCode = GenerateMartyrCode(martyrGrave.AreaNumber, martyrGrave.RowNumber, martyrGrave.MartyrNumber);
-
-        //    // Cập nhật thông tin vào cơ sở dữ liệu
-        //    await _unitOfWork.MartyrGraveRepository.UpdateAsync(martyrGrave);
-        //    await _unitOfWork.SaveAsync();
-
-        //    // Trả về kết quả cập nhật
-        //    return _mapper.Map<MartyrGraveDtoResponse>(martyrGrave);
-        //}
-
-        public async Task<List<MartyrGraveSearchDtoResponse>> SearchMartyrGravesAsync(
-    MartyrGraveSearchDtoRequest searchCriteria, int pageIndex, int pageSize)
+        public async Task<(List<MartyrGraveSearchDtoResponse> martyrGraves, int totalPage)> SearchMartyrGravesAsync(
+            MartyrGraveSearchDtoRequest searchCriteria, int page = 1, int pageSize = 15)
         {
-            // Server-side filter for basic conditions
-            Expression<Func<MartyrGraveInformation, bool>> filter = m =>
-                (searchCriteria.YearOfBirth == null || m.DateOfBirth != null && m.DateOfBirth.Contains(searchCriteria.YearOfBirth)) &&
-                (searchCriteria.YearOfSacrifice == null || m.DateOfSacrifice != null && m.DateOfSacrifice.Contains(searchCriteria.YearOfSacrifice)) &&
-                (string.IsNullOrEmpty(searchCriteria.HomeTown) || m.HomeTown != null);
-
-            // Fetch filtered and paginated data from the database
-            var martyrGraves = await _unitOfWork.MartyrGraveInformationRepository
-                .GetAllAsync(filter: filter, includeProperties: "MartyrGrave", pageIndex: pageIndex, pageSize: pageSize);
-
-            // Apply client-side filtering for unaccented names and hometowns
-            string unaccentedSearchName = string.IsNullOrEmpty(searchCriteria.Name)
-                ? string.Empty
-                : ConvertToUnaccentedLowercaseString(searchCriteria.Name);
-
-            string unaccentedHomeTown = string.IsNullOrEmpty(searchCriteria.HomeTown)
-                ? string.Empty
-                : ConvertToUnaccentedLowercaseString(searchCriteria.HomeTown);
-
-            var filteredMartyrGraves = martyrGraves
-                .AsEnumerable() // Switch to client-side evaluation
-                .Where(m =>
-                    (string.IsNullOrEmpty(searchCriteria.Name) || ConvertToUnaccentedLowercaseString(m.Name).Contains(unaccentedSearchName)) &&
-                    (string.IsNullOrEmpty(searchCriteria.HomeTown) || ConvertToUnaccentedLowercaseString(m.HomeTown).Contains(unaccentedHomeTown)));
-
-            // Map results to DTOs
-            var result = new List<MartyrGraveSearchDtoResponse>();
-            foreach (var m in filteredMartyrGraves)
+            try 
             {
-                var graveDto = new MartyrGraveSearchDtoResponse
-                {
-                    MartyrId = m.MartyrId,
-                    Name = m.Name,
-                    NickName = m.NickName,
-                    HomeTown = m.HomeTown,
-                    DateOfBirth = m.DateOfBirth,
-                    DateOfSacrifice = m.DateOfSacrifice,
-                    MartyrCode = m.MartyrGrave?.MartyrCode,
-                    ImageUrls = new List<GraveImageDtoResponse>() // Initialize image URLs list
-                };
+                // Lấy tất cả dữ liệu cần thiết trước
+                var query = await _unitOfWork.MartyrGraveInformationRepository
+                    .GetAllAsync(
+                        includeProperties: "MartyrGrave"
+                    );
 
-                // Fetch associated images
-                var graveImages = await _unitOfWork.GraveImageRepository
-                    .GetAllAsync(g => g.MartyrId == m.MartyrId);
+                // Thực hiện filter trong memory
+                var filteredQuery = query.AsEnumerable();
 
-                foreach (var image in graveImages)
+                if (!string.IsNullOrEmpty(searchCriteria.Name))
                 {
-                    if (!string.IsNullOrEmpty(image.UrlPath))
-                    {
-                        graveDto.ImageUrls.Add(new GraveImageDtoResponse
-                        {
-                            Image = image.UrlPath
-                        });
-                    }
+                    string searchName = RemoveDiacritics(searchCriteria.Name.ToLower());
+                    filteredQuery = filteredQuery.Where(x => 
+                        x.Name != null && 
+                        RemoveDiacritics(x.Name.ToLower()).Contains(searchName));
                 }
 
-                result.Add(graveDto);
-            }
+                if (!string.IsNullOrEmpty(searchCriteria.HomeTown))
+                {
+                    string searchHomeTown = RemoveDiacritics(searchCriteria.HomeTown.ToLower());
+                    filteredQuery = filteredQuery.Where(x => 
+                        x.HomeTown != null && 
+                        RemoveDiacritics(x.HomeTown.ToLower()).Contains(searchHomeTown));
+                }
 
-            return result;
+                if (!string.IsNullOrEmpty(searchCriteria.YearOfBirth))
+                {
+                    filteredQuery = filteredQuery.Where(x => 
+                        x.DateOfBirth != null && 
+                        x.DateOfBirth.Contains(searchCriteria.YearOfBirth));
+                }
+
+                if (!string.IsNullOrEmpty(searchCriteria.YearOfSacrifice))
+                {
+                    filteredQuery = filteredQuery.Where(x => 
+                        x.DateOfSacrifice != null && 
+                        x.DateOfSacrifice.Contains(searchCriteria.YearOfSacrifice));
+                }
+
+                // Thêm tìm kiếm theo MartyrCode
+                if (!string.IsNullOrEmpty(searchCriteria.MartyrCode))
+                {
+                    string searchCode = searchCriteria.MartyrCode.ToLower();
+                    filteredQuery = filteredQuery.Where(x => 
+                        x.MartyrGrave != null && 
+                        x.MartyrGrave.MartyrCode.ToLower().Contains(searchCode));
+                }
+
+                // Tính toán phân trang
+                var totalRecords = filteredQuery.Count();
+                var totalPage = (int)Math.Ceiling(totalRecords / (double)pageSize);
+
+                // Áp dụng phân trang
+                var martyrGraves = filteredQuery
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToList();
+
+                // Chuyển đổi sang DTO và lấy images
+                var dtoList = new List<MartyrGraveSearchDtoResponse>();
+                foreach (var m in martyrGraves)
+                {
+                    var graveDto = new MartyrGraveSearchDtoResponse
+                    {
+                        MartyrId = m.MartyrId,
+                        Name = m.Name,
+                        NickName = m.NickName,
+                        HomeTown = m.HomeTown,
+                        DateOfBirth = m.DateOfBirth,
+                        DateOfSacrifice = m.DateOfSacrifice,
+                        MartyrCode = m.MartyrGrave?.MartyrCode,
+                        ImageUrls = new List<GraveImageDtoResponse>()
+                    };
+
+                    // Lấy images cho từng martyr
+                    var graveImages = await _unitOfWork.GraveImageRepository
+                        .GetAllAsync(g => g.MartyrId == m.MartyrId);
+
+                    graveDto.ImageUrls = graveImages
+                        .Where(i => !string.IsNullOrEmpty(i.UrlPath))
+                        .Select(i => new GraveImageDtoResponse
+                        {
+                            Image = i.UrlPath
+                        })
+                        .ToList();
+
+                    dtoList.Add(graveDto);
+                }
+
+                return (dtoList, totalPage);
+            }
+            catch (Exception ex)
+            {
+                // Log exception
+                throw;
+            }
         }
 
+        private string RemoveDiacritics(string text)
+        {
+            if (string.IsNullOrEmpty(text)) return text;
 
+            string normalizedString = text.Normalize(NormalizationForm.FormD);
+            StringBuilder stringBuilder = new StringBuilder();
+
+            foreach (char c in normalizedString)
+            {
+                UnicodeCategory unicodeCategory = CharUnicodeInfo.GetUnicodeCategory(c);
+                if (unicodeCategory != UnicodeCategory.NonSpacingMark)
+                {
+                    stringBuilder.Append(c);
+                }
+            }
+
+            return stringBuilder.ToString().Normalize(NormalizationForm.FormC);
+        }
 
         public async Task<(List<MartyrGraveGetAllDtoResponse> matyrGraveList, int totalPage)> GetAllMartyrGravesAsync(int page, int pageSize)
         {
@@ -204,8 +209,6 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
         public async Task<MartyrGraveDtoResponse> GetMartyrGraveByIdAsync(int id)
         {
-            //var grave = await _unitOfWork.MartyrGraveRepository.GetByIDAsync(id);
-            //return _mapper.Map<MartyrGraveDtoResponse>(grave);
             try
             {
                 var grave = (await _unitOfWork.MartyrGraveRepository.GetAsync(g => g.MartyrId == id, includeProperties: "MartyrGraveInformations,Location,Account,Area")).FirstOrDefault();
