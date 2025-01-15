@@ -20,7 +20,7 @@ namespace MartyrGraveManagement_DAL.Entities
         public DateOnly? EndDate { get; set; }
         public DateTime CreateAt { get; set; }
         public DateTime UpdateAt { get; set; }
-        public int Status { get; set; } // 1 là đang chờ xác nhận từ manager, 2 là đã duyệt (dành cho báo cáo mộ và yêu cầu thêm dịch vụ vào mộ), 3 là từ chối, 4 là báo giá (dành cho đặt dịch vụ riêng), 5 là khách hàng đồng ý đặt dịch vụ riêng, 6 là hoàn thành
+        public int Status { get; set; } // 1 là đang chờ xác nhận từ manager, 2 là đã duyệt (dành cho báo cáo mộ và yêu cầu thêm dịch vụ vào mộ), 3 là từ chối (Ghi lí do vào Note khách hàng) (Cũng dành cho khách hàng không muốn đăng kí dịch vụ riêng nữa thì cũng chuyển qua status này), 4 là đã báo giá cho khách (dành cho đặt dịch vụ riêng), 5 là khách hàng đồng ý đặt dịch vụ riêng, 6 là staff đang làm, 7 là hoàn thành, 8 là thất bại.
 
         public Account? Account { get; set; }
         public MartyrGrave? MartyrGrave { get; set; }

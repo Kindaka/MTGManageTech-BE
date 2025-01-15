@@ -149,11 +149,11 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
             if (Date == DateTime.MinValue)
             {
-                // Thêm điều kiện lọc `status` 1 hoặc 3
+                // Thêm điều kiện lọc `status` 1 
                 totalTask = (await _unitOfWork.TaskRepository.GetAsync(s => s.AccountId == accountId && (s.Status == 1))).Count();
                 totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
 
-                // Lấy tất cả các `Task` có `status` là 1 hoặc 3
+                // Lấy tất cả các `Task` có `status` là 1 
                 tasks = await _unitOfWork.TaskRepository.GetAsync(
                     t => t.AccountId == accountId && (t.Status == 1),
                     includeProperties: "OrderDetail.Service,OrderDetail.MartyrGrave",
@@ -163,11 +163,11 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
             else
             {
-                // Thêm điều kiện lọc `status` 1 hoặc 3
+                // Thêm điều kiện lọc `status` 1 
                 totalTask = (await _unitOfWork.TaskRepository.GetAsync(s => s.AccountId == accountId && s.StartDate.Date == Date && (s.Status == 1))).Count();
                 totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
 
-                // Lấy tất cả các `Task` có `status` là 1 hoặc 3 theo ngày
+                // Lấy tất cả các `Task` có `status` là 1 theo ngày
                 tasks = await _unitOfWork.TaskRepository.GetAsync(
                     t => t.AccountId == accountId && t.StartDate.Date == Date && (t.Status == 1),
                     includeProperties: "OrderDetail.Service,OrderDetail.MartyrGrave",
