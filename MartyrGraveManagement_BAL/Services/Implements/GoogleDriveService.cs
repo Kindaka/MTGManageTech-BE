@@ -118,7 +118,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
         {
             try
             {
-                string credentialsPath = "C:\\Users\\martyr-grave-vps\\Desktop\\github\\credentials.json"; //Đường dẫn file credentials.json
+                string credentialsPath = "C:\\Users\\admin8386\\Desktop\\github\\credentials.json"; //Đường dẫn file credentials.json
                 // Set up the flow and the data store
                 using var stream = new FileStream(credentialsPath, FileMode.Open, FileAccess.Read);
                 var credential = GoogleWebAuthorizationBroker.AuthorizeAsync(
