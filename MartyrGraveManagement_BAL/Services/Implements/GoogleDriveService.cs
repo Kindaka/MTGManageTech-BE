@@ -1,6 +1,7 @@
 ﻿using Google.Apis.Auth.OAuth2;
 using Google.Apis.Drive.v3;
 using Google.Apis.Services;
+using Google.Apis.Upload;
 using Google.Apis.Util.Store;
 using MartyrGraveManagement_BAL.Services.Interfaces;
 using Microsoft.AspNetCore.Hosting;
@@ -90,10 +91,11 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
         }
 
-        public async Task UploadFileAsync(Stream fileStream, Google.Apis.Drive.v3.Data.File fileMetadata)
+        public async Task<bool> UploadFileAsync(Stream fileStream, Google.Apis.Drive.v3.Data.File fileMetadata)
         {
             try
             {
+
                 // 1. Authenticate with Google Drive API
                 var credentials = await GetCredentialsAsync();
 
@@ -107,6 +109,14 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 // Upload the file using the stream
                 var file = await service.Files.Create(fileMetadata, fileStream, fileMetadata.MimeType)
                     .UploadAsync();
+                if (file.Status == UploadStatus.Completed)
+                {
+                    return true;
+                }
+                else
+                {
+                    throw new Exception($"File upload failed: {file.Exception?.Message}");
+                }
             }
             catch (Exception ex)
             {
@@ -118,7 +128,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
         {
             try
             {
-                string credentialsPath = "C:\\Users\\admin8386\\Desktop\\github\\credentials.json"; //Đường dẫn file credentials.json
+                string credentialsPath = "D:\\Capstone Project\\Group Project\\Google Drive\\credentials.json"; //Đường dẫn file credentials.json
                 // Set up the flow and the data store
                 using var stream = new FileStream(credentialsPath, FileMode.Open, FileAccess.Read);
                 var credential = GoogleWebAuthorizationBroker.AuthorizeAsync(

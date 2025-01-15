@@ -1,9 +1,7 @@
 ﻿using MartyrGraveManagement_BAL.ModelViews.AreaDTos;
-using MartyrGraveManagement_BAL.Services.Implements;
 using MartyrGraveManagement_BAL.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
 
 namespace MartyrGraveManagement.Controllers
 {
@@ -66,9 +64,9 @@ namespace MartyrGraveManagement.Controllers
         }
 
         /// <summary>
-        /// Get all Areas for Staff or Manager (RequireManagerOrStaffRole) - Show both active and inactive areas
+        /// Get all Areas for Admin, Staff or Manager (RequireManagerOrStaffOrAdminRole) - Show both active and inactive areas
         /// </summary>
-        [Authorize(Policy = "RequireManagerOrStaffRole")]
+        [Authorize(Policy = "RequireManagerOrStaffOrAdminRole")]
         [HttpGet("all-areas")]
         public async Task<IActionResult> GetAllAreasForStaffOrManager()
         {
