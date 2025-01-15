@@ -12,6 +12,7 @@ namespace MartyrGraveManagement_BAL.ModelViews.MartyrGraveDTOs
         public string? YearOfBirth { get; set; }  // Chỉ nhận năm
         public string? YearOfSacrifice { get; set; }  // Chỉ nhận năm
         public string? HomeTown { get; set; }
+        public string? MartyrCode { get; set; }
     }
 
 }

@@ -20,21 +20,42 @@ namespace MartyrGraveManagement.Controllers
 
         [AllowAnonymous]
         [HttpGet("search")]
-        public async Task<IActionResult> SearchMartyrGraves([FromQuery] MartyrGraveSearchDtoRequest searchCriteria, [FromQuery] int page = 1, [FromQuery] int pageSize = 15)
+        public async Task<IActionResult> SearchMartyrGraves(
+            [FromQuery] MartyrGraveSearchDtoRequest searchCriteria, 
+            [FromQuery] int page = 1, 
+            [FromQuery] int pageSize = 15)
         {
             try
             {
-                var results = await _martyrGraveService.SearchMartyrGravesAsync(searchCriteria, page, pageSize);
-                if (results == null || !results.Any())
+                var (martyrGraves, totalPage) = await _martyrGraveService.SearchMartyrGravesAsync(
+                    searchCriteria, 
+                    page, 
+                    pageSize);
+
+                if (martyrGraves == null || !martyrGraves.Any())
                 {
-                    return NotFound("No results found.");
+                    return NotFound(new { 
+                        success = false,
+                        message = "No results found."
+                    });
                 }
 
-                return Ok(results);
+                return Ok(new { 
+                    success = true,
+                    message = "Search completed successfully",
+                    data = new {
+                        martyrGraves = martyrGraves,
+                        totalPage = totalPage
+                    }
+                });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                return StatusCode(500, new { 
+                    success = false,
+                    message = "Internal server error",
+                    error = ex.Message
+                });
             }
         }
 
