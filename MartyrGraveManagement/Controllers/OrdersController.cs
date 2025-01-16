@@ -1,16 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using MartyrGraveManagement_BAL.ModelViews.OrdersDTOs;
 using MartyrGraveManagement_BAL.Services.Interfaces;
-using MartyrGraveManagement_DAL.Entities;
-using MartyrGraveManagement_BAL.ModelViews.OrdersDTOs;
-using MartyrGraveManagement_BAL.Services.Implements;
-using MartyrGraveManagement_BAL.ModelViews.CartItemsDTOs;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace MartyrGraveManagement.Controllers
 {
@@ -103,8 +94,8 @@ namespace MartyrGraveManagement.Controllers
         [HttpGet("account/{customerId}")]
         public async Task<ActionResult<List<OrdersGetAllDTOResponse>>> GetOrderByAccountId(
             int customerId,
-            DateTime? date = null, 
-            int? status = null,   
+            DateTime? date = null,
+            int? status = null,
             int pageIndex = 1,
             int pageSize = 5)
         {
@@ -154,7 +145,7 @@ namespace MartyrGraveManagement.Controllers
                     return Forbid();
                 }
                 var orderDetails = await _odersService.GetOrderByAreaId(managerId, pageIndex, pageSize, Date);
-                return Ok(new {orderDetails = orderDetails.orderDetailList, totalPage = orderDetails.totalPage});
+                return Ok(new { orderDetails = orderDetails.orderDetailList, totalPage = orderDetails.totalPage });
             }
             catch (Exception ex)
             {
@@ -171,7 +162,7 @@ namespace MartyrGraveManagement.Controllers
             try
             {
                 // Kiểm tra ngày hoàn thành dự kiến
-                if (orderBody.ExpectedCompletionDate <= DateTime.Now.AddDays(3))
+                if (DateOnly.FromDateTime(orderBody.ExpectedCompletionDate) < DateOnly.FromDateTime(DateTime.Now).AddDays(3))
                 {
                     return BadRequest("Ngày hoàn thành dự kiến phải ít nhất sau 3 ngày kể từ bây giờ.");
                 }
@@ -271,7 +262,7 @@ namespace MartyrGraveManagement.Controllers
             }
         }
 
-        
+
         [AllowAnonymous]
         [HttpGet("martyr-grave/{martyrGraveId}")]
         public async Task<IActionResult> GetOrdersByMartyrGraveId(int martyrGraveId)
@@ -279,7 +270,7 @@ namespace MartyrGraveManagement.Controllers
             try
             {
                 var orderHistory = await _odersService.GetOrdersByMartyrGraveId(martyrGraveId);
-            
+
                 return Ok(orderHistory);
             }
             catch (Exception ex)

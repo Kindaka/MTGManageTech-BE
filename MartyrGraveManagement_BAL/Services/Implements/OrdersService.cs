@@ -500,12 +500,12 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         var grave = await _unitOfWork.MartyrGraveRepository.GetByIDAsync(cartItem.MartyrId);
                         decimal priceToApply = (decimal)service.Price;
 
-                        // Kiểm tra xem người đặt hàng có phải là người quản lý mộ không
-                        if (grave.AccountId == account.AccountId)
-                        {
-                            // Giảm giá 5% nếu người đặt hàng là người quản lý mộ
-                            priceToApply *= 0.95m;
-                        }
+                        //// Kiểm tra xem người đặt hàng có phải là người quản lý mộ không
+                        //if (grave.AccountId == account.AccountId)
+                        //{
+                        //    // Giảm giá 5% nếu người đặt hàng là người quản lý mộ
+                        //    priceToApply *= 0.95m;
+                        //}
 
                         totalPrice += priceToApply;
                         orderDetails.Add(new OrderDetail
