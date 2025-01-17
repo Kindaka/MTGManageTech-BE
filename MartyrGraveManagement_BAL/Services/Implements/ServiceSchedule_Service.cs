@@ -3,11 +3,6 @@ using MartyrGraveManagement_BAL.ModelViews.ServiceScheduleDTOs;
 using MartyrGraveManagement_BAL.Services.Interfaces;
 using MartyrGraveManagement_DAL.Entities;
 using MartyrGraveManagement_DAL.UnitOfWorks.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MartyrGraveManagement_BAL.Services.Implements
 {
@@ -55,7 +50,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     {
                         return (false, "Số dư không đủ để đặt dịch vụ.");
                     }
-                    
+
                     var serviceName = service.ServiceName;
                     // Tìm MartyrGrave dựa trên MartyrId
                     var martyrGrave = await _unitOfWork.MartyrGraveRepository.GetByIDAsync(request.MartyrId);
@@ -122,7 +117,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         }
                     }
                     await _unitOfWork.ServiceScheduleRepository.AddAsync(serviceSchedule);
-                    
+
                     customerWallet.CustomerBalance = customerWallet.CustomerBalance - service.Price;
                     await _unitOfWork.CustomerWalletRepository.UpdateAsync(customerWallet);
 
@@ -164,22 +159,25 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             {
                 var serviceScheduleReponses = new List<ServiceScheduleDtoResponse>();
                 var account = await _unitOfWork.AccountRepository.GetByIDAsync(accountId);
-                if (account == null) {
+                if (account == null)
+                {
                     return serviceScheduleReponses;
                 }
                 var serviceSchedules = await _unitOfWork.ServiceScheduleRepository.GetAsync(
-                    s => s.AccountId == accountId, 
+                    s => s.AccountId == accountId,
                     includeProperties: "Service,MartyrGrave,MartyrGrave.Location,MartyrGrave.MartyrGraveInformations");
-                
-                if (serviceSchedules != null) {
-                    foreach (var serviceSchedule in serviceSchedules) { 
+
+                if (serviceSchedules != null)
+                {
+                    foreach (var serviceSchedule in serviceSchedules)
+                    {
                         var item = _mapper.Map<ServiceScheduleDtoResponse>(serviceSchedule);
                         item.ServiceName = serviceSchedule.Service.ServiceName;
                         item.ServiceImage = serviceSchedule.Service.ImagePath;
-                        
+
                         // Thông tin liệt sĩ
                         item.MartyrName = serviceSchedule.MartyrGrave.MartyrGraveInformations.FirstOrDefault()?.Name;
-                        
+
                         // Thông tin vị trí
                         item.RowNumber = serviceSchedule.MartyrGrave.Location.RowNumber;
                         item.MartyrNumber = serviceSchedule.MartyrGrave.Location.MartyrNumber;
@@ -191,8 +189,9 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 }
                 return serviceScheduleReponses;
             }
-            catch (Exception ex) { 
-                throw new Exception(ex.Message); 
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
             }
         }
 
@@ -242,7 +241,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                                 ?.Select(i => new AssignmentTaskImageDto
                                 {
                                     ImagePath = i.ImagePath,
-                                    CreateAt = i.CreateAt 
+                                    CreateAt = i.CreateAt
                                 })
                                 .ToList() ?? new List<AssignmentTaskImageDto>()
                         };
@@ -258,5 +257,39 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
         }
 
+        public async Task<bool> UpdateStatusServiceSchedule(int serviceScheduleId, int customerId)
+        {
+            try
+            {
+                var serviceSchedule = (await _unitOfWork.ServiceScheduleRepository.GetAsync(
+                    s => s.ServiceScheduleId == serviceScheduleId))
+                    .FirstOrDefault();
+
+                if (serviceSchedule != null)
+                {
+                    if (serviceSchedule.AccountId != customerId)
+                    {
+                        return false;
+                    }
+                    if (serviceSchedule.Status == true)
+                    {
+                        serviceSchedule.Status = false;
+                        await _unitOfWork.ServiceScheduleRepository.UpdateAsync(serviceSchedule);
+                    }
+                    else
+                    {
+                        serviceSchedule.Status = true;
+                        await _unitOfWork.ServiceScheduleRepository.UpdateAsync(serviceSchedule);
+                    }
+
+                    return true;
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
     }
 }

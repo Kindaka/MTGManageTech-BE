@@ -1,10 +1,6 @@
-﻿using MartyrGraveManagement_BAL.ModelViews.CartItemsDTOs;
-using MartyrGraveManagement_BAL.ModelViews.OrdersDTOs;
-using MartyrGraveManagement_BAL.ModelViews.ServiceScheduleDTOs;
-using MartyrGraveManagement_BAL.Services.Implements;
+﻿using MartyrGraveManagement_BAL.ModelViews.ServiceScheduleDTOs;
 using MartyrGraveManagement_BAL.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MartyrGraveManagement.Controllers
@@ -30,7 +26,7 @@ namespace MartyrGraveManagement.Controllers
         {
             try
             {
-                if(request.DayOfService <= 0)
+                if (request.DayOfService <= 0)
                 {
                     return BadRequest("Không thể thêm ngày nhỏ hơn 0");
                 }
@@ -53,8 +49,8 @@ namespace MartyrGraveManagement.Controllers
                     return Forbid();
                 }
 
-                
-                
+
+
 
                 // Gọi service để tạo danh sách CartItems và lấy kết quả
                 var (status, messages) = await _serviceScheduleService.CreateServiceSchedule(request);
@@ -126,6 +122,38 @@ namespace MartyrGraveManagement.Controllers
                     return NotFound(new { message = "Service schedule not found." });
                 }
                 return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An unexpected error occurred.", details = ex.Message });
+            }
+        }
+
+        [Authorize(Policy = "RequireCustomerRole")]
+        [HttpPut("UpdateServiceSchedule/{Id}")]
+        public async Task<ActionResult<ServiceScheduleDetailResponse>> UpdateStatusServiceSchedule(int Id, int customerId)
+        {
+            try
+            {
+                var accountId = User.FindFirst("AccountId")?.Value;
+                if (accountId == null)
+                {
+                    return Forbid();
+                }
+                var checkMatchedId = await _authorizeService.CheckAuthorizeByCustomerId(customerId, int.Parse(accountId));
+                if (!checkMatchedId.isMatchedCustomer)
+                {
+                    return Forbid();
+                }
+                var result = await _serviceScheduleService.UpdateStatusServiceSchedule(Id, customerId);
+                if (result == false)
+                {
+                    return NotFound(new { message = "Service schedule update fail." });
+                }
+                else
+                {
+                    return Ok(new { message = "Update sucessfully" });
+                }
             }
             catch (Exception ex)
             {
