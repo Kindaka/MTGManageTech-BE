@@ -12,6 +12,7 @@ using MartyrGraveManagement_BAL.ModelViews.CommentIconDTOs;
 using MartyrGraveManagement_BAL.ModelViews.CommentReportDTOs;
 using MartyrGraveManagement_BAL.ModelViews.CustomerDTOs;
 using MartyrGraveManagement_BAL.ModelViews.CustomerWalletDTOs;
+using MartyrGraveManagement_BAL.ModelViews.DashboardDTOs;
 using MartyrGraveManagement_BAL.ModelViews.FeedbackDTOs;
 using MartyrGraveManagement_BAL.ModelViews.HistoricalEventDTOs;
 using MartyrGraveManagement_BAL.ModelViews.HolidayEventDTOs;
@@ -43,6 +44,7 @@ namespace MartyrGraveManagement_BAL.MappingProfiles
 
             CreateMap<UserAuthenticatingDtoResponse, Account>().ReverseMap();
             CreateMap<Account, AccountDtoResponse>().ReverseMap();
+            CreateMap<Account, Top3CustomertDtoResponse>().ReverseMap();
             CreateMap<Account, CustomerRegisterDtoRequest>().ReverseMap();
             CreateMap<Account, UpdateProfileDtoRequest>().ReverseMap();
             CreateMap<Account, UpdateProfileStaffOrManagerDtoRequest>().ReverseMap();
@@ -242,7 +244,7 @@ namespace MartyrGraveManagement_BAL.MappingProfiles
 
             // ServiceScheduleDetailResponse mapping
             CreateMap<Service_Schedule, ServiceScheduleDetailResponse>();
-               
+
 
             CreateMap<AssignmentTask, AssignmentTaskInfo>()
                 .ForMember(dest => dest.StaffName, opt => opt.MapFrom(src => src.Account.FullName))

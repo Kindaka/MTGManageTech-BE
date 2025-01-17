@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using MartyrGraveManagement_BAL.ModelViews.DashboardDTOs;
-using MartyrGraveManagement_BAL.ModelViews.ServiceDTOs;
 using MartyrGraveManagement_BAL.Services.Interfaces;
 using MartyrGraveManagement_DAL.UnitOfWorks.Interfaces;
 
@@ -22,16 +21,20 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 decimal totalOrderRevenue = 0;
                 decimal totalServiceScheduleRevenue = 0;
                 decimal totalRequestRevenue = 0;
-                var serviceSales = new Dictionary<int, int>();
+                var customerSpending = new Dictionary<int, decimal>();
+                var monthlySales = new Dictionary<int, decimal>();
+
+                // Khởi tạo doanh thu từng tháng với giá trị mặc định là 0
+                for (int i = 1; i <= 12; i++)
+                {
+                    monthlySales[i] = 0;
+                }
+
                 var startDate = new DateTime(year, 1, 1);
                 var endDate = startDate.AddYears(1);
 
                 var totalTasks = await _unitOfWork.TaskRepository
                     .CountAsync(t => t.StartDate >= startDate && t.StartDate < endDate);
-
-                //var totalRevenue = await _unitOfWork.Orders
-                //    .Where(o => o.CreatedDate >= startDate && o.CreatedDate < endDate && o.Status == "Completed")
-                //    .SumAsync(o => o.TotalPrice);
 
                 var orders = await _unitOfWork.OrderRepository
                     .GetAsync(o => o.OrderDate >= startDate && o.OrderDate < endDate);
@@ -40,16 +43,20 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 {
                     if (order.Status == 1 || order.Status == 4)
                     {
-                        var orderDetails = await _unitOfWork.OrderDetailRepository.GetAsync(od => od.OrderId == order.OrderId);
+                        // Tính doanh thu theo tháng
+                        int month = order.OrderDate.Month;
+                        monthlySales[month] += order.TotalPrice;
+
+                        var orderDetails = await _unitOfWork.OrderDetailRepository.GetAsync(od => od.OrderId == order.OrderId, includeProperties: "Service");
                         if (orderDetails.Any())
                         {
                             foreach (var orderDetail in orderDetails)
                             {
-                                if (!serviceSales.ContainsKey(orderDetail.ServiceId))
+                                if (!customerSpending.ContainsKey(order.AccountId))
                                 {
-                                    serviceSales[orderDetail.ServiceId] = 0;
+                                    customerSpending[order.AccountId] = 0;
                                 }
-                                serviceSales[orderDetail.ServiceId] += 1;
+                                customerSpending[order.AccountId] += orderDetail.Service.Price;
                             }
                         }
                         totalOrderRevenue += order.TotalPrice;
@@ -61,6 +68,8 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
                 foreach (var assignmentTask in assignmentTasks)
                 {
+                    int month = assignmentTask.CreateAt.Month;
+                    monthlySales[month] += assignmentTask.Service_Schedule.Amount;
                     totalServiceScheduleRevenue += assignmentTask.Service_Schedule.Amount;
                 }
 
@@ -69,41 +78,46 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
                 foreach (var requestTask in requestTasks)
                 {
+                    int month = requestTask.CreateAt.Month;
+                    monthlySales[month] += requestTask.RequestCustomer.Price;
                     totalRequestRevenue += requestTask.RequestCustomer.Price;
                 }
 
-                //var topSellingServices = await _unitOfWork.OrderDetailRepository
-                //    .GetAllAsync(
-                //        od => od.Order.OrderDate >= startDate && od.Order.OrderDate < endDate,
-                //        includeProperties: "Service,Order"
-                //    )
-                //    .GroupBy(od => od.ServiceId)
-                //    .Select(g => new ServiceDtoResponse
-                //    {
-                //        ServiceId = g.Key,
-                //        ServiceName = g.First().Service.Name,
-                //        QuantitySold = g.Sum(od => od.Quantity),
-                //        Revenue = g.Sum(od => od.Quantity * od.Price)
-                //    })
-                //    .OrderByDescending(s => s.QuantitySold)
-                //    .Take(5)
-                //    .ToListAsync();
+                // Lấy tổng số manager và staff
+                var totalManager = await _unitOfWork.AccountRepository.CountAsync(a => a.RoleId == 2);
+                var totalStaff = await _unitOfWork.AccountRepository.CountAsync(a => a.RoleId == 3);
+
+                // Chuyển doanh thu hàng tháng từ Dictionary sang List<MontlySalesDTO>
+                var monthSalesList = monthlySales.Select(ms => new MontlySalesDTO
+                {
+                    Month = ms.Key,
+                    TotalSales = ms.Value
+                }).ToList();
+
                 var response = new DashboardDto
                 {
+                    totalManager = totalManager,
+                    totalStaff = totalStaff,
                     totalTask = totalTasks,
                     totalRevenue = totalOrderRevenue + totalRequestRevenue + totalServiceScheduleRevenue,
                     totalOrder = orders.Count(),
                     totalAssignmentTask = assignmentTasks.Count(),
-                    totalRequestTask = requestTasks.Count()
+                    totalRequestTask = requestTasks.Count(),
+                    MonthSales = monthSalesList
                 };
-                var topSellingServices = serviceSales.OrderByDescending(ps => ps.Value).Take(5).ToDictionary(ps => ps.Key, ps => ps.Value);
-                foreach (var product in topSellingServices)
-                {
-                    var pd = await _unitOfWork.ServiceRepository.GetByIDAsync(product.Key);
-                    var serviceResponse = _mapper.Map<ServiceDtoResponse>(pd);
 
-                    response.topSellingServices.Add(serviceResponse);
+
+
+                // Top 3 customers
+                var topCustomers = customerSpending.OrderByDescending(cs => cs.Value).Take(3);
+                foreach (var customer in topCustomers)
+                {
+                    var customerEntity = await _unitOfWork.AccountRepository.GetByIDAsync(customer.Key);
+                    var customerResponse = _mapper.Map<Top3CustomertDtoResponse>(customerEntity);
+                    customerResponse.customerSpending += customer.Value;
+                    response.topCustomer.Add(customerResponse);
                 }
+
                 return response;
             }
             catch (Exception ex)
@@ -112,6 +126,8 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
         }
 
+
+
         public async Task<DashboardDto> GetDashboardByAreaId(int year, int areaId)
         {
             try
@@ -119,7 +135,15 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 decimal totalOrderRevenue = 0;
                 decimal totalServiceScheduleRevenue = 0;
                 decimal totalRequestRevenue = 0;
-                var serviceSales = new Dictionary<int, int>();
+                var customerSpending = new Dictionary<int, decimal>();
+                var monthlySales = new Dictionary<int, decimal>();
+
+                // Khởi tạo doanh thu hàng tháng với giá trị mặc định là 0
+                for (int i = 1; i <= 12; i++)
+                {
+                    monthlySales[i] = 0;
+                }
+
                 var startDate = new DateTime(year, 1, 1);
                 var endDate = startDate.AddYears(1);
 
@@ -132,7 +156,6 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 var totalTasks = await _unitOfWork.TaskRepository
                     .GetAsync(t => t.StartDate >= startDate && t.StartDate < endDate && t.OrderDetail.MartyrGrave.AreaId == area.AreaId, includeProperties: "OrderDetail.MartyrGrave");
 
-
                 var orders = await _unitOfWork.OrderRepository
                     .GetAsync(o => o.OrderDate >= startDate && o.OrderDate < endDate);
 
@@ -140,19 +163,25 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 {
                     if (order.Status == 1 || order.Status == 4)
                     {
-                        var orderDetails = await _unitOfWork.OrderDetailRepository.GetAsync(od => od.OrderId == order.OrderId && od.MartyrGrave.AreaId == area.AreaId, includeProperties: "MartyrGrave,Service");
+                        var orderDetails = await _unitOfWork.OrderDetailRepository
+                            .GetAsync(od => od.OrderId == order.OrderId && od.MartyrGrave.AreaId == area.AreaId, includeProperties: "MartyrGrave,Service");
+
                         if (orderDetails.Any())
                         {
                             foreach (var orderDetail in orderDetails)
                             {
-                                if (!serviceSales.ContainsKey(orderDetail.ServiceId))
-                                {
-                                    serviceSales[orderDetail.ServiceId] = 0;
-                                }
-                                serviceSales[orderDetail.ServiceId] += 1;
                                 totalOrderRevenue += orderDetail.Service.Price;
-                            }
 
+                                // Tính doanh thu theo tháng
+                                int month = order.OrderDate.Month;
+                                monthlySales[month] += orderDetail.Service.Price;
+
+                                if (!customerSpending.ContainsKey(order.AccountId))
+                                {
+                                    customerSpending[order.AccountId] = 0;
+                                }
+                                customerSpending[order.AccountId] += orderDetail.Service.Price;
+                            }
                         }
                     }
                 }
@@ -162,6 +191,8 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
                 foreach (var assignmentTask in assignmentTasks)
                 {
+                    int month = assignmentTask.CreateAt.Month;
+                    monthlySales[month] += assignmentTask.Service_Schedule.Amount;
                     totalServiceScheduleRevenue += assignmentTask.Service_Schedule.Amount;
                 }
 
@@ -170,25 +201,43 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
                 foreach (var requestTask in requestTasks)
                 {
+                    int month = requestTask.CreateAt.Month;
+                    monthlySales[month] += requestTask.RequestCustomer.Price;
                     totalRequestRevenue += requestTask.RequestCustomer.Price;
                 }
 
+                // Lấy tổng số manager và staff
+                var totalManager = await _unitOfWork.AccountRepository.CountAsync(a => a.RoleId == 2 && a.AreaId == area.AreaId);
+                var totalStaff = await _unitOfWork.AccountRepository.CountAsync(a => a.RoleId == 3 && a.AreaId == area.AreaId);
+
+                // Chuyển doanh thu hàng tháng từ Dictionary sang List<MontlySalesDTO>
+                var monthSalesList = monthlySales.Select(ms => new MontlySalesDTO
+                {
+                    Month = ms.Key,
+                    TotalSales = ms.Value
+                }).ToList();
+
                 var response = new DashboardDto
                 {
+                    totalManager = totalManager,
+                    totalStaff = totalStaff,
                     totalTask = totalTasks.Count(),
                     totalRevenue = totalOrderRevenue + totalRequestRevenue + totalServiceScheduleRevenue,
-                    totalOrder = orders.Count(),
                     totalAssignmentTask = assignmentTasks.Count(),
-                    totalRequestTask = requestTasks.Count()
+                    totalRequestTask = requestTasks.Count(),
+                    MonthSales = monthSalesList
                 };
-                var topSellingServices = serviceSales.OrderByDescending(ps => ps.Value).Take(5).ToDictionary(ps => ps.Key, ps => ps.Value);
-                foreach (var product in topSellingServices)
-                {
-                    var pd = await _unitOfWork.ServiceRepository.GetByIDAsync(product.Key);
-                    var serviceResponse = _mapper.Map<ServiceDtoResponse>(pd);
 
-                    response.topSellingServices.Add(serviceResponse);
+                // Top 3 customers
+                var topCustomers = customerSpending.OrderByDescending(cs => cs.Value).Take(3);
+                foreach (var customer in topCustomers)
+                {
+                    var customerEntity = await _unitOfWork.AccountRepository.GetByIDAsync(customer.Key);
+                    var customerResponse = _mapper.Map<Top3CustomertDtoResponse>(customerEntity);
+                    customerResponse.customerSpending += customer.Value;
+                    response.topCustomer.Add(customerResponse);
                 }
+
                 return response;
             }
             catch (Exception ex)
@@ -196,6 +245,8 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 throw new Exception(ex.Message);
             }
         }
+
+
 
         public async Task<WorkPerformanceStaff> GetWorkPerformanceStaff(int staffId, int month, int year)
         {

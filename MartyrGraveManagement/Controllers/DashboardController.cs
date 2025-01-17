@@ -1,4 +1,5 @@
 ﻿using MartyrGraveManagement_BAL.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MartyrGraveManagement.Controllers
@@ -13,7 +14,7 @@ namespace MartyrGraveManagement.Controllers
         {
             _statisticService = statisticService;
         }
-
+        [Authorize(Policy = "RequireAdminRole")]
         [HttpGet("stats")]
         public async Task<IActionResult> GetDashboardStats([FromQuery] int year)
         {
@@ -23,7 +24,7 @@ namespace MartyrGraveManagement.Controllers
             var stats = await _statisticService.GetDashboard(year);
             return Ok(stats);
         }
-
+        [Authorize(Policy = "RequireManagerOrAdminRole")]
         [HttpGet("getStatsByArea")]
         public async Task<IActionResult> GetDashboardStatsByArea([FromQuery] int year, int areaId)
         {

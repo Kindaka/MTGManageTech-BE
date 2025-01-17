@@ -1,17 +1,9 @@
 ﻿using AutoMapper;
 using MartyrGraveManagement_BAL.ModelViews.CartItemsDTOs;
-using MartyrGraveManagement_BAL.ModelViews.MartyrGraveDTOs;
 using MartyrGraveManagement_BAL.ModelViews.ServiceDTOs;
 using MartyrGraveManagement_BAL.Services.Interfaces;
 using MartyrGraveManagement_DAL.Entities;
 using MartyrGraveManagement_DAL.UnitOfWorks.Interfaces;
-using Microsoft.Identity.Client;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Principal;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MartyrGraveManagement_BAL.Services.Implements
 {
@@ -256,11 +248,11 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         {
                             cartItemResponse.ServiceView = _mapper.Map<ServiceDtoResponse>(cartItem.Service);
 
-                            // Kiểm tra nếu CustomerCode của Account và MartyrGrave trùng nhau thì áp dụng giảm giá cho từng dịch vụ
-                            if (grave.AccountId == account.AccountId)
-                            {
-                                cartItemResponse.ServiceView.Price *= 0.95m; // Giảm giá 5% cho dịch vụ
-                            }
+                            //// Kiểm tra nếu CustomerCode của Account và MartyrGrave trùng nhau thì áp dụng giảm giá cho từng dịch vụ
+                            //if (grave.AccountId == account.AccountId)
+                            //{
+                            //    cartItemResponse.ServiceView.Price *= 0.95m; // Giảm giá 5% cho dịch vụ
+                            //}
 
                             // Tính tổng giá trị trong giỏ hàng
                             totalPriceInCart += cartItemResponse.ServiceView.Price;
@@ -348,11 +340,11 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         {
                             cartItemResponse.ServiceView = _mapper.Map<ServiceDtoResponse>(cartItem.Service);
 
-                            // Kiểm tra nếu CustomerCode của Account và MartyrGrave trùng nhau thì áp dụng giảm giá cho từng dịch vụ
-                            if (grave.AccountId == account.AccountId)
-                            {
-                                cartItemResponse.ServiceView.Price *= 0.95m; // Giảm giá 5% cho dịch vụ
-                            }
+                            //// Kiểm tra nếu CustomerCode của Account và MartyrGrave trùng nhau thì áp dụng giảm giá cho từng dịch vụ
+                            //if (grave.AccountId == account.AccountId)
+                            //{
+                            //    cartItemResponse.ServiceView.Price *= 0.95m; // Giảm giá 5% cho dịch vụ
+                            //}
 
                             // Tính tổng giá trị trong giỏ hàng
                             totalPriceInCart += cartItemResponse.ServiceView.Price;
@@ -381,7 +373,8 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             {
                 var cartItemList = new List<CartItemGetByGuestDTOResponse>();
                 decimal totalPriceInCart = 0;
-                foreach (var request in requests) {
+                foreach (var request in requests)
+                {
                     var grave = await _unitOfWork.MartyrGraveRepository.GetByIDAsync(request.martyrId);
                     var service = await _unitOfWork.ServiceRepository.GetByIDAsync(request.serviceId);
                     if (grave != null && service != null)

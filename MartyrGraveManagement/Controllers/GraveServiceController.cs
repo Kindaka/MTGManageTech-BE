@@ -1,12 +1,7 @@
-﻿using MartyrGraveManagement_BAL.ModelViews.CartItemsDTOs;
-using MartyrGraveManagement_BAL.ModelViews.GraveServiceDTOs;
-using MartyrGraveManagement_BAL.Services.Implements;
+﻿using MartyrGraveManagement_BAL.ModelViews.GraveServiceDTOs;
 using MartyrGraveManagement_BAL.Services.Interfaces;
-using MartyrGraveManagement_DAL.Entities;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Identity.Client;
 
 namespace MartyrGraveManagement.Controllers
 {
@@ -53,7 +48,7 @@ namespace MartyrGraveManagement.Controllers
                     return Forbid();
                 }
                 var check = await _serviceOfGrave.CreateServiceForGrave(graveServiceDTO);
-                if(check.check)
+                if (check.check)
                 {
                     return Ok(check.response);
                 }
@@ -61,7 +56,7 @@ namespace MartyrGraveManagement.Controllers
                 {
                     return NotFound(check.response);
                 }
-                
+
             }
             catch (KeyNotFoundException ex)
             {
@@ -151,6 +146,21 @@ namespace MartyrGraveManagement.Controllers
             try
             {
                 var services = await _serviceOfGrave.GetAllServicesForGrave(martyrId, categoryId);
+                return Ok(services);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpGet("service/notAvaiable/grave-services")]
+        public async Task<IActionResult> GetServicesNotInGrave(int martyrId)
+        {
+            try
+            {
+                var services = await _serviceOfGrave.GetAllServicesNotInGrave(martyrId);
                 return Ok(services);
             }
             catch (Exception ex)

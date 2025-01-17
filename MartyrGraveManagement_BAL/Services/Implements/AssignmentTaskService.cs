@@ -375,30 +375,35 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
                 if (Date == DateTime.MinValue)
                 {
-                    totalTask = (await _unitOfWork.AssignmentTaskRepository.GetAsync(s => s.StaffId == accountId)).Count();
-                    totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
+                    //totalTask = (await _unitOfWork.AssignmentTaskRepository.GetAsync(s => s.StaffId == accountId)).Count();
+                    //totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
 
-                    tasks = await _unitOfWork.AssignmentTaskRepository.GetAsync(
+                    tasks = (await _unitOfWork.AssignmentTaskRepository.GetAsync(
                         t => t.StaffId == accountId,
-                        includeProperties: "Service_Schedule.Service,Service_Schedule.MartyrGrave,Service_Schedule.Account,Account,AssignmentTaskImages",
-                        pageIndex: pageIndex,
-                        pageSize: pageSize
-                    );
+                        includeProperties: "Service_Schedule.Service,Service_Schedule.MartyrGrave,Service_Schedule.Account,Account,AssignmentTaskImages"
+                    //pageIndex: pageIndex,
+                    //pageSize: pageSize
+                    )).OrderByDescending(t => t.CreateAt);
                 }
                 else
                 {
-                    totalTask = (await _unitOfWork.AssignmentTaskRepository.GetAsync(
-                        s => s.StaffId == accountId && s.EndDate.Date == Date.Date)).Count();
-                    totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
+                    //totalTask = (await _unitOfWork.AssignmentTaskRepository.GetAsync(
+                    // s => s.StaffId == accountId && s.EndDate.Date == Date.Date)).Count();
+                    //totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
 
-                    tasks = await _unitOfWork.AssignmentTaskRepository.GetAsync(
+                    tasks = (await _unitOfWork.AssignmentTaskRepository.GetAsync(
                         t => t.StaffId == accountId && t.EndDate.Date == Date.Date,
-                        includeProperties: "Service_Schedule.Service,Service_Schedule.MartyrGrave,Service_Schedule.Account,Account,AssignmentTaskImages",
-                        pageIndex: pageIndex,
-                        pageSize: pageSize
-                    );
+                        includeProperties: "Service_Schedule.Service,Service_Schedule.MartyrGrave,Service_Schedule.Account,Account,AssignmentTaskImages"
+                    //pageIndex: pageIndex,
+                    //pageSize: pageSize
+                    )).OrderByDescending(t => t.CreateAt);
                 }
+                // Tính tổng số Task và số trang
+                totalTask = tasks.Count();
+                totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
 
+                // Phân trang sau khi sắp xếp
+                tasks = tasks.Skip((pageIndex - 1) * pageSize).Take(pageSize);
                 if (!tasks.Any())
                 {
                     return (new List<AssignmentTaskResponse>(), 0);
@@ -450,35 +455,40 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
                 if (Date == DateTime.MinValue)
                 {
-                    totalTask = (await _unitOfWork.AssignmentTaskRepository.GetAsync(
-                        s => s.Service_Schedule.MartyrGrave.AreaId == manager.AreaId,
-                        includeProperties: "Service_Schedule.MartyrGrave")).Count();
-                    totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
+                    //totalTask = (await _unitOfWork.AssignmentTaskRepository.GetAsync(
+                    //    s => s.Service_Schedule.MartyrGrave.AreaId == manager.AreaId,
+                    //    includeProperties: "Service_Schedule.MartyrGrave")).Count();
+                    //totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
 
-                    tasks = await _unitOfWork.AssignmentTaskRepository.GetAsync(
+                    tasks = (await _unitOfWork.AssignmentTaskRepository.GetAsync(
                         s => s.Service_Schedule.MartyrGrave.AreaId == manager.AreaId,
-                        includeProperties: "Service_Schedule.Service.ServiceCategory,Service_Schedule.MartyrGrave,Service_Schedule.Account,Account,AssignmentTaskImages",
-                        pageIndex: pageIndex,
-                        pageSize: pageSize
-                    );
+                        includeProperties: "Service_Schedule.Service.ServiceCategory,Service_Schedule.MartyrGrave,Service_Schedule.Account,Account,AssignmentTaskImages"
+                    //pageIndex: pageIndex,
+                    //pageSize: pageSize
+                    )).OrderByDescending(t => t.CreateAt);
                 }
                 else
                 {
-                    totalTask = (await _unitOfWork.AssignmentTaskRepository.GetAsync(
-                        s => s.Service_Schedule.MartyrGrave.AreaId == manager.AreaId &&
-                        s.EndDate.Date == Date.Date,
-                        includeProperties: "Service_Schedule.MartyrGrave")).Count();
-                    totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
+                    //totalTask = (await _unitOfWork.AssignmentTaskRepository.GetAsync(
+                    //    s => s.Service_Schedule.MartyrGrave.AreaId == manager.AreaId &&
+                    //    s.EndDate.Date == Date.Date,
+                    //    includeProperties: "Service_Schedule.MartyrGrave")).Count();
+                    //totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
 
-                    tasks = await _unitOfWork.AssignmentTaskRepository.GetAsync(
+                    tasks = (await _unitOfWork.AssignmentTaskRepository.GetAsync(
                         t => t.Service_Schedule.MartyrGrave.AreaId == manager.AreaId &&
                         t.EndDate.Date == Date.Date,
-                        includeProperties: "Service_Schedule.Service.ServiceCategory,Service_Schedule.MartyrGrave,Service_Schedule.Account,Account,AssignmentTaskImages",
-                        pageIndex: pageIndex,
-                        pageSize: pageSize
-                    );
+                        includeProperties: "Service_Schedule.Service.ServiceCategory,Service_Schedule.MartyrGrave,Service_Schedule.Account,Account,AssignmentTaskImages"
+                    //pageIndex: pageIndex,
+                    //pageSize: pageSize
+                    )).OrderByDescending(t => t.CreateAt);
                 }
+                // Tính tổng số Task và số trang
+                totalTask = tasks.Count();
+                totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
 
+                // Phân trang sau khi sắp xếp
+                tasks = tasks.Skip((pageIndex - 1) * pageSize).Take(pageSize);
                 if (!tasks.Any())
                 {
                     return (new List<AssignmentTaskResponse>(), 0);
@@ -594,30 +604,35 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
                 if (Date == DateTime.MinValue)
                 {
-                    totalTask = (await _unitOfWork.AssignmentTaskRepository.GetAsync(s => s.StaffId == accountId && s.Status == 1)).Count();
-                    totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
+                    //totalTask = (await _unitOfWork.AssignmentTaskRepository.GetAsync(s => s.StaffId == accountId && s.Status == 1)).Count();
+                    //totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
 
-                    tasks = await _unitOfWork.AssignmentTaskRepository.GetAsync(
+                    tasks = (await _unitOfWork.AssignmentTaskRepository.GetAsync(
                         t => t.StaffId == accountId && t.Status == 1,
-                        includeProperties: "Service_Schedule.Service,Service_Schedule.MartyrGrave,Service_Schedule.Account,Account,AssignmentTaskImages",
-                        pageIndex: pageIndex,
-                        pageSize: pageSize
-                    );
+                        includeProperties: "Service_Schedule.Service,Service_Schedule.MartyrGrave,Service_Schedule.Account,Account,AssignmentTaskImages"
+                    //pageIndex: pageIndex,
+                    //pageSize: pageSize
+                    )).OrderBy(t => t.EndDate);
                 }
                 else
                 {
-                    totalTask = (await _unitOfWork.AssignmentTaskRepository.GetAsync(
-                        s => s.StaffId == accountId && s.EndDate.Date == Date.Date && s.Status == 1)).Count();
-                    totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
+                    //totalTask = (await _unitOfWork.AssignmentTaskRepository.GetAsync(
+                    //    s => s.StaffId == accountId && s.EndDate.Date == Date.Date && s.Status == 1)).Count();
+                    //totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
 
-                    tasks = await _unitOfWork.AssignmentTaskRepository.GetAsync(
+                    tasks = (await _unitOfWork.AssignmentTaskRepository.GetAsync(
                         t => t.StaffId == accountId && t.EndDate.Date == Date.Date && t.Status == 1,
-                        includeProperties: "Service_Schedule.Service,Service_Schedule.MartyrGrave,Service_Schedule.Account,Account,AssignmentTaskImages",
-                        pageIndex: pageIndex,
-                        pageSize: pageSize
-                    );
+                        includeProperties: "Service_Schedule.Service,Service_Schedule.MartyrGrave,Service_Schedule.Account,Account,AssignmentTaskImages"
+                    //pageIndex: pageIndex,
+                    //pageSize: pageSize
+                    )).OrderBy(t => t.EndDate);
                 }
+                // Tính tổng số Task và số trang
+                totalTask = tasks.Count();
+                totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
 
+                // Phân trang sau khi sắp xếp
+                tasks = tasks.Skip((pageIndex - 1) * pageSize).Take(pageSize);
                 if (!tasks.Any())
                 {
                     return (new List<AssignmentTaskResponse>(), 0);

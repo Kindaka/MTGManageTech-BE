@@ -732,6 +732,17 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         order.AccountId, $"/order-detail-cus/{order.OrderId}"
                     );
 
+                    // Lấy danh sách OrderDetail để tạo công việc cho nhân viên
+                    var orderDetails = await _unitOfWork.OrderDetailRepository.GetAsync(od => od.OrderId == order.OrderId);
+                    var taskRequests = orderDetails.Select(od => new TaskDtoRequest
+                    {
+                        OrderId = order.OrderId,
+                        DetailId = od.DetailId
+                    }).ToList();
+
+                    // Gọi hàm tạo công việc tự động
+                    await _taskService.CreateTasksAsync(taskRequests);
+
                     return true;
                 }
                 catch (Exception ex)
