@@ -20,7 +20,7 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 // route https
-//builder.WebHost.UseUrls("https://0.0.0.0");
+builder.WebHost.UseUrls("https://0.0.0.0");
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
