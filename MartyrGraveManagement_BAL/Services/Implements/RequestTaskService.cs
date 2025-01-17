@@ -79,32 +79,37 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             if (Date == DateTime.MinValue)
             {
                 // Thêm điều kiện lọc `status` 1 hoặc 3
-                totalTask = (await _unitOfWork.RequestTaskRepository.GetAsync(s => s.StaffId == accountId)).Count();
-                totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
+                //totalTask = (await _unitOfWork.RequestTaskRepository.GetAsync(s => s.StaffId == accountId)).Count();
+                //totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
 
                 // Lấy tất cả các `Task` có `status` là 1 hoặc 3
-                tasks = await _unitOfWork.RequestTaskRepository.GetAsync(
+                tasks = (await _unitOfWork.RequestTaskRepository.GetAsync(
                     t => t.StaffId == accountId,
-                    includeProperties: "RequestCustomer.MartyrGrave,RequestCustomer.RequestType",
-                    pageIndex: pageIndex,
-                    pageSize: pageSize
-                );
+                    includeProperties: "RequestCustomer.MartyrGrave,RequestCustomer.RequestType"
+                //pageIndex: pageIndex,
+                //pageSize: pageSize
+                )).OrderByDescending(t => t.CreateAt);
             }
             else
             {
                 // Thêm điều kiện lọc `status` 1 hoặc 3
-                totalTask = (await _unitOfWork.RequestTaskRepository.GetAsync(s => s.StaffId == accountId && s.StartDate == DateOnly.FromDateTime(Date))).Count();
-                totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
+                //totalTask = (await _unitOfWork.RequestTaskRepository.GetAsync(s => s.StaffId == accountId && s.StartDate == DateOnly.FromDateTime(Date))).Count();
+                //totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
 
                 // Lấy tất cả các `Task` có `status` là 1 hoặc 3 theo ngày
-                tasks = await _unitOfWork.RequestTaskRepository.GetAsync(
+                tasks = (await _unitOfWork.RequestTaskRepository.GetAsync(
                     t => t.StaffId == accountId && t.StartDate == DateOnly.FromDateTime(Date),
-                    includeProperties: "RequestCustomer.MartyrGrave,RequestCustomer.RequestType",
-                    pageIndex: pageIndex,
-                    pageSize: pageSize
-                );
+                    includeProperties: "RequestCustomer.MartyrGrave,RequestCustomer.RequestType"
+                //pageIndex: pageIndex,
+                //pageSize: pageSize
+                )).OrderByDescending(t => t.CreateAt);
             }
+            // Tính tổng số Task và số trang
+            totalTask = tasks.Count();
+            totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
 
+            // Phân trang sau khi sắp xếp
+            tasks = tasks.Skip((pageIndex - 1) * pageSize).Take(pageSize);
             // Nếu không có Task nào
             if (!tasks.Any())
             {
@@ -152,32 +157,37 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             if (Date == DateTime.MinValue)
             {
                 // Thêm điều kiện lọc `status` 1 hoặc 3
-                totalTask = (await _unitOfWork.RequestTaskRepository.GetAsync(s => s.StaffId == accountId && (s.Status == 1))).Count();
-                totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
+                //totalTask = (await _unitOfWork.RequestTaskRepository.GetAsync(s => s.StaffId == accountId && (s.Status == 1))).Count();
+                //totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
 
                 // Lấy tất cả các `Task` có `status` là 1 hoặc 3
-                tasks = await _unitOfWork.RequestTaskRepository.GetAsync(
-                    t => t.StaffId == accountId && (t.Status == 1),
-                    includeProperties: "RequestCustomer.MartyrGrave,RequestCustomer.RequestType",
-                    pageIndex: pageIndex,
-                    pageSize: pageSize
-                );
+                tasks = (await _unitOfWork.RequestTaskRepository.GetAsync(
+                t => t.StaffId == accountId && (t.Status == 1),
+                    includeProperties: "RequestCustomer.MartyrGrave,RequestCustomer.RequestType"
+                //pageIndex: pageIndex,
+                //pageSize: pageSize
+                )).OrderBy(t => t.EndDate);
             }
             else
             {
                 // Thêm điều kiện lọc `status` 1 hoặc 3
-                totalTask = (await _unitOfWork.RequestTaskRepository.GetAsync(s => s.StaffId == accountId && s.StartDate == DateOnly.FromDateTime(Date) && (s.Status == 1))).Count();
-                totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
+                //totalTask = (await _unitOfWork.RequestTaskRepository.GetAsync(s => s.StaffId == accountId && s.StartDate == DateOnly.FromDateTime(Date) && (s.Status == 1))).Count();
+                //totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
 
                 // Lấy tất cả các `Task` có `status` là 1 hoặc 3 theo ngày
-                tasks = await _unitOfWork.RequestTaskRepository.GetAsync(
+                tasks = (await _unitOfWork.RequestTaskRepository.GetAsync(
                     t => t.StaffId == accountId && t.StartDate == DateOnly.FromDateTime(Date) && (t.Status == 1),
-                    includeProperties: "RequestCustomer.MartyrGrave,RequestCustomer.RequestType",
-                    pageIndex: pageIndex,
-                    pageSize: pageSize
-                );
+                    includeProperties: "RequestCustomer.MartyrGrave,RequestCustomer.RequestType"
+                //pageIndex: pageIndex,
+                //pageSize: pageSize
+                )).OrderBy(t => t.EndDate);
             }
+            // Tính tổng số Task và số trang
+            totalTask = tasks.Count();
+            totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
 
+            // Phân trang sau khi sắp xếp
+            tasks = tasks.Skip((pageIndex - 1) * pageSize).Take(pageSize);
             // Nếu không có Task nào
             if (!tasks.Any())
             {
@@ -226,23 +236,28 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 IEnumerable<RequestTask> tasks = new List<RequestTask>();
                 if (Date == DateTime.MinValue)
                 {
-                    totalTask = (await _unitOfWork.RequestTaskRepository.GetAsync(s => s.RequestCustomer.MartyrGrave.AreaId == account.AreaId, includeProperties: "RequestCustomer.MartyrGrave,Account")).Count();
-                    totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
+                    //totalTask = (await _unitOfWork.RequestTaskRepository.GetAsync(s => s.RequestCustomer.MartyrGrave.AreaId == account.AreaId, includeProperties: "RequestCustomer.MartyrGrave,Account")).Count();
+                    //totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
                     // Lấy tất cả các đơn hàng dựa trên AccountId và bao gồm các chi tiết đơn hàng
-                    tasks = await _unitOfWork.RequestTaskRepository.GetAsync(s => s.RequestCustomer.MartyrGrave.AreaId == account.AreaId, includeProperties: "RequestCustomer.MartyrGrave,RequestCustomer.RequestType,Account",
-                    pageIndex: pageIndex, pageSize: pageSize);
+                    tasks = (await _unitOfWork.RequestTaskRepository.GetAsync(s => s.RequestCustomer.MartyrGrave.AreaId == account.AreaId, includeProperties: "RequestCustomer.MartyrGrave,RequestCustomer.RequestType,Account")).OrderByDescending(t => t.CreateAt);
+                    //pageIndex: pageIndex, pageSize: pageSize);
                 }
                 else
                 {
-                    totalTask = (await _unitOfWork.RequestTaskRepository.GetAsync(s => s.RequestCustomer.MartyrGrave.AreaId == account.AreaId && s.StartDate == DateOnly.FromDateTime(Date), includeProperties: "RequestCustomer.MartyrGrave,RequestCustomer.RequestType")).Count();
-                    totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
+                    //totalTask = (await _unitOfWork.RequestTaskRepository.GetAsync(s => s.RequestCustomer.MartyrGrave.AreaId == account.AreaId && s.StartDate == DateOnly.FromDateTime(Date), includeProperties: "RequestCustomer.MartyrGrave,RequestCustomer.RequestType")).Count();
+                    //totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
                     // Lấy tất cả các đơn hàng dựa trên AccountId và bao gồm các chi tiết đơn hàng
-                    tasks = await _unitOfWork.RequestTaskRepository.GetAsync(t => t.RequestCustomer.MartyrGrave.AreaId == account.AreaId && t.StartDate == DateOnly.FromDateTime(Date), includeProperties: "RequestCustomer.MartyrGrave,RequestCustomer.RequestType,Account",
-                    pageIndex: pageIndex, pageSize: pageSize);
+                    tasks = (await _unitOfWork.RequestTaskRepository.GetAsync(t => t.RequestCustomer.MartyrGrave.AreaId == account.AreaId && t.StartDate == DateOnly.FromDateTime(Date), includeProperties: "RequestCustomer.MartyrGrave,RequestCustomer.RequestType,Account")).OrderByDescending(t => t.CreateAt);
+                    //pageIndex: pageIndex, pageSize: pageSize);
                 }
 
 
-                // Lấy danh sách các Task thuộc về account, bao gồm các bảng liên quan
+                // Tính tổng số Task và số trang
+                totalTask = tasks.Count();
+                totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
+
+                // Phân trang sau khi sắp xếp
+                tasks = tasks.Skip((pageIndex - 1) * pageSize).Take(pageSize);
 
 
                 if (!tasks.Any())
@@ -787,9 +802,15 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 var martyrGrave = await _unitOfWork.MartyrGraveRepository.GetByIDAsync(martyrGraveId);
                 if (accountId == null || martyrGrave.AccountId == accountId)
                 {
-                    int totalTask = (await _unitOfWork.RequestTaskRepository.GetAsync(s => s.RequestCustomer.MartyrGrave.MartyrId == martyrGraveId)).Count();
+                    //int totalTask = (await _unitOfWork.RequestTaskRepository.GetAsync(s => s.RequestCustomer.MartyrGrave.MartyrId == martyrGraveId)).Count();
+                    //int totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
+                    IEnumerable<RequestTask> tasks = (await _unitOfWork.RequestTaskRepository.GetAsync(t => t.RequestCustomer.MartyrGrave.MartyrId == martyrGraveId, includeProperties: "RequestCustomer.MartyrGrave,RequestCustomer.RequestType,Account")).OrderByDescending(t => t.CreateAt);//pageIndex: pageIndex, pageSize: pageSize);
+                    // Tính tổng số Task và số trang
+                    int totalTask = tasks.Count();
                     int totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
-                    var tasks = await _unitOfWork.RequestTaskRepository.GetAsync(t => t.RequestCustomer.MartyrGrave.MartyrId == martyrGraveId, includeProperties: "RequestCustomer.MartyrGrave,RequestCustomer.RequestType,Account", pageIndex: pageIndex, pageSize: pageSize);
+
+                    // Phân trang sau khi sắp xếp
+                    tasks = tasks.Skip((pageIndex - 1) * pageSize).Take(pageSize);
                     if (tasks != null)
                     {
                         foreach (var task in tasks)

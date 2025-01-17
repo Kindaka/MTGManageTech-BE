@@ -1,16 +1,8 @@
 ﻿using AutoMapper;
 using MartyrGraveManagement_BAL.ModelViews.GraveServiceDTOs;
-using MartyrGraveManagement_BAL.ModelViews.ServiceDTOs;
 using MartyrGraveManagement_BAL.Services.Interfaces;
 using MartyrGraveManagement_DAL.Entities;
 using MartyrGraveManagement_DAL.UnitOfWorks.Interfaces;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Metadata;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MartyrGraveManagement_BAL.Services.Implements
 {
@@ -53,16 +45,16 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         foreach (var serviceItem in checkService)
                         {
                             var checkGraveService = (await _unitOfWork.GraveServiceRepository.GetAsync(gs => gs.MartyrId == request.MartyrId && gs.ServiceId == serviceItem)).FirstOrDefault();
-                            if (checkGraveService == null) 
-                            { 
+                            if (checkGraveService == null)
+                            {
                                 var graveService = new GraveService
                                 {
                                     MartyrId = request.MartyrId,
                                     ServiceId = serviceItem,
                                     CreatedDate = DateTime.Now,
                                 };
-                            await _unitOfWork.GraveServiceRepository.AddAsync(graveService);
-                            
+                                await _unitOfWork.GraveServiceRepository.AddAsync(graveService);
+
                             }
 
                         }
@@ -132,7 +124,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                                     CreatedDate = DateTime.Now,
                                 };
                                 await _unitOfWork.GraveServiceRepository.AddAsync(graveService);
-                                
+
                             }
 
                         }
@@ -178,7 +170,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 }
                 if (listGraveServices != null)
                 {
-                    foreach(var graveService in listGraveServices)
+                    foreach (var graveService in listGraveServices)
                     {
                         var item = new GraveServiceDtoResponse
                         {
@@ -226,12 +218,64 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             }
         }
 
+        public async Task<List<GraveServiceDtoResponse>> GetAllServicesNotInGrave(int martyrId)
+        {
+            try
+            {
+                List<GraveServiceDtoResponse> serviceList = new List<GraveServiceDtoResponse>();
+                List<Service> allServices = new List<Service>();
+                List<int> existingServiceIds = (await _unitOfWork.GraveServiceRepository.GetAsync(gs => gs.MartyrId == martyrId))
+                                                .Select(gs => gs.ServiceId).ToList();
+
+
+
+                allServices = (await _unitOfWork.ServiceRepository.GetAsync(
+                    s => !existingServiceIds.Contains(s.ServiceId),
+                    includeProperties: "ServiceCategory"
+                )).ToList();
+
+
+
+                if (allServices != null)
+                {
+                    foreach (var service in allServices)
+                    {
+                        var item = new GraveServiceDtoResponse
+                        {
+                            ServiceId = service.ServiceId,
+                            CategoryId = service.ServiceCategory.CategoryId,
+                            ServiceName = service.ServiceName,
+                            CategoryName = service.ServiceCategory.CategoryName,
+                            Description = service.Description,
+                            Price = service.Price,
+                            ImagePath = service.ImagePath,
+                            Status = service.Status,
+                            isScheduleService = service.isScheduleService,
+                            RecurringType = service.RecurringType
+                        };
+                        serviceList.Add(item);
+                    }
+
+                    return serviceList;
+                }
+                else
+                {
+                    return serviceList;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+
         public async Task<(bool check, string response)> DeleteServiceOfGrave(int graveServiceId)
         {
             try
             {
                 var graveService = await _unitOfWork.GraveServiceRepository.GetByIDAsync(graveServiceId);
-                if(graveService != null)
+                if (graveService != null)
                 {
                     await _unitOfWork.GraveServiceRepository.DeleteAsync(graveService);
                     await _unitOfWork.SaveAsync();
@@ -239,7 +283,8 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 }
                 return (false, "Không tìm thấy dịch vụ của mộ");
             }
-            catch (Exception ex) { 
+            catch (Exception ex)
+            {
                 throw new Exception(ex.Message);
             }
         }

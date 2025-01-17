@@ -4,12 +4,10 @@ using MartyrGraveManagement_BAL.ModelViews.EmailDTOs;
 using MartyrGraveManagement_BAL.ModelViews.MartyrGraveDTOs;
 using MartyrGraveManagement_BAL.ModelViews.MartyrGraveInformationDTOs;
 using MartyrGraveManagement_BAL.Services.Interfaces;
-using MartyrGraveManagement_BAL.Utils;
 using MartyrGraveManagement_DAL.Entities;
 using MartyrGraveManagement_DAL.UnitOfWorks.Interfaces;
 using OfficeOpenXml;
 using System.Globalization;
-using System.Linq.Expressions;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -48,7 +46,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
         public async Task<(List<MartyrGraveSearchDtoResponse> martyrGraves, int totalPage)> SearchMartyrGravesAsync(
             MartyrGraveSearchDtoRequest searchCriteria, int page = 1, int pageSize = 15)
         {
-            try 
+            try
             {
                 // Lấy tất cả dữ liệu cần thiết trước
                 var query = await _unitOfWork.MartyrGraveInformationRepository
@@ -62,30 +60,30 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 if (!string.IsNullOrEmpty(searchCriteria.Name))
                 {
                     string searchName = RemoveDiacritics(searchCriteria.Name.ToLower());
-                    filteredQuery = filteredQuery.Where(x => 
-                        x.Name != null && 
+                    filteredQuery = filteredQuery.Where(x =>
+                        x.Name != null &&
                         RemoveDiacritics(x.Name.ToLower()).Contains(searchName));
                 }
 
                 if (!string.IsNullOrEmpty(searchCriteria.HomeTown))
                 {
                     string searchHomeTown = RemoveDiacritics(searchCriteria.HomeTown.ToLower());
-                    filteredQuery = filteredQuery.Where(x => 
-                        x.HomeTown != null && 
+                    filteredQuery = filteredQuery.Where(x =>
+                        x.HomeTown != null &&
                         RemoveDiacritics(x.HomeTown.ToLower()).Contains(searchHomeTown));
                 }
 
                 if (!string.IsNullOrEmpty(searchCriteria.YearOfBirth))
                 {
-                    filteredQuery = filteredQuery.Where(x => 
-                        x.DateOfBirth != null && 
+                    filteredQuery = filteredQuery.Where(x =>
+                        x.DateOfBirth != null &&
                         x.DateOfBirth.Contains(searchCriteria.YearOfBirth));
                 }
 
                 if (!string.IsNullOrEmpty(searchCriteria.YearOfSacrifice))
                 {
-                    filteredQuery = filteredQuery.Where(x => 
-                        x.DateOfSacrifice != null && 
+                    filteredQuery = filteredQuery.Where(x =>
+                        x.DateOfSacrifice != null &&
                         x.DateOfSacrifice.Contains(searchCriteria.YearOfSacrifice));
                 }
 
@@ -93,8 +91,8 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 if (!string.IsNullOrEmpty(searchCriteria.MartyrCode))
                 {
                     string searchCode = searchCriteria.MartyrCode.ToLower();
-                    filteredQuery = filteredQuery.Where(x => 
-                        x.MartyrGrave != null && 
+                    filteredQuery = filteredQuery.Where(x =>
+                        x.MartyrGrave != null &&
                         x.MartyrGrave.MartyrCode.ToLower().Contains(searchCode));
                 }
 
@@ -668,7 +666,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         stringBuilder.Append(hashBytes[i].ToString("x2"));
                     }
 
-                    return await Task.FromResult(stringBuilder.ToString());
+                    return await System.Threading.Tasks.Task.FromResult(stringBuilder.ToString());
                 }
             }
             catch (Exception ex)
@@ -1248,16 +1246,22 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 {
                     return (maintenanceHistoryDtoResponses, 0);
                 }
-
+                int totalTask = 0;
                 int totalPage = 0;
                 if (taskType == 1)
                 {
-                    int totalTask = (await _unitOfWork.TaskRepository.GetAsync(s => s.OrderDetail.MartyrGrave.MartyrId == martyrGraveId, includeProperties: "OrderDetail.MartyrGrave")).Count();
+                    //int totalTask = (await _unitOfWork.TaskRepository.GetAsync(s => s.OrderDetail.MartyrGrave.MartyrId == martyrGraveId, includeProperties: "OrderDetail.MartyrGrave")).Count();
+                    //totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
+                    IEnumerable<StaffTask> tasks = (await _unitOfWork.TaskRepository.GetAsync(t => t.OrderDetail.MartyrGrave.MartyrId == martyrGraveId, includeProperties: "OrderDetail.Service,OrderDetail.MartyrGrave,OrderDetail.Order.Account,Account")).OrderByDescending(t => t.StartDate);
+                    // Tính tổng số Task và số trang
+                    totalTask = tasks.Count();
                     totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
-                    var task = (await _unitOfWork.TaskRepository.GetAsync(t => t.OrderDetail.MartyrGrave.MartyrId == martyrGraveId, includeProperties: "OrderDetail.Service,OrderDetail.MartyrGrave,OrderDetail.Order.Account,Account", pageIndex: pageIndex, pageSize: pageSize)).OrderByDescending(t => t.EndDate);
-                    if (task != null)
+
+                    // Phân trang sau khi sắp xếp
+                    tasks = tasks.Skip((pageIndex - 1) * pageSize).Take(pageSize);
+                    if (tasks != null)
                     {
-                        foreach (var item in task)
+                        foreach (var item in tasks)
                         {
                             var taskResponse = new MaintenanceHistoryDtoResponse
                             {
@@ -1277,12 +1281,18 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 }
                 else if (taskType == 2)
                 {
-                    int totalTask = (await _unitOfWork.AssignmentTaskRepository.GetAsync(t => t.Service_Schedule.MartyrGrave.MartyrId == martyrGraveId, includeProperties: "Service_Schedule.MartyrGrave")).Count();
+                    //int totalTask = (await _unitOfWork.AssignmentTaskRepository.GetAsync(t => t.Service_Schedule.MartyrGrave.MartyrId == martyrGraveId, includeProperties: "Service_Schedule.MartyrGrave")).Count();
+                    //totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
+                    IEnumerable<AssignmentTask> tasks = (await _unitOfWork.AssignmentTaskRepository.GetAsync(t => t.Service_Schedule.MartyrGrave.MartyrId == martyrGraveId, includeProperties: "Service_Schedule.Service,Service_Schedule.MartyrGrave,Service_Schedule.Account,Account")).OrderByDescending(t => t.CreateAt);
+                    // Tính tổng số Task và số trang
+                    totalTask = tasks.Count();
                     totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
-                    var task = (await _unitOfWork.AssignmentTaskRepository.GetAsync(t => t.Service_Schedule.MartyrGrave.MartyrId == martyrGraveId, includeProperties: "Service_Schedule.Service,Service_Schedule.MartyrGrave,Service_Schedule.Account,Account", pageIndex: pageIndex, pageSize: pageSize)).OrderByDescending(t => t.EndDate);
-                    if (task != null)
+
+                    // Phân trang sau khi sắp xếp
+                    tasks = tasks.Skip((pageIndex - 1) * pageSize).Take(pageSize);
+                    if (tasks != null)
                     {
-                        foreach (var item in task)
+                        foreach (var item in tasks)
                         {
                             var scheduleStaff = new MaintenanceHistoryDtoResponse
                             {
@@ -1302,12 +1312,18 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 }
                 else if (taskType == 3)
                 {
-                    int totalTask = (await _unitOfWork.RequestTaskRepository.GetAsync(t => t.RequestCustomer.MartyrGrave.MartyrId == martyrGraveId, includeProperties: "RequestCustomer.MartyrGrave")).Count();
+                    //int totalTask = (await _unitOfWork.RequestTaskRepository.GetAsync(t => t.RequestCustomer.MartyrGrave.MartyrId == martyrGraveId, includeProperties: "RequestCustomer.MartyrGrave")).Count();
+                    //totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
+                    IEnumerable<RequestTask> tasks = (await _unitOfWork.RequestTaskRepository.GetAsync(t => t.RequestCustomer.MartyrGrave.MartyrId == martyrGraveId, includeProperties: "RequestCustomer.MartyrGrave,RequestCustomer.RequestType,Account,RequestCustomer.Account,Account")).OrderByDescending(t => t.CreateAt);
+                    // Tính tổng số Task và số trang
+                    totalTask = tasks.Count();
                     totalPage = (int)Math.Ceiling(totalTask / (double)pageSize);
-                    var task = (await _unitOfWork.RequestTaskRepository.GetAsync(t => t.RequestCustomer.MartyrGrave.MartyrId == martyrGraveId, includeProperties: "RequestCustomer.MartyrGrave,RequestCustomer.RequestType,Account,RequestCustomer.Account,Account", pageIndex: pageIndex, pageSize: pageSize)).OrderByDescending(t => t.EndDate);
-                    if (task != null)
+
+                    // Phân trang sau khi sắp xếp
+                    tasks = tasks.Skip((pageIndex - 1) * pageSize).Take(pageSize);
+                    if (tasks != null)
                     {
-                        foreach (var item in task)
+                        foreach (var item in tasks)
                         {
                             var scheduleStaff = new MaintenanceHistoryDtoResponse
                             {
