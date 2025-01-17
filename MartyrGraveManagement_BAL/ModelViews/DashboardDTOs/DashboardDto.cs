@@ -1,4 +1,6 @@
-﻿namespace MartyrGraveManagement_BAL.ModelViews.DashboardDTOs
+﻿using MartyrGraveManagement_BAL.ModelViews.ServiceDTOs;
+
+namespace MartyrGraveManagement_BAL.ModelViews.DashboardDTOs
 {
     public class DashboardDto
     {
@@ -11,5 +13,6 @@
         public int totalRequestTask { get; set; } = 0;
         public List<MontlySalesDTO> MonthSales { get; set; } = new List<MontlySalesDTO>();
         public List<Top3CustomertDtoResponse>? topCustomer { get; set; } = new List<Top3CustomertDtoResponse>();
+        public List<ServiceDtoResponse>? topSellingServices { get; set; } = new List<ServiceDtoResponse>();
     }
 }

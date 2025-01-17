@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using MartyrGraveManagement_BAL.ModelViews.DashboardDTOs;
+using MartyrGraveManagement_BAL.ModelViews.ServiceDTOs;
 using MartyrGraveManagement_BAL.Services.Interfaces;
 using MartyrGraveManagement_DAL.UnitOfWorks.Interfaces;
 
@@ -22,6 +23,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 decimal totalServiceScheduleRevenue = 0;
                 decimal totalRequestRevenue = 0;
                 var customerSpending = new Dictionary<int, decimal>();
+                var serviceSales = new Dictionary<int, int>();
                 var monthlySales = new Dictionary<int, decimal>();
 
                 // Khởi tạo doanh thu từng tháng với giá trị mặc định là 0
@@ -43,15 +45,21 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 {
                     if (order.Status == 1 || order.Status == 4)
                     {
-                        // Tính doanh thu theo tháng
-                        int month = order.OrderDate.Month;
-                        monthlySales[month] += order.TotalPrice;
-
                         var orderDetails = await _unitOfWork.OrderDetailRepository.GetAsync(od => od.OrderId == order.OrderId, includeProperties: "Service");
                         if (orderDetails.Any())
                         {
                             foreach (var orderDetail in orderDetails)
                             {
+                                if (!serviceSales.ContainsKey(orderDetail.ServiceId))
+                                {
+                                    serviceSales[orderDetail.ServiceId] = 0;
+                                }
+                                serviceSales[orderDetail.ServiceId] += 1;
+                                totalOrderRevenue += orderDetail.Service.Price;
+
+                                // Tính doanh thu theo tháng
+                                int month = order.OrderDate.Month;
+                                monthlySales[month] += orderDetail.Service.Price;
                                 if (!customerSpending.ContainsKey(order.AccountId))
                                 {
                                     customerSpending[order.AccountId] = 0;
@@ -59,7 +67,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                                 customerSpending[order.AccountId] += orderDetail.Service.Price;
                             }
                         }
-                        totalOrderRevenue += order.TotalPrice;
+                        //totalOrderRevenue += order.TotalPrice;
                     }
                 }
 
@@ -118,6 +126,16 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     response.topCustomer.Add(customerResponse);
                 }
 
+                // Top-selling services
+                var topSellingServices = serviceSales.OrderByDescending(ps => ps.Value).Take(5).ToDictionary(ps => ps.Key, ps => ps.Value);
+                foreach (var product in topSellingServices)
+                {
+                    var pd = await _unitOfWork.ServiceRepository.GetByIDAsync(product.Key);
+                    var serviceResponse = _mapper.Map<ServiceDtoResponse>(pd);
+
+                    response.topSellingServices.Add(serviceResponse);
+                }
+
                 return response;
             }
             catch (Exception ex)
@@ -136,6 +154,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 decimal totalServiceScheduleRevenue = 0;
                 decimal totalRequestRevenue = 0;
                 var customerSpending = new Dictionary<int, decimal>();
+                var serviceSales = new Dictionary<int, int>();
                 var monthlySales = new Dictionary<int, decimal>();
 
                 // Khởi tạo doanh thu hàng tháng với giá trị mặc định là 0
@@ -170,6 +189,11 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         {
                             foreach (var orderDetail in orderDetails)
                             {
+                                if (!serviceSales.ContainsKey(orderDetail.ServiceId))
+                                {
+                                    serviceSales[orderDetail.ServiceId] = 0;
+                                }
+                                serviceSales[orderDetail.ServiceId] += 1;
                                 totalOrderRevenue += orderDetail.Service.Price;
 
                                 // Tính doanh thu theo tháng
@@ -236,6 +260,16 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     var customerResponse = _mapper.Map<Top3CustomertDtoResponse>(customerEntity);
                     customerResponse.customerSpending += customer.Value;
                     response.topCustomer.Add(customerResponse);
+                }
+
+                // Top-selling services
+                var topSellingServices = serviceSales.OrderByDescending(ps => ps.Value).Take(5).ToDictionary(ps => ps.Key, ps => ps.Value);
+                foreach (var product in topSellingServices)
+                {
+                    var pd = await _unitOfWork.ServiceRepository.GetByIDAsync(product.Key);
+                    var serviceResponse = _mapper.Map<ServiceDtoResponse>(pd);
+
+                    response.topSellingServices.Add(serviceResponse);
                 }
 
                 return response;
