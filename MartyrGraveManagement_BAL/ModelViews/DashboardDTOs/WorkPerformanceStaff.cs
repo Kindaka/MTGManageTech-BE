@@ -14,5 +14,12 @@
         public int totalFailTask { get; set; } = 0;
         public int totalFailAssignmentTask { get; set; } = 0;
         public int totalFailRequestTask { get; set; } = 0;
+
+
+
+        public decimal averageAllFeedbackRate { get; set; } = 0;
+
+        public string? workPerformance { get; set; } = "Not Avaiable";
+        public string? workQuality { get; set; } = "Not Available";
     }
 }
