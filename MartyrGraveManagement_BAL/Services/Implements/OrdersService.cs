@@ -937,6 +937,21 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             return paymentUrl;
         }
 
+        private string CreateVnpayLinkMobile(Order order)
+        {
+            var paymentUrl = string.Empty;
+
+            var vpnRequest = new VNPayRequest(_configuration["VNpay:Version"], _configuration["VNpay:tmnCode"],
+                order.OrderDate, "https://localhost:7006", (decimal)order.TotalPrice, "VND", "other",
+                $"Thanh toan don hang {order.OrderId}", _configuration["VnPay:MobileReturn"],
+                $"{order.OrderId}");
+
+            paymentUrl = vpnRequest.GetLink(_configuration["VNpay:PaymentUrl"],
+                _configuration["VNpay:HashSecret"]);
+
+            return paymentUrl;
+        }
+
         public async Task<List<MartyrGraveOrderHistoryDTO>> GetOrdersByMartyrGraveId(int martyrGraveId)
         {
             try
@@ -970,6 +985,215 @@ namespace MartyrGraveManagement_BAL.Services.Implements
             catch (Exception ex)
             {
                 throw new Exception($"Error retrieving order history for martyr grave {martyrGraveId}: {ex.Message}");
+            }
+        }
+
+        public async Task<(bool status, string? paymentUrl, string responseContent)> CreateOrderFromCartMobileAsync(int accountId, OrdersDTORequest orderBody, string paymentMethod)
+        {
+            using (var transaction = await _unitOfWork.BeginTransactionAsync())
+            {
+                try
+                {
+                    // Lấy thông tin tài khoản và giỏ hàng
+                    var account = await _unitOfWork.AccountRepository.GetByIDAsync(accountId);
+                    if (account == null)
+                    {
+                        return (false, null, "Không tìm thấy tài khoản.");
+                    }
+
+                    if (!account.Status)
+                    {
+                        return (false, null, "Tài khoản đã bị khóa.");
+                    }
+
+                    var cartItems = await _unitOfWork.CartItemRepository.GetAsync(c => c.AccountId == accountId && c.Status == true);
+                    if (cartItems == null || !cartItems.Any())
+                    {
+                        return (false, null, "Không có sản phẩm trong giỏ hàng.");
+                    }
+
+                    // Tính toán tổng giá và tạo chi tiết đơn hàng
+                    decimal totalPrice = 0;
+                    var orderDetails = new List<OrderDetail>();
+                    foreach (var cartItem in cartItems)
+                    {
+                        var service = await _unitOfWork.ServiceRepository.GetByIDAsync(cartItem.ServiceId);
+                        if (service == null || !service.Status)
+                        {
+                            return (false, null, $"Dịch vụ {cartItem.ServiceId} không khả dụng.");
+                        }
+
+                        // Lấy thông tin mộ liệt sĩ
+                        var grave = await _unitOfWork.MartyrGraveRepository.GetByIDAsync(cartItem.MartyrId);
+                        decimal priceToApply = (decimal)service.Price;
+
+                        //// Kiểm tra xem người đặt hàng có phải là người quản lý mộ không
+                        //if (grave.AccountId == account.AccountId)
+                        //{
+                        //    // Giảm giá 5% nếu người đặt hàng là người quản lý mộ
+                        //    priceToApply *= 0.95m;
+                        //}
+
+                        totalPrice += priceToApply;
+                        orderDetails.Add(new OrderDetail
+                        {
+                            ServiceId = cartItem.ServiceId,
+                            MartyrId = cartItem.MartyrId,
+                            OrderPrice = (double)priceToApply,
+                            Status = true
+                        });
+                    }
+
+                    // Tạo đơn hàng
+                    var order = new Order
+                    {
+                        AccountId = accountId,
+                        OrderDate = DateTime.Now,
+                        TotalPrice = totalPrice,
+                        Status = 0, // Chưa thanh toán
+                        ExpectedCompletionDate = orderBody.ExpectedCompletionDate,
+                        Note = orderBody.Note
+                    };
+
+                    await _unitOfWork.OrderRepository.AddAsync(order);
+                    //await _unitOfWork.SaveAsync();
+
+                    // Thêm chi tiết đơn hàng
+                    foreach (var orderDetail in orderDetails)
+                    {
+                        orderDetail.OrderId = order.OrderId;
+                        await _unitOfWork.OrderDetailRepository.AddAsync(orderDetail);
+                    }
+                    //await _unitOfWork.SaveAsync();
+
+                    // Tạo link thanh toán
+                    string paymentUrl;
+                    if (paymentMethod.ToLower() == "vnpay")
+                    {
+                        paymentUrl = CreateVnpayLinkMobile(order);
+                    }
+                    else if (paymentMethod.ToLower() == "balance")
+                    {
+                        // Lấy ví của khách hàng
+                        var customerWallet = (await _unitOfWork.CustomerWalletRepository.GetAsync(
+                            w => w.CustomerId == accountId
+                        )).FirstOrDefault();
+
+                        if (customerWallet == null)
+                        {
+                            await transaction.RollbackAsync();
+                            return (false, null, "Không tìm thấy ví của khách hàng.");
+                        }
+
+                        // Kiểm tra số dư
+                        decimal currentBalance = customerWallet.CustomerBalance;
+                        if (currentBalance < totalPrice)
+                        {
+                            await transaction.RollbackAsync();
+                            return (false, null, "Số dư không đủ để thực hiện giao dịch này.");
+                        }
+
+                        try
+                        {
+                            // Tính toán số dư mới
+                            decimal newBalance = currentBalance - totalPrice;
+
+                            // Tạo Payment record
+                            var payment = new Payment
+                            {
+                                OrderId = order.OrderId,
+                                PaymentMethod = "Balance",
+                                PaymentInfo = $"Thanh toán đơn hàng {order.OrderId} bằng số dư ví",
+                                PayDate = DateTime.Now,
+                                TransactionStatus = 1, // Thanh toán thành công
+                                PaymentAmount = totalPrice,
+                                BankCode = "WALLET", // Thêm giá trị mặc định cho BankCode
+                                CardType = "BALANCE", // Thêm giá trị mặc định cho CardType nếu cần
+                                TransactionNo = DateTime.Now.Ticks.ToString(), // Tạo số giao dịch unique
+                                BankTransactionNo = DateTime.Now.Ticks.ToString() // Tạo số giao dịch ngân hàng unique
+                            };
+                            await _unitOfWork.PaymentRepository.AddAsync(payment);
+
+                            // Tạo TransactionBalanceHistory
+                            var transactionHistory = new TransactionBalanceHistory
+                            {
+                                CustomerId = accountId,
+                                TransactionType = "Payment",
+                                Amount = -totalPrice,
+                                TransactionDate = DateTime.Now,
+                                Description = $"Thanh toán đơn hàng #{order.OrderId}",
+                                BalanceAfterTransaction = newBalance
+                            };
+                            await _unitOfWork.TransactionBalanceHistoryRepository.AddAsync(transactionHistory);
+
+                            // Cập nhật số dư ví
+                            customerWallet.CustomerBalance = newBalance;
+                            customerWallet.UpdateAt = DateTime.Now;
+                            await _unitOfWork.CustomerWalletRepository.UpdateAsync(customerWallet);
+
+                            // Cập nhật trạng thái đơn hàng thành đã thanh toán
+                            order.Status = 1; // Đã thanh toán
+                            await _unitOfWork.OrderRepository.UpdateAsync(order);
+
+                            // Xóa các mục trong giỏ hàng
+                            foreach (var cartItem in cartItems)
+                            {
+                                await _unitOfWork.CartItemRepository.DeleteAsync(cartItem);
+                            }
+
+                            // Tạo thông báo
+                            var notification = new Notification
+                            {
+                                Title = "Thanh toán đơn hàng thành công",
+                                Description = $"Đơn hàng #{order.OrderId} đã được thanh toán thành công.\n" +
+                                             $"Số tiền thanh toán: {totalPrice:N0} VNĐ\n" +
+                                             $"Số dư ban đầu: {currentBalance:N0} VNĐ\n" +
+                                             $"Số dư còn lại: {newBalance:N0} VNĐ",
+                                CreatedDate = DateTime.Now,
+                                LinkTo = "/order-history",
+                                Status = true
+                            };
+                            await _unitOfWork.NotificationRepository.AddAsync(notification);
+                            //await _unitOfWork.SaveAsync();
+
+                            // Liên kết thông báo với tài khoản
+                            var notificationAccount = new NotificationAccount
+                            {
+                                AccountId = accountId,
+                                NotificationId = notification.NotificationId,
+                                Status = true
+                            };
+                            await _unitOfWork.NotificationAccountsRepository.AddAsync(notificationAccount);
+                            var existingOrderDetails = await _unitOfWork.OrderDetailRepository.GetAsync(od => od.OrderId == order.OrderId);
+                            var taskRequests = orderDetails.Select(od => new TaskDtoRequest
+                            {
+                                OrderId = order.OrderId,
+                                DetailId = od.DetailId
+                            }).ToList();
+                            await _taskService.CreateTasksAsync(taskRequests);
+                            //await _unitOfWork.SaveAsync();
+                            await transaction.CommitAsync();
+                            return (true, null, "Đơn hàng đã được thanh toán thành công bằng số dư tài khoản.");
+                        }
+                        catch (Exception ex)
+                        {
+                            await transaction.RollbackAsync();
+                            throw new Exception($"Lỗi khi xử lý thanh toán: {ex.Message}");
+                        }
+                    }
+                    else
+                    {
+                        return (false, null, "Phương thức thanh toán không hợp lệ.");
+                    }
+
+                    await transaction.CommitAsync();
+                    return (true, paymentUrl, "Đơn hàng đã được tạo thành công. Vui lòng thanh toán.");
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    throw new Exception(ex.Message);
+                }
             }
         }
 

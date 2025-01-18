@@ -14,6 +14,8 @@ namespace MartyrGraveManagement.Controllers
         private readonly IPaymentService _paymentService;
         private static readonly string URL_SUCCESS = "https://mtg-two.vercel.app/checkout-success";
         private static readonly string URL_ERROR = "https://mtg-two.vercel.app/checkout-fail";
+        private static readonly string URL_MOBILE_SUCCESS = "mtgmobile://customer/success";
+        private static readonly string URL_MOBILE_ERROR = "mtgmobile://customer/fail";
         private readonly ILogger<PaymentController> _logger;
 
         public PaymentController(IPaymentService paymentService, ILogger<PaymentController> logger)
@@ -57,6 +59,48 @@ namespace MartyrGraveManagement.Controllers
                 }
 
                 return Redirect(URL_ERROR);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpGet("mobile-return")]
+        public async Task<IActionResult> MobileReturn([FromQuery] PaymentDTORequest parameters)
+        {
+            try
+            {
+                // Kiểm tra nếu là giao dịch nạp tiền vào ví
+                if (parameters.vnp_OrderInfo?.StartsWith("Nap tien vi") == true)
+                {
+                    var success = await _paymentService.ProcessWalletDeposit(parameters);
+                    if (success)
+                    {
+                        return Redirect(URL_MOBILE_SUCCESS);
+                    }
+                    return Redirect(URL_MOBILE_ERROR);
+                }
+
+                // Xử lý thanh toán đơn hàng thông thường
+                if (parameters.vnp_ResponseCode == "00") // Giao dịch thành công
+                {
+                    var result = await _paymentService.CreatePayment(parameters);
+                    if (result != null)
+                    {
+                        return Redirect(URL_MOBILE_SUCCESS);
+                    }
+                }
+                else // Giao dịch thất bại
+                {
+                    var res = await _paymentService.CancelTransaction(parameters);
+                    if (res != null)
+                    {
+                        return Redirect(URL_MOBILE_ERROR);
+                    }
+                }
+
+                return Redirect(URL_MOBILE_ERROR);
             }
             catch (Exception ex)
             {
