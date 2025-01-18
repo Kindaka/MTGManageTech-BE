@@ -14,8 +14,8 @@ namespace MartyrGraveManagement.Controllers
         private readonly IPaymentService _paymentService;
         private static readonly string URL_SUCCESS = "https://mtg-two.vercel.app/checkout-success";
         private static readonly string URL_ERROR = "https://mtg-two.vercel.app/checkout-fail";
-        private static readonly string URL_MOBILE_SUCCESS = "mtgmobile://customer/success";
-        private static readonly string URL_MOBILE_ERROR = "mtgmobile://customer/fail";
+        private static readonly string URL_MOBILE_SUCCESS = "exp://mtgmobile/screens/customer/success";
+        private static readonly string URL_MOBILE_ERROR = "exp://mtgmobile/screens/customer/fail";
         private readonly ILogger<PaymentController> _logger;
 
         public PaymentController(IPaymentService paymentService, ILogger<PaymentController> logger)
