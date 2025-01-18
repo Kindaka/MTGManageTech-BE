@@ -282,7 +282,7 @@ namespace MartyrGraveManagement_BAL.Services.Implements
 
 
 
-        public async Task<WorkPerformanceStaff> GetWorkPerformanceStaff(int staffId, int month, int year)
+        public async Task<WorkPerformanceStaff> GetWorkPerformanceStaff(int staffId, int managerId, int month, int year)
         {
             try
             {
@@ -292,27 +292,30 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                 int totalFailTask = 0;
                 int totalFailAssignmentTask = 0;
                 int totalFailRequestTask = 0;
-                var staff = _unitOfWork.AccountRepository.GetByIDAsync(staffId);
-                if (staff == null)
+                decimal totalFeedbackRate = 0;
+                var staff = await _unitOfWork.AccountRepository.GetByIDAsync(staffId);
+                var manager = await _unitOfWork.AccountRepository.GetByIDAsync(managerId);
+                if (staff == null || manager == null || staff.AreaId != manager.AreaId)
                 {
                     return new WorkPerformanceStaff();
                 }
+
                 var startDate = new DateTime(year, month, 1);
                 var endDate = startDate.AddMonths(1);
 
                 // Total tasks assigned to the staff
-                var totalTasks = await _unitOfWork.TaskRepository
+                var tasks = await _unitOfWork.TaskRepository
                     .GetAsync(t => t.AccountId == staffId && t.StartDate >= startDate && t.StartDate < endDate);
 
-                var totalAssignmentTask = await _unitOfWork.AssignmentTaskRepository
+                var assignmentTask = await _unitOfWork.AssignmentTaskRepository
                     .GetAsync(t => t.StaffId == staffId && t.CreateAt >= startDate && t.CreateAt < endDate);
 
-                var totalRequestTask = await _unitOfWork.RequestTaskRepository
+                var requestTask = await _unitOfWork.RequestTaskRepository
                     .GetAsync(t => t.StaffId == staffId && t.CreateAt >= startDate && t.CreateAt < endDate);
 
-                if (totalTasks.Any())
+                if (tasks.Any())
                 {
-                    foreach (var task in totalTasks)
+                    foreach (var task in tasks)
                     {
                         if (task.Status == 4)
                         {
@@ -325,61 +328,77 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     }
                 }
 
-                if (totalAssignmentTask.Any())
+                if (assignmentTask.Any())
                 {
-                    foreach (var task in totalAssignmentTask)
+                    foreach (var task in assignmentTask)
                     {
                         if (task.Status == 4)
                         {
-                            totalFinishTask++;
+                            totalFinishAssignmentTask++;
                         }
                         else if (task.Status == 5)
                         {
-                            totalFailTask++;
+                            totalFailAssignmentTask++;
                         }
                     }
                 }
 
-                if (totalRequestTask.Any())
+                if (requestTask.Any())
                 {
-                    foreach (var task in totalRequestTask)
+                    foreach (var task in requestTask)
                     {
                         if (task.Status == 4)
                         {
-                            totalFinishTask++;
+                            totalFinishRequestTask++;
                         }
                         else if (task.Status == 5)
                         {
-                            totalFailTask++;
+                            totalFailRequestTask++;
                         }
                     }
                 }
 
-                //// Total tasks completed
-                //var totalFinishTask = await _context.Tasks
-                //    .CountAsync(t => t.StaffId == staffId && t.AssignedDate >= startDate && t.AssignedDate < endDate && t.Status == "Completed");
+                int totalFeedbackCount = 0; // Tổng số feedback
 
-                //var totalFinishAssignmentTask = await _context.Tasks
-                //    .CountAsync(t => t.StaffId == staffId && t.AssignedDate >= startDate && t.AssignedDate < endDate && t.Status == "Completed" && t.Type == "Assignment");
-
-                //var totalFinishRequestTask = await _context.Tasks
-                //    .CountAsync(t => t.StaffId == staffId && t.AssignedDate >= startDate && t.AssignedDate < endDate && t.Status == "Completed" && t.Type == "Request");
-
-                //// Total failed tasks
-                //var totalFailTask = await _context.Tasks
-                //    .CountAsync(t => t.StaffId == staffId && t.AssignedDate >= startDate && t.AssignedDate < endDate && t.Status == "Failed");
-
-                //var totalFailAssignmentTask = await _context.Tasks
-                //    .CountAsync(t => t.StaffId == staffId && t.AssignedDate >= startDate && t.AssignedDate < endDate && t.Status == "Failed" && t.Type == "Assignment");
-
-                //var totalFailRequestTask = await _context.Tasks
-                //    .CountAsync(t => t.StaffId == staffId && t.AssignedDate >= startDate && t.AssignedDate < endDate && t.Status == "Failed" && t.Type == "Request");
-
-                return new WorkPerformanceStaff
+                // Task Feedback
+                var taskFeedback = await _unitOfWork.FeedbackRepository.GetAsync(f => f.StaffId == staffId && f.CreatedAt >= startDate && f.CreatedAt < endDate);
+                if (taskFeedback.Any())
                 {
-                    totalTask = totalTasks.Count(),
-                    totalAssignmentTask = totalAssignmentTask.Count(),
-                    totalRequestTask = totalRequestTask.Count(),
+                    totalFeedbackCount += taskFeedback.Count(); // Cộng số lượng feedback
+                    foreach (var feedback in taskFeedback)
+                    {
+                        totalFeedbackRate += feedback.Rating;
+                    }
+                }
+
+                // Assignment Task Feedback
+                var assignTaskFeedback = await _unitOfWork.AssignmentTaskFeedbackRepository.GetAsync(f => f.StaffId == staffId && f.CreatedAt >= startDate && f.CreatedAt < endDate);
+                if (assignTaskFeedback.Any())
+                {
+                    totalFeedbackCount += assignTaskFeedback.Count(); // Cộng số lượng feedback
+                    foreach (var feedback in assignTaskFeedback)
+                    {
+                        totalFeedbackRate += feedback.Rating;
+                    }
+                }
+
+                // Request Task Feedback
+                var requestTaskFeedback = await _unitOfWork.RequestFeedbackRepository.GetAsync(f => f.StaffId == staffId && f.CreatedAt >= startDate && f.CreatedAt < endDate);
+                if (requestTaskFeedback.Any())
+                {
+                    totalFeedbackCount += requestTaskFeedback.Count(); // Cộng số lượng feedback
+                    foreach (var feedback in requestTaskFeedback)
+                    {
+                        totalFeedbackRate += feedback.Rating;
+                    }
+                }
+
+                // Tính toán kết quả
+                var response = new WorkPerformanceStaff
+                {
+                    totalTask = tasks.Count(),
+                    totalAssignmentTask = assignmentTask.Count(),
+                    totalRequestTask = requestTask.Count(),
 
                     totalFinishTask = totalFinishTask,
                     totalFinishAssignmentTask = totalFinishAssignmentTask,
@@ -389,6 +408,37 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                     totalFailAssignmentTask = totalFailAssignmentTask,
                     totalFailRequestTask = totalFailRequestTask
                 };
+
+                int totalAllTask = response.totalTask + response.totalAssignmentTask + response.totalRequestTask;
+                int totalAllFinishTask = totalFinishTask + totalFinishAssignmentTask + totalFinishRequestTask;
+
+                // Hiệu suất công việc hoàn thành
+                response.workPerformance = $"Hiệu suất công việc hoàn thành: {(totalAllTask > 0 ? (double)totalAllFinishTask / totalAllTask : 0):P}";
+
+                // Tính trung bình feedback
+                if (totalFeedbackCount > 0)
+                {
+                    response.averageAllFeedbackRate = totalFeedbackRate / totalFeedbackCount; // Chia cho tổng số feedback
+                    if (response.averageAllFeedbackRate >= 4)
+                    {
+                        response.workQuality = "Rất tốt";
+                    }
+                    else if (response.averageAllFeedbackRate >= 3)
+                    {
+                        response.workQuality = "Khá";
+                    }
+                    else if (response.averageAllFeedbackRate >= 2)
+                    {
+                        response.workQuality = "Trung bình";
+                    }
+                    else
+                    {
+                        response.workQuality = "Kém";
+                    }
+                }
+
+                return response;
+
             }
             catch (Exception ex)
             {

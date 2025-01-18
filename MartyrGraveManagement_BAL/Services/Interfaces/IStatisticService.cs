@@ -6,6 +6,6 @@ namespace MartyrGraveManagement_BAL.Services.Interfaces
     {
         Task<DashboardDto> GetDashboard(int year);
         Task<DashboardDto> GetDashboardByAreaId(int year, int areaId);
-        Task<WorkPerformanceStaff> GetWorkPerformanceStaff(int staffId, int month, int year);
+        Task<WorkPerformanceStaff> GetWorkPerformanceStaff(int staffId, int managerId, int month, int year);
     }
 }
