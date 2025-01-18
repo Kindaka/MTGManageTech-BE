@@ -323,6 +323,20 @@ namespace MartyrGraveManagement_BAL.Services.Implements
                         orderDetailDto.StatusTask = relatedTask.Status;
                         orderDetailDto.ImagePath1 = relatedTask.ImageWorkSpace;
 
+                        // Fetch TaskImages for the task
+                        var taskImages = await _unitOfWork.TaskImageRepository.GetAsync(
+                            ti => ti.TaskId == relatedTask.TaskId); // Adjust this to match your database design
+
+                        if (taskImages != null)
+                        {
+                            orderDetailDto.TaskImages = taskImages
+                                .Select(ti => new TaskImageDto
+                                {
+                                    ImagePath = ti.ImageWorkSpace,
+                                    CreatedDate = ti.CreateAt
+                                })
+                                .ToList();
+                        }
 
                         // Map Staff information
                         if (relatedTask.Account != null)

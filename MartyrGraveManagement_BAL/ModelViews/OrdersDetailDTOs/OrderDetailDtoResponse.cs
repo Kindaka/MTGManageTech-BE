@@ -1,4 +1,5 @@
 ﻿using MartyrGraveManagement_BAL.ModelViews.StaffDTOs;
+using MartyrGraveManagement_BAL.ModelViews.TaskDTOs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,5 +27,6 @@ namespace MartyrGraveManagement_BAL.ModelViews.OrdersDetailDTOs
 
 
         public List<StaffDtoResponse>? Staffs { get; set; } = new List<StaffDtoResponse>();
+        public List<TaskImageDto> TaskImages { get; set; } = new List<TaskImageDto>();
     }
 }
